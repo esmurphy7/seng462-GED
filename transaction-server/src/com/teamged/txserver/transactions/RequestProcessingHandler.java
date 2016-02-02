@@ -27,6 +27,7 @@ public class RequestProcessingHandler implements Runnable {
             System.out.println("Error processing request: " + to.toString() + "; Error msg: " + to.getErrorString());
         } else {
             // This has the potential to block for a while (if the request queue is full)
+            // TODO: This does not properly deal with transactions that have no user name (DUMPLOG_ROOT)
             TransactionMonitor.AddTransactionObject(to);
             TransactionMonitor.PutRequestQueue(to.getUserName());
         }

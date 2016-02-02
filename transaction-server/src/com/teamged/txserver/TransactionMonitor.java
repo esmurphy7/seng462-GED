@@ -106,16 +106,21 @@ public class TransactionMonitor {
         return request;
     }
 
+    /**
+     * Adds the given transaction object to a processing set. The transaction object will be associated with the
+     * user it specifies.
+     * @param txObject  The transaction object to prep for processing.
+     */
     public static void AddTransactionObject(TransactionObject txObject) {
         if (txObject != null && txObject.getErrorString().isEmpty()) {
             String user = txObject.getUserName();
             UserQueueObject userObj;
             if (!requestTxUserMap.containsKey(user)) {
-                userObj = new UserQueueObject();
-                requestTxUserMap.put(user, userObj);
-            } else {
-                userObj = requestTxUserMap.get(user);
+                // Only adds if absent to avoid a race condition of multiple threads creating and overwriting at once
+                requestTxUserMap.putIfAbsent(user, new UserQueueObject());
             }
+
+            userObj = requestTxUserMap.get(user);
 
             if (userObj != null) {
                 userObj.addTransactionObject(txObject);
@@ -125,12 +130,12 @@ public class TransactionMonitor {
         }
     }
 
+    /**
+     * Gets the user object associated with the user name. This will be null if no user exists.
+     * @param user  The user name to get the UserQueueObject for.
+     * @return  The user object for the given user name, if it exists.
+     */
     public static UserQueueObject GetUserObject(String user) {
-        UserQueueObject userObj = null;
-        if (requestTxUserMap.containsKey(user)) {
-            userObj = requestTxUserMap.get(user);
-        }
-
-        return userObj;
+        return requestTxUserMap.get(user);
     }
 }

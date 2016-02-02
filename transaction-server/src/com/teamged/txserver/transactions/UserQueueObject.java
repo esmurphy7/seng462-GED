@@ -33,13 +33,13 @@ public class UserQueueObject {
         Integer nextInteger = nextRequestIndex;
         System.out.println("Fetching txObject with sequence " + nextRequestIndex);
 
-        System.out.print("Keys: ");
+        /*System.out.print("Keys: ");
         for (Integer i : requestSequence.keySet()) {
             System.out.print(i.intValue() + " ");
         }
-        System.out.println();
+        System.out.println();*/
 
-        TransactionObject txObject = requestSequence.get(nextInteger);
+        TransactionObject txObject = requestSequence.remove(nextInteger);
         if (txObject != null) {
             nextRequestIndex++;
             if (nextProcessCount > 1) {
