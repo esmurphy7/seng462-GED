@@ -1,44 +1,22 @@
 package com.teamged.logging;
 
-import com.teamged.logging.xmlelements.generated.*;
-import com.teamged.txserver.transactions.UserCommand;
+import com.teamged.logging.xmlelements.generated.CommandType;
+import com.teamged.logging.xmlelements.generated.LogType;
+import com.teamged.logging.xmlelements.generated.QuoteServerType;
+import com.teamged.logging.xmlelements.generated.UserCommandType;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.bind.*;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.io.File;
+import javax.xml.bind.JAXBException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URL;
 
 /**
  * Created by Evan on 2/2/2016.
  */
 public class SerializeTest
 {
-    public static void main(String[] args) throws JAXBException, SAXException {
-        class MyValidationEventHandler implements ValidationEventHandler
-        {
-
-            @Override
-            public boolean handleEvent(ValidationEvent event) {
-                System.out.println("\nEVENT");
-                System.out.println("SEVERITY:  " + event.getSeverity());
-                System.out.println("MESSAGE:  " + event.getMessage());
-                System.out.println("LINKED EXCEPTION:  " + event.getLinkedException());
-                System.out.println("LOCATOR");
-                System.out.println("    LINE NUMBER:  " + event.getLocator().getLineNumber());
-                System.out.println("    COLUMN NUMBER:  " + event.getLocator().getColumnNumber());
-                System.out.println("    OFFSET:  " + event.getLocator().getOffset());
-                System.out.println("    OBJECT:  " + event.getLocator().getObject());
-                System.out.println("    NODE:  " + event.getLocator().getNode());
-                System.out.println("    URL:  " + event.getLocator().getURL());
-                return true;
-            }
-        }
-
+    public static void main(String[] args)
+    {
         // create instances of log types
         // usercommandtype test object
         UserCommandType userCommand = new UserCommandType();
@@ -67,22 +45,15 @@ public class SerializeTest
         logType.getUserCommandOrQuoteServerOrAccountTransaction().add(userCommand);
         logType.getUserCommandOrQuoteServerOrAccountTransaction().add(quoteServer);
 
-        // define schema
-        SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        URL url = SerializeTest.class.getResource("logfile.xsd");
-        File schemaFile = new File(url.getPath());
-        Schema schema = sf.newSchema(schemaFile);
-
-        // build jaxb context
-        ObjectFactory objectFactory = new ObjectFactory();
-        JAXBElement<LogType> jaxbLogType = objectFactory.createLog(logType);
-        JAXBContext jc = JAXBContext.newInstance(LogType.class);
-
-        // marshall the data
-        Marshaller marshaller = jc.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        marshaller.setSchema(schema);
-        marshaller.setEventHandler(new MyValidationEventHandler());
-        marshaller.marshal(jaxbLogType, System.out);
+        // log and save the test logs
+        for(Object log : logType.getUserCommandOrQuoteServerOrAccountTransaction())
+        {
+            Logger.getInstance().Log(log);
+        }
+        try {
+            Logger.getInstance().SaveLog();
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
     }
 }

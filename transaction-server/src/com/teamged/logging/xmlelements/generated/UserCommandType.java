@@ -118,7 +118,7 @@ public class UserCommandType {
 
     /**
      * Sets the value of the transactionNum property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link BigInteger }
