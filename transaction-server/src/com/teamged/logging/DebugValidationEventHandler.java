@@ -6,7 +6,10 @@ import javax.xml.bind.ValidationEventHandler;
 /**
  * Created by Evan on 2/3/2016.
  */
-public class MyValidationEventHandler implements ValidationEventHandler
+/* Event handler used by the JAXB marshaller to catch validation errors and display them to the console,
+* without throwing any exceptions.
+*/
+public class DebugValidationEventHandler implements ValidationEventHandler
 {
     @Override
     public boolean handleEvent(ValidationEvent event) {

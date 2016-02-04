@@ -6,6 +6,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.*;
+import javax.xml.bind.helpers.DefaultValidationEventHandler;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.*;
@@ -58,7 +59,8 @@ public class Logger
             marshaller = jc.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setSchema(schema);
-            marshaller.setEventHandler(new MyValidationEventHandler());
+            //marshaller.setEventHandler(new DebugValidationEventHandler());
+            marshaller.setEventHandler(new DefaultValidationEventHandler());
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (SAXException e) {
@@ -68,7 +70,7 @@ public class Logger
         return marshaller;
     }
 
-    // Log a logtype
+    // Store the log in a list to save later
     public void Log(Object logType)
     {
         Logs.add(logType);
@@ -81,7 +83,7 @@ public class Logger
         for (Object log : Logs) {
             logType.getUserCommandOrQuoteServerOrAccountTransaction().add(log);
         }
-
+        
         try {
             // define output location
             URL url = Logger.class.getResource("");
