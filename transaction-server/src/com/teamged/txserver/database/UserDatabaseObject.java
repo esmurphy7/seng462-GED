@@ -196,21 +196,21 @@ public class UserDatabaseObject {
                     long ownedValue = stockPrice * ownedCount;
 
                     // Gets the value of the rounded stocks to sell
-                    int actualSellAmount = (int) (sellMoney / stockPrice);
-                    long actualValue = actualSellAmount * stockPrice;
+                    int actualSellCount = (int) (sellMoney / stockPrice);
+                    long actualValue = actualSellCount * stockPrice;
 
                     // Removes the number of stocks as would be sold by this command
                     if (ownedValue >= actualValue) {
                         StockRequest sr = new StockRequest(
                                 stock,
-                                actualSellAmount,
+                                actualSellCount,
                                 (int) (actualValue / CENT_CAP),
                                 (int) (actualValue % CENT_CAP),
                                 Calendar.getInstance().getTimeInMillis()
                         );
 
                         sellList.push(sr);
-                        stocksOwned.put(stock, ownedCount - actualSellAmount);
+                        stocksOwned.put(stock, ownedCount - actualSellCount);
                         // TODO: Start a timer to expire the stored buy request in 60 seconds
                         history.add("SELL," + userName + "," + stock + "," + dollars + "." + cents);
                         sellRes = quote;
@@ -348,6 +348,7 @@ public class UserDatabaseObject {
                         String[] stockPriceString = quoteParams[0].split("\\.");
                         int stockDollars = Integer.parseInt(stockPriceString[0]);
                         int stockCents = Integer.parseInt(stockPriceString[1]);
+                        history.add("SET_BUY_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                         if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
                             long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
@@ -396,18 +397,126 @@ public class UserDatabaseObject {
     }
 
     public String setSellAmount(String stock, int dollars, int cents) {
-        // TODO
-        return "";
+        String setRes;
+        synchronized (lock) {
+            // TODO: Confirm the business logic that should be followed if a previous set sell is present
+            int ownedCount = 0;
+            if (stocksOwned.containsKey(stock)) {
+                ownedCount = stocksOwned.get(stock);
+            }
+
+            if (sellAmount == null && ownedCount >0) {
+                sellAmount = new StockRequest(stock, 0, dollars, cents, 0);
+
+                history.add("SET_SELL_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents);
+                setRes = "SET_SELL_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents;
+            } else {
+                setRes = "SET_SELL_AMOUNT ERROR," + userName + "," + this.dollars + "." + this.cents;
+            }
+        }
+
+        return setRes;
     }
 
     public String cancelSetSell(String stock) {
-        // TODO
-        return "";
+        String cancelSet;
+        synchronized (lock) {
+            StockRequest sellReq = null;
+
+            if (sellAmount != null && sellAmount.getStock().equals(stock)) {
+                sellReq = sellAmount;
+                sellAmount = null;
+            } else {
+                Iterator<StockTrigger> iter = sellTriggers.descendingIterator();
+                do {
+                    StockTrigger trigger = iter.next();
+                    if (trigger.getSetAmount().getStock().equals(stock)) {
+                        sellTriggers.remove(trigger);
+                        sellReq = trigger.getSetAmount();
+                        break;
+                    }
+                } while (iter.hasNext());
+            }
+
+            if (sellReq != null) {
+                history.add("CANCEL_SET_BUY," + userName + "," + stock);
+                cancelSet = "CANCEL_SET_BUY," + userName + "," + stock + "," + this.dollars + "." + this.cents;
+            } else {
+                cancelSet = "CANCEL_SET_BUY ERROR";
+            }
+        }
+
+        return cancelSet;
     }
 
     public String setSellTrigger(String stock, int dollars, int cents) {
-        // TODO
-        return "";
+        String triggerSet;
+        synchronized (lock) {
+            if (sellAmount != null && sellAmount.getStock().equals(stock)) {
+                StockRequest sell = sellAmount;
+                sellAmount = null;
+
+                String quote = quote(stock);    // Get a quote first to see if the current price is good
+                String[] quoteParams = quote.split(",");
+                try {
+                    if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
+                        long sellMoney = (long) sell.getDollars() * CENT_CAP + sell.getCents();
+
+                        String[] stockPriceString = quoteParams[0].split("\\.");
+                        int stockDollars = Integer.parseInt(stockPriceString[0]);
+                        int stockCents = Integer.parseInt(stockPriceString[1]);
+                        long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
+
+                        int ownedCount = 0;
+                        if (stocksOwned.containsKey(stock)) {
+                            ownedCount = stocksOwned.get(stock);
+                        }
+                        long ownedValue = stockPrice * ownedCount;
+
+                        int actualSellCount = (int) (sellMoney / stockPrice);
+                        long actualValue = actualSellCount * stockCents;
+
+                        if (ownedValue >= actualValue) {
+                            stocksOwned.put(stock, ownedCount - actualSellCount);
+                            history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
+
+                            if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
+                                this.dollars += (int) (actualValue / CENT_CAP);
+                                this.cents += (int) (actualValue % CENT_CAP);
+
+                                history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
+                                history.add("COMMIT_SELL," + userName);
+
+                                triggerSet = "SET_SELL_TRIGGER,SELL,COMMIT_SELL," + quote;
+                            } else {
+                                sell = new StockRequest(
+                                        stock,
+                                        actualSellCount,
+                                        (int) (actualValue / CENT_CAP),
+                                        (int) (actualValue % CENT_CAP),
+                                        Calendar.getInstance().getTimeInMillis()
+                                );
+                                StockTrigger trigger = new StockTrigger(sell, dollars, cents);
+                                sellTriggers.add(trigger);
+
+                                // TODO: Start a trigger timer
+                                triggerSet = "SET_SELL_TRIGGER," + quote;
+                            }
+                        } else {
+                            triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                        }
+                    } else {
+                        triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                    }
+                } catch (Exception e) {
+                    triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                }
+            } else {
+                triggerSet = "SET_SELL_TRIGGER ERROR";
+            }
+        }
+
+        return triggerSet;
     }
 
     public String dumplog(String filename) {
