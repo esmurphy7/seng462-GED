@@ -10,6 +10,8 @@ import java.math.BigDecimal;
  * Class for parsing request arguments and providing convenient access to those values.
  */
 public class TransactionObject {
+    public static final String ROOT_USER = "$ROOT$";
+
     /**
      * The minimum number of arguments that could show up in a transaction request. At minimum, there must be:
      *  - A user command
@@ -125,6 +127,9 @@ public class TransactionObject {
                         break;
                     case DUMPLOG_ROOT:
                         parsed = parseFileName(argsArray[idx++]);
+                        if (parsed) {
+                            userName = ROOT_USER;
+                        }
                         break;
                     default:
                         errorString = "Could not parse arguments for user command: " + userCommand.toString();

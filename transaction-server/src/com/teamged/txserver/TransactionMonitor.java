@@ -79,6 +79,10 @@ public class TransactionMonitor {
         } while (!reqProcThreads.isEmpty());
     }
 
+    public static int CountRequestQueue() {
+        return requestTxQueue.size();
+    }
+
     public static void PutRequestQueue(String user) {
         try {
             requestTxQueue.put(user);

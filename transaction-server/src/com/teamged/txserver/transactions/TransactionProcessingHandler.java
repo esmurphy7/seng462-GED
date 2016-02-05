@@ -15,6 +15,14 @@ public class TransactionProcessingHandler implements Runnable {
 
     @Override
     public void run() {
+        // TODO: This is a bit of a hack ... clean up later
+        if (userName.equals(TransactionObject.ROOT_USER)) {
+            if (TransactionMonitor.CountRequestQueue() > 0) {
+                TransactionMonitor.PutRequestQueue(userName);
+                return;
+            }
+        }
+
         // Note that the UserQueueObject is a very unsafe class - proper locking and thread safety is the
         // responsibility of this handler
         UserQueueObject userObj = TransactionMonitor.GetUserObject(userName);
