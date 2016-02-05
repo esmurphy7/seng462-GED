@@ -2,6 +2,8 @@ package com.teamged.txserver.transactions;
 
 import com.teamged.ServerConstants;
 
+import java.math.BigDecimal;
+
 /**
  * Created by DanielF on 2016-01-31.
  *
@@ -24,6 +26,7 @@ public class TransactionObject {
     private UserCommand userCommand = UserCommand.NO_COMMAND;
     private String userName = "";
     private String stockSymbol = "";
+    //private BigDecimal amountMoney = BigDecimal.ZERO;
     private int amountDollars = 0;
     private int amountCents = 0;
     private long timeStamp = 0;
@@ -354,6 +357,14 @@ public class TransactionObject {
                 if (amountsLength == 0 || amountsLength > 2) {
                     errorString = "Error splitting " + amount + " as a money amount for parsing";
                 } else {
+                    /*
+                    amountMoney = new BigDecimal(amounts[0]);
+                    if (amountMoney.signum() < 0) {
+                        errorString = "Error parsing amount - negative dollar values are not allowed";
+                    } else {
+                        parsed = true;
+                    }
+                    */
                     amountDollars = Integer.parseInt(amounts[0]);
                     if (amountDollars < 0) {
                         errorString = "Error parsing amount - negative dollar values are not allowed";
