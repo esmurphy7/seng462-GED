@@ -23,7 +23,7 @@ public class DataProxy {
 
     public static String dbOperation(TransactionObject tx) {
         String opResult;
-        if (tx.getUserCommand() == UserCommand.DUMPLOG_ROOT) {
+        if (tx.getUserCommand().equals(UserCommand.DUMPLOG_ROOT)) {
             opResult = "DUMPLOG_ROOT";
             try {
                 Logger.getInstance().SaveLog();
