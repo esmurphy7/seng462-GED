@@ -2,6 +2,8 @@ package com.teamged.txserver.database;
 
 import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
+import com.teamged.logging.xmlelements.generated.CommandType;
+import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.txserver.transactions.TransactionObject;
 import com.teamged.txserver.transactions.UserCommand;
 
@@ -10,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,6 +37,20 @@ public class DataProxy {
 
             UserDatabaseObject dbProxy = getDBProxy(tx.getUserName());
             if (dbProxy != null) {
+
+                // Log the database connection as a system event
+                SystemEventType systemEvent = new SystemEventType();
+
+                systemEvent.setTimestamp(System.currentTimeMillis());
+                systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
+                systemEvent.setTransactionNum(BigInteger.valueOf(tx.getSequenceNumber()));
+                systemEvent.setUsername(tx.getUserName());
+                systemEvent.setCommand(CommandType.fromValue(tx.getUserCommand().name()));
+                systemEvent.setStockSymbol(tx.getStockSymbol());
+                systemEvent.setFilename(tx.getFileName());
+
+                Logger.getInstance().Log(systemEvent);
+
                 switch (tx.getUserCommand()) {
                     case NO_COMMAND:
                         opResult = "NO_COMMAND";
@@ -91,6 +108,7 @@ public class DataProxy {
                         opResult = "Unknown command \"" + tx.getUserCommand().toString() + "\" was given";
                         break;
                 }
+
             } else {
                 opResult = "ERROR," + tx.toString();
             }
