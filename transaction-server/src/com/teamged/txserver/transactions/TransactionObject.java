@@ -55,7 +55,7 @@ public class TransactionObject {
     }
 
     private void logRequest() {
-        long currentTimestamp = (System.currentTimeMillis()/1000L);
+        long currentTimestamp = System.currentTimeMillis();
         CommandType commandType = null;
 
         switch (userCommand) {
