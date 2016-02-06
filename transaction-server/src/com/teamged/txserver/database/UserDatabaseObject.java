@@ -1,6 +1,7 @@
 package com.teamged.txserver.database;
 
 import com.teamged.ServerConstants;
+import com.teamged.logging.xmlelements.generated.QuoteServerType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -80,7 +81,7 @@ public class UserDatabaseObject {
     public String buy(String stock, int dollars, int cents) {
         String buyRes;
         synchronized (lock) {
-            if (dollars > this.dollars || (dollars == this.dollars && cents >= this.cents)) {
+            if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
                 String quote = quote(stock);
                 String[] quoteParams = quote.split(",");
                 try {
@@ -101,8 +102,8 @@ public class UserDatabaseObject {
                                 (int) (spentMoney % CENT_CAP),
                                 Calendar.getInstance().getTimeInMillis());
                         buyList.push(sr);
-                        this.dollars -= (remainingMoney / CENT_CAP);
-                        this.cents -= (remainingMoney % CENT_CAP);
+                        this.dollars -= sr.getDollars();
+                        this.cents -= sr.getCents();
                         if (this.cents < 0) {
                             this.dollars--;
                             this.cents += CENT_CAP;
@@ -129,7 +130,7 @@ public class UserDatabaseObject {
         String commitRes;
         synchronized (lock) {
             if (!buyList.isEmpty()) {
-                StockRequest buyReq = buyList.removeLast();
+                StockRequest buyReq = buyList.remove();
                 // TODO: Confirm time has not expired on this buy request
 
                 String stock = buyReq.getStock();
@@ -154,7 +155,7 @@ public class UserDatabaseObject {
         String cancelRes;
         synchronized (lock) {
             if (!buyList.isEmpty()) {
-                StockRequest buyReq = buyList.removeLast();
+                StockRequest buyReq = buyList.remove();
 
                 this.dollars += buyReq.getDollars();
                 this.cents += buyReq.getCents();
@@ -232,7 +233,7 @@ public class UserDatabaseObject {
         String commitRes;
         synchronized (lock) {
             if (!sellList.isEmpty()) {
-                StockRequest sellReq = sellList.removeLast();
+                StockRequest sellReq = sellList.remove();
                 // TODO: Confirm time has not expired on this sell request
 
                 // Releases the money into the account
@@ -258,7 +259,7 @@ public class UserDatabaseObject {
         String cancelRes;
         synchronized (lock) {
             if (!sellList.isEmpty()) {
-                StockRequest sellReq = sellList.removeLast();
+                StockRequest sellReq = sellList.remove();
                 String stock = sellReq.getStock();
 
                 // Returns stocks to holdings
@@ -283,7 +284,13 @@ public class UserDatabaseObject {
         String setRes;
         synchronized (lock) {
             // TODO: Confirm the business logic that should be followed if a previous set buy is present
-            if (buyAmount == null && (dollars > this.dollars || (dollars == this.dollars && cents >= this.cents))) {
+            if (buyAmount == null && (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents))) {
+                this.dollars -= dollars;
+                this.cents -= cents;
+                if (this.cents < 0) {
+                    this.cents += CENT_CAP;
+                    this.dollars--;
+                }
                 buyAmount = new StockRequest(stock, 0, dollars, cents, 0);
 
                 history.add("SET_BUY_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents);
@@ -300,20 +307,21 @@ public class UserDatabaseObject {
         String cancelSet;
         synchronized (lock) {
             StockRequest buyReq = null;
+            history.add("CANCEL_SET_BUY," + userName + "," + stock);
 
             if (buyAmount != null && buyAmount.getStock().equals(stock)) {
                 buyReq = buyAmount;
                 buyAmount = null;
             } else {
                 Iterator<StockTrigger> iter = buyTriggers.descendingIterator();
-                do {
+                while (iter.hasNext()) {
                     StockTrigger trigger = iter.next();
                     if (trigger.getSetAmount().getStock().equals(stock)) {
                         buyTriggers.remove(trigger);
                         buyReq = trigger.getSetAmount();
                         break;
                     }
-                } while (iter.hasNext());
+                }
             }
 
             if (buyReq != null) {
@@ -324,7 +332,6 @@ public class UserDatabaseObject {
                     this.dollars++;
                 }
 
-                history.add("CANCEL_SET_BUY," + userName + "," + stock);
                 cancelSet = "CANCEL_SET_BUY," + userName + "," + stock + "," + this.dollars + "." + this.cents;
             } else {
                 cancelSet = "CANCEL_SET_BUY ERROR";
@@ -422,27 +429,27 @@ public class UserDatabaseObject {
         String cancelSet;
         synchronized (lock) {
             StockRequest sellReq = null;
+            history.add("CANCEL_SET_SELL," + userName + "," + stock);
 
             if (sellAmount != null && sellAmount.getStock().equals(stock)) {
                 sellReq = sellAmount;
                 sellAmount = null;
             } else {
                 Iterator<StockTrigger> iter = sellTriggers.descendingIterator();
-                do {
+                while (iter.hasNext()) {
                     StockTrigger trigger = iter.next();
                     if (trigger.getSetAmount().getStock().equals(stock)) {
                         sellTriggers.remove(trigger);
                         sellReq = trigger.getSetAmount();
                         break;
                     }
-                } while (iter.hasNext());
+                }
             }
 
             if (sellReq != null) {
-                history.add("CANCEL_SET_BUY," + userName + "," + stock);
-                cancelSet = "CANCEL_SET_BUY," + userName + "," + stock + "," + this.dollars + "." + this.cents;
+                cancelSet = "CANCEL_SET_SELL," + userName + "," + stock + "," + this.dollars + "." + this.cents;
             } else {
-                cancelSet = "CANCEL_SET_BUY ERROR";
+                cancelSet = "CANCEL_SET_SELL ERROR";
             }
         }
 
