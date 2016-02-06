@@ -20,7 +20,7 @@ public class SerializeTest
         // create instances of log types
         // usercommandtype test object
         UserCommandType userCommand = new UserCommandType();
-        userCommand.setTimestamp((System.currentTimeMillis()/1000L));
+        userCommand.setTimestamp(System.currentTimeMillis());
         userCommand.setServer("CLT1");
         userCommand.setTransactionNum(BigInteger.valueOf(1));
         userCommand.setCommand(CommandType.ADD);
@@ -31,7 +31,7 @@ public class SerializeTest
 
         // quoteservertype test object
         QuoteServerType quoteServer = new QuoteServerType();
-        quoteServer.setTimestamp((System.currentTimeMillis()/1000L));
+        quoteServer.setTimestamp(System.currentTimeMillis());
         quoteServer.setServer("testServer");
         quoteServer.setTransactionNum(BigInteger.valueOf(2));
         quoteServer.setPrice(BigDecimal.valueOf(50.00));
