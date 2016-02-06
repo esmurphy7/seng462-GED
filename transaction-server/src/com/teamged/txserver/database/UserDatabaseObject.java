@@ -1,12 +1,17 @@
 package com.teamged.txserver.database;
 
 import com.teamged.ServerConstants;
+import com.teamged.logging.Logger;
+import com.teamged.logging.xmlelements.generated.AccountTransactionType;
+import com.teamged.logging.xmlelements.generated.LogType;
 import com.teamged.logging.xmlelements.generated.QuoteServerType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -34,7 +39,7 @@ public class UserDatabaseObject {
         userName = user;
     }
 
-    public String add(int dollars, int cents) {
+    public String add(int dollars, int cents, int tid) {
         synchronized (lock) {
             this.dollars += dollars;
             this.cents += cents;
@@ -55,7 +60,7 @@ public class UserDatabaseObject {
      * @param stock
      * @return
      */
-    public String quote(String stock) {
+    public String quote(String stock, int tid) {
         String quote;
         synchronized (lock) {
             try (
@@ -65,6 +70,25 @@ public class UserDatabaseObject {
             ) {
                 out.println(stock + "," + userName);
                 quote = in.readLine();
+
+                try {
+                    String[] qp = quote.split(",");
+                    QuoteServerType qtype = new QuoteServerType();
+                    qtype.setTimestamp(Calendar.getInstance().getTimeInMillis());
+                    qtype.setQuoteServerTime(BigInteger.valueOf(Long.parseLong(qp[3])));
+                    qtype.setServer(ServerConstants.TX_SERVERS[0]);
+                    qtype.setTransactionNum(BigInteger.valueOf(tid));
+                    qtype.setPrice(new BigDecimal(qp[0]));
+                    qtype.setStockSymbol(qp[1]);
+                    qtype.setUsername(qp[2]);
+                    qtype.setCryptokey(qp[4]);
+
+                    Logger.getInstance().Log(qtype);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Error logging");
+                }
+
                 history.add("QUOTE," + userName + "," + stock);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
@@ -78,11 +102,34 @@ public class UserDatabaseObject {
         return quote;
     }
 
-    public String buy(String stock, int dollars, int cents) {
+    private void logAddFunds(int dollars, int cents, int tid) {
+        logFundChange("add", dollars, cents, tid);
+    }
+
+    private void logRemoveFunds(int dollars, int cents, int tid) {
+        logFundChange("remove", dollars, cents, tid);
+    }
+
+    private void logFundChange(String type, int dollars, int cents, int tid) {
+        AccountTransactionType atType = new AccountTransactionType();
+        atType.setTimestamp(Calendar.getInstance().getTimeInMillis());
+        atType.setServer(ServerConstants.TX_SERVERS[0]);
+        atType.setTransactionNum(BigInteger.valueOf(tid));
+        atType.setAction(type);
+        atType.setUsername(userName);
+        atType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
+
+        LogType logType = new LogType();
+        logType.getUserCommandOrQuoteServerOrAccountTransaction().add(atType);
+        Logger.getInstance().Log(logType.getUserCommandOrQuoteServerOrAccountTransaction());
+    }
+
+
+    public String buy(String stock, int dollars, int cents, int tid) {
         String buyRes;
         synchronized (lock) {
             if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
-                String quote = quote(stock);
+                String quote = quote(stock, tid);
                 String[] quoteParams = quote.split(",");
                 try {
                     if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
@@ -102,6 +149,8 @@ public class UserDatabaseObject {
                                 (int) (spentMoney % CENT_CAP),
                                 Calendar.getInstance().getTimeInMillis());
                         buyList.push(sr);
+
+                        logRemoveFunds(sr.getDollars(), sr.getCents(), tid);
                         this.dollars -= sr.getDollars();
                         this.cents -= sr.getCents();
                         if (this.cents < 0) {
@@ -126,7 +175,7 @@ public class UserDatabaseObject {
         return buyRes;
     }
 
-    public String commitBuy() {
+    public String commitBuy(int tid) {
         String commitRes;
         synchronized (lock) {
             if (!buyList.isEmpty()) {
@@ -151,12 +200,13 @@ public class UserDatabaseObject {
         return commitRes;
     }
 
-    public String cancelBuy() {
+    public String cancelBuy(int tid) {
         String cancelRes;
         synchronized (lock) {
             if (!buyList.isEmpty()) {
                 StockRequest buyReq = buyList.remove();
 
+                logAddFunds(buyReq.getDollars(), buyReq.getCents(), tid);
                 this.dollars += buyReq.getDollars();
                 this.cents += buyReq.getCents();
                 if (this.cents >= CENT_CAP) {
@@ -174,10 +224,10 @@ public class UserDatabaseObject {
         return cancelRes;
     }
 
-    public String sell(String stock, int dollars, int cents) {
+    public String sell(String stock, int dollars, int cents, int tid) {
         String sellRes;
         synchronized (lock) {
-            String quote = quote(stock);
+            String quote = quote(stock, tid);
             String[] quoteParams = quote.split(",");
             try {
                 if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
@@ -229,7 +279,7 @@ public class UserDatabaseObject {
         return sellRes;
     }
 
-    public String commitSell() {
+    public String commitSell(int tid) {
         String commitRes;
         synchronized (lock) {
             if (!sellList.isEmpty()) {
@@ -237,6 +287,7 @@ public class UserDatabaseObject {
                 // TODO: Confirm time has not expired on this sell request
 
                 // Releases the money into the account
+                logAddFunds(sellReq.getDollars(), sellReq.getCents(), tid);
                 this.dollars += sellReq.getDollars();
                 this.cents += sellReq.getCents();
                 if (this.cents >= CENT_CAP) {
@@ -255,7 +306,7 @@ public class UserDatabaseObject {
         return commitRes;
     }
 
-    public String cancelSell() {
+    public String cancelSell(int tid) {
         String cancelRes;
         synchronized (lock) {
             if (!sellList.isEmpty()) {
@@ -280,11 +331,12 @@ public class UserDatabaseObject {
         return cancelRes;
     }
 
-    public String setBuyAmount(String stock, int dollars, int cents) {
+    public String setBuyAmount(String stock, int dollars, int cents, int tid) {
         String setRes;
         synchronized (lock) {
             // TODO: Confirm the business logic that should be followed if a previous set buy is present
             if (buyAmount == null && (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents))) {
+                logRemoveFunds(dollars, cents, tid);
                 this.dollars -= dollars;
                 this.cents -= cents;
                 if (this.cents < 0) {
@@ -303,7 +355,7 @@ public class UserDatabaseObject {
         return setRes;
     }
 
-    public String cancelSetBuy(String stock) {
+    public String cancelSetBuy(String stock, int tid) {
         String cancelSet;
         synchronized (lock) {
             StockRequest buyReq = null;
@@ -325,6 +377,7 @@ public class UserDatabaseObject {
             }
 
             if (buyReq != null) {
+                logAddFunds(buyReq.getDollars(), buyReq.getCents(), tid);
                 this.dollars += buyReq.getDollars();
                 this.cents += buyReq.getCents();
                 if (this.cents >= CENT_CAP) {
@@ -341,14 +394,14 @@ public class UserDatabaseObject {
         return cancelSet;
     }
 
-    public String setBuyTrigger(String stock, int dollars, int cents) {
+    public String setBuyTrigger(String stock, int dollars, int cents, int tid) {
         String triggerSet;
         synchronized (lock) {
             if (buyAmount != null && buyAmount.getStock().equals(stock)) {
                 StockRequest buy = buyAmount;
                 buyAmount = null;
 
-                String quote = quote(stock);    // Get a quote first to see if the current price is good
+                String quote = quote(stock, tid);    // Get a quote first to see if the current price is good
                 String[] quoteParams = quote.split(",");
                 try {
                     if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
@@ -363,6 +416,7 @@ public class UserDatabaseObject {
                             int stockCount = (int) (stockPurchaseMoney / stockPrice);
                             long remainingMoney = stockPurchaseMoney % stockPrice;
 
+                            logAddFunds((int)(remainingMoney / CENT_CAP), (int)(remainingMoney % CENT_CAP), tid);
                             this.dollars += (remainingMoney / CENT_CAP);
                             this.cents += (remainingMoney % CENT_CAP);
                             if (this.cents >= CENT_CAP) {
@@ -403,7 +457,7 @@ public class UserDatabaseObject {
         return triggerSet;
     }
 
-    public String setSellAmount(String stock, int dollars, int cents) {
+    public String setSellAmount(String stock, int dollars, int cents, int tid) {
         String setRes;
         synchronized (lock) {
             // TODO: Confirm the business logic that should be followed if a previous set sell is present
@@ -425,7 +479,7 @@ public class UserDatabaseObject {
         return setRes;
     }
 
-    public String cancelSetSell(String stock) {
+    public String cancelSetSell(String stock, int tid) {
         String cancelSet;
         synchronized (lock) {
             StockRequest sellReq = null;
@@ -456,14 +510,14 @@ public class UserDatabaseObject {
         return cancelSet;
     }
 
-    public String setSellTrigger(String stock, int dollars, int cents) {
+    public String setSellTrigger(String stock, int dollars, int cents, int tid) {
         String triggerSet;
         synchronized (lock) {
             if (sellAmount != null && sellAmount.getStock().equals(stock)) {
                 StockRequest sell = sellAmount;
                 sellAmount = null;
 
-                String quote = quote(stock);    // Get a quote first to see if the current price is good
+                String quote = quote(stock, tid);    // Get a quote first to see if the current price is good
                 String[] quoteParams = quote.split(",");
                 try {
                     if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
@@ -488,8 +542,13 @@ public class UserDatabaseObject {
                             history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                             if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
+                                logAddFunds((int)(actualValue / CENT_CAP), (int)(actualValue % CENT_CAP), tid);
                                 this.dollars += (int) (actualValue / CENT_CAP);
                                 this.cents += (int) (actualValue % CENT_CAP);
+                                if (this.cents >= CENT_CAP) {
+                                    this.cents -= CENT_CAP;
+                                    this.dollars++;
+                                }
 
                                 history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
                                 history.add("COMMIT_SELL," + userName);
@@ -526,18 +585,18 @@ public class UserDatabaseObject {
         return triggerSet;
     }
 
-    public String dumplog(String filename) {
+    public String dumplog(String filename, int tid) {
         // TODO: May have to eventually handle this (or just handle elsewhere)
         history.add("DUMPLOG," + userName + "," + filename);
         return "";
     }
 
-    public String dumplog() {
+    public String dumplog(int tid) {
         // TODO: May have to eventually handle this (or just handle elsewhere)
         return "";
     }
 
-    public String displaySummary() {
+    public String displaySummary(int tid) {
         StringBuilder summary = new StringBuilder();
         for (String event : history) {
             summary.append(event);
