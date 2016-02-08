@@ -1,0 +1,53 @@
+====================================================================================================
+Commands
+x create single UserCommand class
+    x has field for command type
+    x has field for set of args passed in by workload generator
+
+x replace CommandTypes with CommandCodes class to simply store API_CODE values
+
+x update jersey resource commands to reflect single user command
+
+====================================================================================================
+Jersey Resources
+x create resource classes for remaining commands
+- validate incoming commands
+    - create class responsible for validating fields of different commands
+        - all fields:
+            - presence of field value (if required)
+            - conforms to regex (if applicable)
+
+        - workloadId:
+            - positive integer
+
+        - dollars/cents:
+            - positive integer
+
+        - stockSymbol:
+            - all chars (all caps?)
+
+
+====================================================================================================
+TransactionService
+x update service to take generic UserCommand class as arguement when sending commands
+- change service to send bytes over a socket instead of JSON to improve efficiency
+    - use the transaction server's ServerConstants class to configure target host of transaction server
+    - user ServerConstants to configure and use currently active web server host when sending commands
+    - receive and interpret response from tx server
+
+====================================================================================================
+Template System
+- develop hierarchy of templates
+    - write base template
+    - write template for each command that corresponds to a form
+
+- integrate twitter bootstrap
+
+====================================================================================================
+TemplateService
+- handle errors from transaction server properly
+    - issue: how to determine if response is erroneous?
+        - solution: map http methods to their acceptable status codes. check to see if transaction response code is in this map
+
+    - issue: how to dynamically display error templates based on command and response?
+        - solution: write custom error template for each command. delegate error handling to the jersey resource through "@ErrorTemplate" tag
