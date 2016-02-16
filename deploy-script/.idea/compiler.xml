@@ -22,11 +22,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
-        <module name="seng462-deploy" />
+        <module name="deploy-script" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="seng462-deploy" target="1.5" />
+      <module name="deploy-script" target="1.5" />
     </bytecodeTargetLevel>
   </component>
 </project>

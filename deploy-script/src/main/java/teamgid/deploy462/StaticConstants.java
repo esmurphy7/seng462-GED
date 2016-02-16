@@ -10,6 +10,8 @@ public class StaticConstants {
     };
 
     public static final String[] TX_SERVERS = new String[] {
-            "b130.seng.uvic.ca"
+            "b135.seng.uvic.ca",
+            "b136.seng.uvic.ca",
+            "b137.seng.uvic.ca"
     };
 }
