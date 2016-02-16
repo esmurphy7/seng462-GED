@@ -22,5 +22,5 @@ public class CommandCodes
     public static int CANCEL_SET_SELL =     14;
     public static int DUMPLOG =             15;
     public static int DUMPLOG_ROOT =        16;
-    public static int DISPLAY_SUMMAY =      17;
+    public static int DISPLAY_SUMMARY =     17;
 }

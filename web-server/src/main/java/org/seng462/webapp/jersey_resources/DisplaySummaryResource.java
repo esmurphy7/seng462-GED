@@ -18,7 +18,7 @@ public class DisplaySummaryResource
     @GET
     public Response getDisplaySummary(@QueryParam("userId") String userId)
     {
-        UserCommand displaySummary = new UserCommand(CommandCodes.DISPLAY_SUMMAY);
+        UserCommand displaySummary = new UserCommand(CommandCodes.DISPLAY_SUMMARY);
         Response response = TransactionService.sendCommand(displaySummary);
         return response;
     }

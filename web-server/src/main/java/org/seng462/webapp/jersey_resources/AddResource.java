@@ -20,7 +20,7 @@ public class AddResource
             // ex: workloadId, dollars, cents are positive ints
 
         // relay the request to transaction server's api
-        UserCommand addCommand = new UserCommand(CommandCodes.ADD, amount);
+        UserCommand addCommand = new UserCommand(CommandCodes.ADD, userId, amount);
         Response response = TransactionService.sendCommand(addCommand);
 
         // return response
