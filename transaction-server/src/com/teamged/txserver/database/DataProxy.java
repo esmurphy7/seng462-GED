@@ -59,7 +59,7 @@ public class DataProxy {
                         opResult = dbProxy.add(tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
                         break;
                     case QUOTE:
-                        opResult = dbProxy.quote(tx.getStockSymbol(), tx.getSequenceNumber());
+                        opResult = dbProxy.quote(tx.getStockSymbol(), tx.getSequenceNumber()).toString();
                         break;
                     case BUY:
                         opResult = dbProxy.buy(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());

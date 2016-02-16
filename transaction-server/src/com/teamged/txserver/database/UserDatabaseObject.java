@@ -29,6 +29,7 @@ public class UserDatabaseObject {
     private final Deque<StockTrigger> buyTriggers = new ArrayDeque<>();
     private final Deque<StockTrigger> sellTriggers = new ArrayDeque<>();
     private final Map<String, Integer> stocksOwned = new HashMap<>();
+    private final Map<String, QuoteObject> stockCache = new HashMap<>();
     private final String userName;
     private StockRequest sellAmount = null;
     private StockRequest buyAmount = null;
@@ -60,112 +61,105 @@ public class UserDatabaseObject {
      * @param stock
      * @return
      */
-    public String quote(String stock, int tid) {
-        String quote;
+    public QuoteObject quote(String stock, int tid) {
+        QuoteObject quote;
         synchronized (lock) {
-            try (
-                    Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
-                    PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-            ) {
-                out.println(stock + "," + userName);
-                quote = in.readLine();
-
-                try {
-                    String[] qp = quote.split(",");
-                    QuoteServerType qtype = new QuoteServerType();
-                    qtype.setTimestamp(Calendar.getInstance().getTimeInMillis());
-                    qtype.setQuoteServerTime(BigInteger.valueOf(Long.parseLong(qp[3])));
-                    qtype.setServer(ServerConstants.TX_SERVERS[0]);
-                    qtype.setTransactionNum(BigInteger.valueOf(tid));
-                    qtype.setPrice(new BigDecimal(qp[0]));
-                    qtype.setStockSymbol(qp[1]);
-                    qtype.setUsername(qp[2]);
-                    qtype.setCryptokey(qp[4]);
-
-                    Logger.getInstance().Log(qtype);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("Error logging");
+            long currTime = Calendar.getInstance().getTimeInMillis();
+            if ((quote = stockCache.get(stock)) != null) {
+                if (!quote.getErrorString().isEmpty()) {
+                    // Log error
+                    quote = null;
+                } else {
+                    if (currTime >= quote.getQuoteTimeout()) {
+                        // Log timed out quote
+                        stockCache.remove(stock);
+                        quote = null;
+                    }
                 }
+            }
 
-                history.add("QUOTE," + userName + "," + stock);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                quote = "QUOTE ERROR";
-            } catch (IOException e) {
-                e.printStackTrace();
-                quote = "QUOTE ERROR";
+            if (quote == null) {
+                try (
+                        Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
+                        PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
+                        BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
+                ) {
+                    String quoteString;
+                    out.println(stock + "," + userName);
+                    quoteString = in.readLine();
+                    quote = QuoteObject.fromQuote(quoteString);
+
+                    if (!quote.getErrorString().isEmpty()) {
+                        // Log error
+                    } else {
+                        stockCache.put(stock, quote);
+                        try {
+                            //String[] qp = quote.split(",");
+                            QuoteServerType qtype = new QuoteServerType();
+                            qtype.setTimestamp(currTime);
+                            qtype.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteTime()));
+                            qtype.setServer(ServerConstants.TX_SERVERS[0]);
+                            qtype.setTransactionNum(BigInteger.valueOf(tid));
+                            qtype.setPrice(quote.getPrice());
+                            qtype.setStockSymbol(quote.getStockSymbol());
+                            qtype.setUsername(quote.getUserName());
+                            qtype.setCryptokey(quote.getCryptoKey());
+
+                            Logger.getInstance().Log(qtype);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.out.println("Error logging");
+                        }
+
+                        history.add("QUOTE," + userName + "," + stock);
+                    }
+                } catch(UnknownHostException e) {
+                    e.printStackTrace();
+                    quote = QuoteObject.fromQuote("QUOTE ERROR");
+                } catch(IOException e) {
+                    e.printStackTrace();
+                    quote = QuoteObject.fromQuote("QUOTE ERROR");
+                }
             }
         }
 
         return quote;
     }
 
-    private void logAddFunds(int dollars, int cents, int tid) {
-        logFundChange("add", dollars, cents, tid);
-    }
-
-    private void logRemoveFunds(int dollars, int cents, int tid) {
-        logFundChange("remove", dollars, cents, tid);
-    }
-
-    private void logFundChange(String type, int dollars, int cents, int tid) {
-        AccountTransactionType atType = new AccountTransactionType();
-        atType.setTimestamp(Calendar.getInstance().getTimeInMillis());
-        atType.setServer(ServerConstants.TX_SERVERS[0]);
-        atType.setTransactionNum(BigInteger.valueOf(tid));
-        atType.setAction(type);
-        atType.setUsername(userName);
-        atType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
-
-        LogType logType = new LogType();
-        logType.getUserCommandOrQuoteServerOrAccountTransaction().add(atType);
-        Logger.getInstance().Log(logType.getUserCommandOrQuoteServerOrAccountTransaction());
-    }
-
-
     public String buy(String stock, int dollars, int cents, int tid) {
         String buyRes;
         synchronized (lock) {
             if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
-                String quote = quote(stock, tid);
-                String[] quoteParams = quote.split(",");
-                try {
-                    if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
-                        String[] stockPriceString = quoteParams[0].split("\\.");
-                        int stockDollars = Integer.parseInt(stockPriceString[0]);
-                        int stockCents = Integer.parseInt(stockPriceString[1]);
-                        long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
-                        long stockPurchaseMoney = (long) dollars * CENT_CAP + cents;
-                        int stockCount = (int) (stockPurchaseMoney / stockPrice);
-                        long remainingMoney = stockPurchaseMoney % stockPrice;
-                        long spentMoney = stockPurchaseMoney - remainingMoney;
+                QuoteObject quote = quote(stock, tid);
 
-                        StockRequest sr = new StockRequest(
-                                stock,
-                                stockCount,
-                                (int) (spentMoney / CENT_CAP),
-                                (int) (spentMoney % CENT_CAP),
-                                Calendar.getInstance().getTimeInMillis());
-                        buyList.push(sr);
+                if (quote.getErrorString().isEmpty()) {
+                    long stockPrice = (long) quote.getDollars() * CENT_CAP + quote.getCents();
+                    long stockPurchaseMoney = (long) dollars * CENT_CAP + cents;
+                    int stockCount = (int) (stockPurchaseMoney / stockPrice);
+                    long remainingMoney = stockPurchaseMoney % stockPrice;
+                    long spentMoney = stockPurchaseMoney - remainingMoney;
 
-                        logRemoveFunds(sr.getDollars(), sr.getCents(), tid);
-                        this.dollars -= sr.getDollars();
-                        this.cents -= sr.getCents();
-                        if (this.cents < 0) {
-                            this.dollars--;
-                            this.cents += CENT_CAP;
-                        }
+                    StockRequest sr = new StockRequest(
+                            stock,
+                            stockCount,
+                            (int) (spentMoney / CENT_CAP),
+                            (int) (spentMoney % CENT_CAP),
+                            Calendar.getInstance().getTimeInMillis());
+                    buyList.push(sr);
 
-                        // TODO: Start a timer to expire the stored buy request in 60 seconds
-                        history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
-                        buyRes = quote;
-                    } else {
-                        buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                    logRemoveFunds(sr.getDollars(), sr.getCents(), tid);
+                    this.dollars -= sr.getDollars();
+                    this.cents -= sr.getCents();
+                    if (this.cents < 0) {
+                        this.dollars--;
+                        this.cents += CENT_CAP;
                     }
-                } catch (Exception e) {
-                    buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+
+                    // TODO: Start a timer to expire the stored buy request in 60 seconds
+                    history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
+                    buyRes = quote.toString();
+                } else {
+                    buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote.toString();
                 }
             } else {
                 buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents;
@@ -227,51 +221,44 @@ public class UserDatabaseObject {
     public String sell(String stock, int dollars, int cents, int tid) {
         String sellRes;
         synchronized (lock) {
-            String quote = quote(stock, tid);
-            String[] quoteParams = quote.split(",");
-            try {
-                if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
-                    long sellMoney = (long) dollars * CENT_CAP + cents;
+            QuoteObject quote = quote(stock, tid);
 
-                    // Gets the current value of the stock on the market
-                    String[] stockPriceString = quoteParams[0].split("\\.");
-                    int stockDollars = Integer.parseInt(stockPriceString[0]);
-                    int stockCents = Integer.parseInt(stockPriceString[1]);
-                    long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
+            if (quote.getErrorString().isEmpty()) {
+                long sellMoney = (long) dollars * CENT_CAP + cents;
 
-                    // Gets the current value of the owned stocks of this type
-                    int ownedCount = 0;
-                    if (stocksOwned.containsKey(stock)) {
-                        ownedCount = stocksOwned.get(stock);
-                    }
-                    long ownedValue = stockPrice * ownedCount;
+                // Gets the current value of the stock on the market
+                long stockPrice = (long) quote.getDollars() * CENT_CAP + quote.getCents();
 
-                    // Gets the value of the rounded stocks to sell
-                    int actualSellCount = (int) (sellMoney / stockPrice);
-                    long actualValue = actualSellCount * stockPrice;
-
-                    // Removes the number of stocks as would be sold by this command
-                    if (ownedValue >= actualValue) {
-                        StockRequest sr = new StockRequest(
-                                stock,
-                                actualSellCount,
-                                (int) (actualValue / CENT_CAP),
-                                (int) (actualValue % CENT_CAP),
-                                Calendar.getInstance().getTimeInMillis()
-                        );
-
-                        sellList.push(sr);
-                        stocksOwned.put(stock, ownedCount - actualSellCount);
-                        // TODO: Start a timer to expire the stored buy request in 60 seconds
-                        history.add("SELL," + userName + "," + stock + "," + dollars + "." + cents);
-                        sellRes = quote;
-                    } else {
-                        sellRes = "SELL ERROR," + userName + "," + stock + "," + ownedCount + "," + quote;
-                    }
-                } else {
-                    sellRes = "SELL ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                // Gets the current value of the owned stocks of this type
+                int ownedCount = 0;
+                if (stocksOwned.containsKey(stock)) {
+                    ownedCount = stocksOwned.get(stock);
                 }
-            } catch (Exception e) {
+                long ownedValue = stockPrice * ownedCount;
+
+                // Gets the value of the rounded stocks to sell
+                int actualSellCount = (int) (sellMoney / stockPrice);
+                long actualValue = actualSellCount * stockPrice;
+
+                // Removes the number of stocks as would be sold by this command
+                if (ownedValue >= actualValue) {
+                    StockRequest sr = new StockRequest(
+                            stock,
+                            actualSellCount,
+                            (int) (actualValue / CENT_CAP),
+                            (int) (actualValue % CENT_CAP),
+                            Calendar.getInstance().getTimeInMillis()
+                    );
+
+                    sellList.push(sr);
+                    stocksOwned.put(stock, ownedCount - actualSellCount);
+                    // TODO: Start a timer to expire the stored buy request in 60 seconds
+                    history.add("SELL," + userName + "," + stock + "," + dollars + "." + cents);
+                    sellRes = quote.toString();
+                } else {
+                    sellRes = "SELL ERROR," + userName + "," + stock + "," + ownedCount + "," + quote.toString();
+                }
+            } else {
                 sellRes = "SELL ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
             }
         }
@@ -401,52 +388,46 @@ public class UserDatabaseObject {
                 StockRequest buy = buyAmount;
                 buyAmount = null;
 
-                String quote = quote(stock, tid);    // Get a quote first to see if the current price is good
-                String[] quoteParams = quote.split(",");
-                try {
-                    if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
-                        String[] stockPriceString = quoteParams[0].split("\\.");
-                        int stockDollars = Integer.parseInt(stockPriceString[0]);
-                        int stockCents = Integer.parseInt(stockPriceString[1]);
-                        history.add("SET_BUY_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
+                QuoteObject quote = quote(stock, tid);    // Get a quote first to see if the current price is good
+                if (quote.getErrorString().isEmpty()) {
+                    int stockDollars = quote.getDollars();
+                    int stockCents = quote.getCents();
+                    history.add("SET_BUY_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
-                        if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
-                            long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
-                            long stockPurchaseMoney = (long) buy.getDollars() * CENT_CAP + buy.getCents();
-                            int stockCount = (int) (stockPurchaseMoney / stockPrice);
-                            long remainingMoney = stockPurchaseMoney % stockPrice;
+                    if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
+                        long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
+                        long stockPurchaseMoney = (long) buy.getDollars() * CENT_CAP + buy.getCents();
+                        int stockCount = (int) (stockPurchaseMoney / stockPrice);
+                        long remainingMoney = stockPurchaseMoney % stockPrice;
 
-                            logAddFunds((int)(remainingMoney / CENT_CAP), (int)(remainingMoney % CENT_CAP), tid);
-                            this.dollars += (remainingMoney / CENT_CAP);
-                            this.cents += (remainingMoney % CENT_CAP);
-                            if (this.cents >= CENT_CAP) {
-                                this.cents -= CENT_CAP;
-                                this.dollars++;
-                            }
-
-                            int newStockCount = stockCount;
-                            if (stocksOwned.containsKey(stock)) {
-                                newStockCount = stocksOwned.get(stock);
-                            }
-                            stocksOwned.put(stock, newStockCount);
-
-                            history.add("BUY," + userName + "," + stock + "," + buy.getDollars() + "." + buy.getCents());
-                            history.add("COMMIT_BUY," + userName);
-
-                            triggerSet = "SET_BUY_TRIGGER,BUY,COMMIT_BUY," + quote;
-                        } else {
-                            // TODO: Update expiry of buy request amount
-                            StockTrigger trigger = new StockTrigger(buy, dollars, cents);
-                            buyTriggers.add(trigger);
-
-                            // TODO: Start a trigger timer
-                            triggerSet = "SET_BUY_TRIGGER," + quote;
+                        logAddFunds((int)(remainingMoney / CENT_CAP), (int)(remainingMoney % CENT_CAP), tid);
+                        this.dollars += (remainingMoney / CENT_CAP);
+                        this.cents += (remainingMoney % CENT_CAP);
+                        if (this.cents >= CENT_CAP) {
+                            this.cents -= CENT_CAP;
+                            this.dollars++;
                         }
 
+                        int newStockCount = stockCount;
+                        if (stocksOwned.containsKey(stock)) {
+                            newStockCount = stocksOwned.get(stock);
+                        }
+                        stocksOwned.put(stock, newStockCount);
+
+                        history.add("BUY," + userName + "," + stock + "," + buy.getDollars() + "." + buy.getCents());
+                        history.add("COMMIT_BUY," + userName);
+
+                        triggerSet = "SET_BUY_TRIGGER,BUY,COMMIT_BUY," + quote;
                     } else {
-                        triggerSet = "SET_BUY_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                        // TODO: Update expiry of buy request amount
+                        StockTrigger trigger = new StockTrigger(buy, dollars, cents);
+                        buyTriggers.add(trigger);
+
+                        // TODO: Start a trigger timer
+                        triggerSet = "SET_BUY_TRIGGER," + quote;
                     }
-                } catch (Exception e) {
+
+                } else {
                     triggerSet = "SET_BUY_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
                 }
             } else {
@@ -517,64 +498,58 @@ public class UserDatabaseObject {
                 StockRequest sell = sellAmount;
                 sellAmount = null;
 
-                String quote = quote(stock, tid);    // Get a quote first to see if the current price is good
-                String[] quoteParams = quote.split(",");
-                try {
-                    if (quoteParams.length == 5 && quoteParams[1].equals(stock) && quoteParams[2].equals(userName)) {
-                        long sellMoney = (long) sell.getDollars() * CENT_CAP + sell.getCents();
+                QuoteObject quote = quote(stock, tid);    // Get a quote first to see if the current price is good
+                if (quote.getErrorString().isEmpty()) {
+                    long sellMoney = (long) sell.getDollars() * CENT_CAP + sell.getCents();
 
-                        String[] stockPriceString = quoteParams[0].split("\\.");
-                        int stockDollars = Integer.parseInt(stockPriceString[0]);
-                        int stockCents = Integer.parseInt(stockPriceString[1]);
-                        long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
+                    int stockDollars = quote.getDollars();
+                    int stockCents = quote.getCents();
+                    long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
 
-                        int ownedCount = 0;
-                        if (stocksOwned.containsKey(stock)) {
-                            ownedCount = stocksOwned.get(stock);
-                        }
-                        long ownedValue = stockPrice * ownedCount;
+                    int ownedCount = 0;
+                    if (stocksOwned.containsKey(stock)) {
+                        ownedCount = stocksOwned.get(stock);
+                    }
+                    long ownedValue = stockPrice * ownedCount;
 
-                        int actualSellCount = (int) (sellMoney / stockPrice);
-                        long actualValue = actualSellCount * stockCents;
+                    int actualSellCount = (int) (sellMoney / stockPrice);
+                    long actualValue = actualSellCount * stockCents;
 
-                        if (ownedValue >= actualValue) {
-                            stocksOwned.put(stock, ownedCount - actualSellCount);
-                            history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
+                    if (ownedValue >= actualValue) {
+                        stocksOwned.put(stock, ownedCount - actualSellCount);
+                        history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
-                            if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
-                                logAddFunds((int)(actualValue / CENT_CAP), (int)(actualValue % CENT_CAP), tid);
-                                this.dollars += (int) (actualValue / CENT_CAP);
-                                this.cents += (int) (actualValue % CENT_CAP);
-                                if (this.cents >= CENT_CAP) {
-                                    this.cents -= CENT_CAP;
-                                    this.dollars++;
-                                }
-
-                                history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
-                                history.add("COMMIT_SELL," + userName);
-
-                                triggerSet = "SET_SELL_TRIGGER,SELL,COMMIT_SELL," + quote;
-                            } else {
-                                sell = new StockRequest(
-                                        stock,
-                                        actualSellCount,
-                                        (int) (actualValue / CENT_CAP),
-                                        (int) (actualValue % CENT_CAP),
-                                        Calendar.getInstance().getTimeInMillis()
-                                );
-                                StockTrigger trigger = new StockTrigger(sell, dollars, cents);
-                                sellTriggers.add(trigger);
-
-                                // TODO: Start a trigger timer
-                                triggerSet = "SET_SELL_TRIGGER," + quote;
+                        if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
+                            logAddFunds((int)(actualValue / CENT_CAP), (int)(actualValue % CENT_CAP), tid);
+                            this.dollars += (int) (actualValue / CENT_CAP);
+                            this.cents += (int) (actualValue % CENT_CAP);
+                            if (this.cents >= CENT_CAP) {
+                                this.cents -= CENT_CAP;
+                                this.dollars++;
                             }
+
+                            history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
+                            history.add("COMMIT_SELL," + userName);
+
+                            triggerSet = "SET_SELL_TRIGGER,SELL,COMMIT_SELL," + quote;
                         } else {
-                            triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                            sell = new StockRequest(
+                                    stock,
+                                    actualSellCount,
+                                    (int) (actualValue / CENT_CAP),
+                                    (int) (actualValue % CENT_CAP),
+                                    Calendar.getInstance().getTimeInMillis()
+                            );
+                            StockTrigger trigger = new StockTrigger(sell, dollars, cents);
+                            sellTriggers.add(trigger);
+
+                            // TODO: Start a trigger timer
+                            triggerSet = "SET_SELL_TRIGGER," + quote;
                         }
                     } else {
                         triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
                     }
-                } catch (Exception e) {
+                } else {
                     triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
                 }
             } else {
@@ -606,5 +581,27 @@ public class UserDatabaseObject {
         history.add("DISPLAY_SUMMARY," + userName);
 
         return summary.toString();
+    }
+
+    private void logAddFunds(int dollars, int cents, int tid) {
+        logFundChange("add", dollars, cents, tid);
+    }
+
+    private void logRemoveFunds(int dollars, int cents, int tid) {
+        logFundChange("remove", dollars, cents, tid);
+    }
+
+    private void logFundChange(String type, int dollars, int cents, int tid) {
+        AccountTransactionType atType = new AccountTransactionType();
+        atType.setTimestamp(Calendar.getInstance().getTimeInMillis());
+        atType.setServer(ServerConstants.TX_SERVERS[0]);
+        atType.setTransactionNum(BigInteger.valueOf(tid));
+        atType.setAction(type);
+        atType.setUsername(userName);
+        atType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
+
+        LogType logType = new LogType();
+        logType.getUserCommandOrQuoteServerOrAccountTransaction().add(atType);
+        Logger.getInstance().Log(logType.getUserCommandOrQuoteServerOrAccountTransaction());
     }
 }

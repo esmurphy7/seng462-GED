@@ -39,6 +39,7 @@ public class TransactionObject {
     private String fileName = "";
     private int webServerNameIdx = -1;
     private int webServerPortIdx = -1;
+    private int txIdentifier = -1; // TODO: This needs to come along too!
     private int sequenceNumber = -1;
     private String errorString = ""; // TODO: Use an enum instead?
 
