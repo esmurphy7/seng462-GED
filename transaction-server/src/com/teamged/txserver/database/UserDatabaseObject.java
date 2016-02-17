@@ -79,6 +79,7 @@ public class UserDatabaseObject {
             }
 
             if (quote == null) {
+                System.out.println("[DEBUG PRINT] FETCHING QUOTE");
                 try (
                         Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
                         PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
@@ -600,8 +601,6 @@ public class UserDatabaseObject {
         atType.setUsername(userName);
         atType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
 
-        LogType logType = new LogType();
-        logType.getUserCommandOrQuoteServerOrAccountTransaction().add(atType);
-        Logger.getInstance().Log(logType.getUserCommandOrQuoteServerOrAccountTransaction());
+        Logger.getInstance().Log(atType);
     }
 }
