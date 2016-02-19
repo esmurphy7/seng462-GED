@@ -8,8 +8,11 @@ x replace CommandTypes with CommandCodes class to simply store API_CODE values
 
 x update jersey resource commands to reflect single user command
 
+x fix typo in CommandCodes
+
 ====================================================================================================
 Jersey Resources
+x AddResource does not include userId when creating UserCommand instance
 x create resource classes for remaining commands
 - validate incoming commands
     - create class responsible for validating fields of different commands
