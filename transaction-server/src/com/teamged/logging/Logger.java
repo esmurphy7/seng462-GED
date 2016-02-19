@@ -13,6 +13,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Evan on 2/3/2016.
@@ -25,7 +27,7 @@ public class Logger
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
     private static final String OUTPUT_LOGFILE = "outputLog.xml";
     private static Marshaller marshaller;
-    private static List<Object> Logs = new ArrayList<>();
+    private static Queue<Object> Logs = new ConcurrentLinkedQueue<>();
 
     private Logger(){}
 
