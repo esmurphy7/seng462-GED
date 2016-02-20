@@ -99,7 +99,7 @@ public class QuoteObject {
                 try {
                     String[] stockPrice = argsArray[0].split("\\.", 2);
                     dollars = Integer.parseInt(stockPrice[0]);
-                    dollars = Integer.parseInt(stockPrice[1]);
+                    cents = Integer.parseInt(stockPrice[1]);
                     price = new BigDecimal(argsArray[0]);
                 } catch (Exception e) {
                     errorString = "Unable to parse quote value: " + argsArray[0];

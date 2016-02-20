@@ -38,7 +38,7 @@ public class TransactionMonitor {
      * bound operations.
      */
     public static void runServer() {
-        System.out.println("Launching transaction server socket listeners.");
+        InternalLog.Log("Launching transaction server socket listeners.");
         for (int i = 0; i < ServerConstants.PORT_RANGE.length; i++) {
             int portNum = ServerConstants.PORT_RANGE[i];
             TransactionServerThread rpThread;
@@ -88,13 +88,13 @@ public class TransactionMonitor {
             requestTxQueue.put(user);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            System.out.println("Operation was interrupted: request for user \"" + user + "\" will not be queued");
+            InternalLog.Log("Operation was interrupted: request for user \"" + user + "\" will not be queued");
         } catch (NullPointerException e) {
             e.printStackTrace();
-            System.out.println("Attempted to add null user to request queue");
+            InternalLog.Log("Attempted to add null user to request queue");
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            System.out.println("User \"" + user + "\" experienced an unexpected error while queueing");
+            InternalLog.Log("User \"" + user + "\" experienced an unexpected error while queueing");
         }
     }
 
@@ -104,7 +104,7 @@ public class TransactionMonitor {
             request = requestTxQueue.take();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            System.out.println("Operation was interrupted while attempting to dequeue a request");
+            InternalLog.Log("Operation was interrupted while attempting to dequeue a request");
         }
 
         return request;
@@ -129,7 +129,7 @@ public class TransactionMonitor {
             if (userObj != null) {
                 userObj.addTransactionObject(txObject);
             } else {
-                System.out.println("Could not add request " + txObject.toString() + " for user " + user);
+                InternalLog.Log("Could not add request " + txObject.toString() + " for user " + user);
             }
         }
     }

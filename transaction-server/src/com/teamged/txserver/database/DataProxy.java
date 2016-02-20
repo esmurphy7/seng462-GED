@@ -4,6 +4,7 @@ import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.SystemEventType;
+import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.transactions.TransactionObject;
 import com.teamged.txserver.transactions.UserCommand;
 
@@ -25,6 +26,7 @@ public class DataProxy {
     private static final ConcurrentHashMap<String, UserDatabaseObject> dbInterfaces = new ConcurrentHashMap<>();
 
     public static String dbOperation(TransactionObject tx) {
+        InternalLog.Log(tx.getUserName() + " - " + tx.getSequenceNumber() + " - " + tx.getTxIdentifier() + " - " + tx.getUserCommand().toString());
         String opResult;
         if (tx.getUserCommand().equals(UserCommand.DUMPLOG_ROOT)) {
             opResult = "DUMPLOG_ROOT";
@@ -43,7 +45,7 @@ public class DataProxy {
 
                 systemEvent.setTimestamp(System.currentTimeMillis());
                 systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
-                systemEvent.setTransactionNum(BigInteger.valueOf(tx.getSequenceNumber()));
+                systemEvent.setTransactionNum(BigInteger.valueOf(tx.getTxIdentifier()));
                 systemEvent.setUsername(tx.getUserName());
                 systemEvent.setCommand(CommandType.fromValue(tx.getUserCommand().name()));
                 systemEvent.setStockSymbol(tx.getStockSymbol());
@@ -56,52 +58,52 @@ public class DataProxy {
                         opResult = "NO_COMMAND";
                         break;
                     case ADD:
-                        opResult = dbProxy.add(tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.add(tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case QUOTE:
-                        opResult = dbProxy.quote(tx.getStockSymbol(), tx.getSequenceNumber()).toString();
+                        opResult = dbProxy.quote(tx.getStockSymbol(), tx.getTxIdentifier()).toString();
                         break;
                     case BUY:
-                        opResult = dbProxy.buy(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.buy(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case COMMIT_BUY:
-                        opResult = dbProxy.commitBuy(tx.getSequenceNumber());
+                        opResult = dbProxy.commitBuy(tx.getTxIdentifier());
                         break;
                     case CANCEL_BUY:
-                        opResult = dbProxy.cancelBuy(tx.getSequenceNumber());
+                        opResult = dbProxy.cancelBuy(tx.getTxIdentifier());
                         break;
                     case SELL:
-                        opResult = dbProxy.sell(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.sell(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case COMMIT_SELL:
-                        opResult = dbProxy.commitSell(tx.getSequenceNumber());
+                        opResult = dbProxy.commitSell(tx.getTxIdentifier());
                         break;
                     case CANCEL_SELL:
-                        opResult = dbProxy.cancelSell(tx.getSequenceNumber());
+                        opResult = dbProxy.cancelSell(tx.getTxIdentifier());
                         break;
                     case SET_BUY_AMOUNT:
-                        opResult = dbProxy.setBuyAmount(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.setBuyAmount(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case CANCEL_SET_BUY:
-                        opResult = dbProxy.cancelSetBuy(tx.getStockSymbol(), tx.getSequenceNumber());
+                        opResult = dbProxy.cancelSetBuy(tx.getStockSymbol(), tx.getTxIdentifier());
                         break;
                     case SET_BUY_TRIGGER:
-                        opResult = dbProxy.setBuyTrigger(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.setBuyTrigger(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case SET_SELL_AMOUNT:
-                        opResult = dbProxy.setSellAmount(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.setSellAmount(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case SET_SELL_TRIGGER:
-                        opResult = dbProxy.setSellTrigger(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getSequenceNumber());
+                        opResult = dbProxy.setSellTrigger(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getTxIdentifier());
                         break;
                     case CANCEL_SET_SELL:
-                        opResult = dbProxy.cancelSetSell(tx.getStockSymbol(), tx.getSequenceNumber());
+                        opResult = dbProxy.cancelSetSell(tx.getStockSymbol(), tx.getTxIdentifier());
                         break;
                     case DUMPLOG:
-                        opResult = dbProxy.dumplog(tx.getFileName(), tx.getSequenceNumber());
+                        opResult = dbProxy.dumplog(tx.getFileName(), tx.getTxIdentifier());
                         break;
                     case DISPLAY_SUMMARY:
-                        opResult = dbProxy.displaySummary(tx.getSequenceNumber());
+                        opResult = dbProxy.displaySummary(tx.getTxIdentifier());
                         break;
                     case DUMPLOG_ROOT:
                     default:
@@ -115,14 +117,14 @@ public class DataProxy {
         }
 
         // TODO: This is a hideous HACK!!
-        if (tx.getSequenceNumber() == 99) {
+        /*if (tx.getTxIdentifier() == 99) {
             System.out.println("[SYS DUMP] DUMPING!");
             try {
                 Logger.getInstance().SaveLog();
             } catch (JAXBException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         // TODO: Some additional processing and parsing of the result will be needed.
         return "[DATA PROXY RESULT]" + opResult;

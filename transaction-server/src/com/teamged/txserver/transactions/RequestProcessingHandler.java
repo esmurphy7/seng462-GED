@@ -1,6 +1,7 @@
 package com.teamged.txserver.transactions;
 
 import com.teamged.ServerConstants;
+import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TransactionMonitor;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ public class RequestProcessingHandler implements Runnable {
 
     public RequestProcessingHandler(Socket socket) {
         this.socket = socket;
-        System.out.println("Request processor connected to client on port " + socket.getLocalPort());
+        InternalLog.Log("Request processor connected to client on port " + socket.getLocalPort());
     }
 
     @Override
@@ -24,7 +25,7 @@ public class RequestProcessingHandler implements Runnable {
         String request = receiveRequest();
         TransactionObject to = new TransactionObject(request);
         if (!to.getErrorString().isEmpty()) {
-            System.out.println("Error processing request: " + to.toString() + "; Error msg: " + to.getErrorString());
+            InternalLog.Log("Error processing request: " + to.toString() + "; Error msg: " + to.getErrorString());
         } else {
             // This has the potential to block for a while (if the request queue is full)
             // TODO: This does not properly deal with transactions that have no user name (DUMPLOG_ROOT)

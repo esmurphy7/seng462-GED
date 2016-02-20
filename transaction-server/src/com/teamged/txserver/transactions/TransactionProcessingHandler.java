@@ -1,5 +1,6 @@
 package com.teamged.txserver.transactions;
 
+import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TransactionMonitor;
 import com.teamged.txserver.database.DataProxy;
 
@@ -34,16 +35,17 @@ public class TransactionProcessingHandler implements Runnable {
                 try {
                     // Process the transaction
                     int count = userObj.getNextProcessCount();
-                    System.out.println("TxProcH: Count is - " + count);
+                    InternalLog.Log("TxProcH: Count is - " + count);
 
                     while (count > 0) {
                         TransactionObject txObject = userObj.getNextTransactionObject();
                         if (txObject == null) {
-                            System.out.println("TxProcH: txObject was null");
+                            InternalLog.Log("TxProcH: txObject was null");
                             break;
                         } else {
                             String resp = DataProxy.dbOperation(txObject);
-                            System.out.println(resp);   // TODO: Handle the response.
+                            System.out.println(txObject.getSequenceNumber() + "[" + txObject.getTxIdentifier() + "]");
+                            InternalLog.Log(resp);   // TODO: Handle the response.
                         }
 
                         count--;
@@ -54,7 +56,7 @@ public class TransactionProcessingHandler implements Runnable {
                 }
             }
         } else {
-            System.out.println("Couldn't find user information in TransactionMonitor for user " + userName);
+            InternalLog.Log("Couldn't find user information in TransactionMonitor for user " + userName);
         }
     }
 }

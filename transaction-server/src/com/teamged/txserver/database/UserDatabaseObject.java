@@ -2,9 +2,9 @@ package com.teamged.txserver.database;
 
 import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.AccountTransactionType;
-import com.teamged.logging.xmlelements.generated.LogType;
-import com.teamged.logging.xmlelements.generated.QuoteServerType;
+import com.teamged.logging.xmlelements.generated.*;
+import com.teamged.txserver.InternalLog;
+import sun.rmi.runtime.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,14 +42,27 @@ public class UserDatabaseObject {
 
     public String add(int dollars, int cents, int tid) {
         synchronized (lock) {
-            this.dollars += dollars;
-            this.cents += cents;
-            if (this.cents >= CENT_CAP) {
-                this.cents -= CENT_CAP;
-                this.dollars++;
+            if (dollars < 0) {
+                ErrorEventType eeType = new ErrorEventType();
+                eeType.setTimestamp(Calendar.getInstance().getTimeInMillis());
+                eeType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
+                eeType.setServer(ServerConstants.TX_SERVERS[0]);
+                eeType.setTransactionNum(BigInteger.valueOf(tid));
+                eeType.setCommand(CommandType.ADD);
+                eeType.setUsername(userName);
+                eeType.setErrorMessage("Attempted to add negative dollars");
+                Logger.getInstance().Log(eeType);
+            } else {
+                this.dollars += dollars;
+                this.cents += cents;
+                if (this.cents >= CENT_CAP) {
+                    this.cents -= CENT_CAP;
+                    this.dollars++;
+                }
+                logAddFunds(dollars, cents, tid);
+                history.add("ADD," + userName + "," + dollars + "." + cents);
+                // TODO: Update database
             }
-            history.add("ADD," + userName + "," + dollars + "." + cents);
-            // TODO: Update database
         }
 
         return userName + ", " + this.dollars + "." + this.cents;
@@ -79,7 +92,7 @@ public class UserDatabaseObject {
             }
 
             if (quote == null) {
-                System.out.println("[DEBUG PRINT] FETCHING QUOTE");
+                InternalLog.Log("[DEBUG PRINT] FETCHING QUOTE");
                 try (
                         Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
                         PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
@@ -109,7 +122,7 @@ public class UserDatabaseObject {
                             Logger.getInstance().Log(qtype);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            System.out.println("Error logging");
+                            InternalLog.Log("Error logging");
                         }
 
                         history.add("QUOTE," + userName + "," + stock);
@@ -133,34 +146,41 @@ public class UserDatabaseObject {
             if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
                 QuoteObject quote = quote(stock, tid);
 
-                if (quote.getErrorString().isEmpty()) {
-                    long stockPrice = (long) quote.getDollars() * CENT_CAP + quote.getCents();
-                    long stockPurchaseMoney = (long) dollars * CENT_CAP + cents;
-                    int stockCount = (int) (stockPurchaseMoney / stockPrice);
-                    long remainingMoney = stockPurchaseMoney % stockPrice;
-                    long spentMoney = stockPurchaseMoney - remainingMoney;
+                try {
+                    if (quote.getErrorString().isEmpty()) {
+                        long stockPrice = (long) quote.getDollars() * CENT_CAP + quote.getCents();
+                        long stockPurchaseMoney = (long) dollars * CENT_CAP + cents;
+                        int stockCount = (int) (stockPurchaseMoney / stockPrice);
+                        long remainingMoney = stockPurchaseMoney % stockPrice;
+                        long spentMoney = stockPurchaseMoney - remainingMoney;
 
-                    StockRequest sr = new StockRequest(
-                            stock,
-                            stockCount,
-                            (int) (spentMoney / CENT_CAP),
-                            (int) (spentMoney % CENT_CAP),
-                            Calendar.getInstance().getTimeInMillis());
-                    buyList.push(sr);
+                        StockRequest sr = new StockRequest(
+                                stock,
+                                stockCount,
+                                (int) (spentMoney / CENT_CAP),
+                                (int) (spentMoney % CENT_CAP),
+                                Calendar.getInstance().getTimeInMillis());
+                        buyList.push(sr);
 
-                    logRemoveFunds(sr.getDollars(), sr.getCents(), tid);
-                    this.dollars -= sr.getDollars();
-                    this.cents -= sr.getCents();
-                    if (this.cents < 0) {
-                        this.dollars--;
-                        this.cents += CENT_CAP;
+                        logRemoveFunds(sr.getDollars(), sr.getCents(), tid);
+                        this.dollars -= sr.getDollars();
+                        this.cents -= sr.getCents();
+                        if (this.cents < 0) {
+                            this.dollars--;
+                            this.cents += CENT_CAP;
+                        }
+
+                        // TODO: Start a timer to expire the stored buy request in 60 seconds
+                        history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
+                        buyRes = quote.toString();
+                    } else {
+                        buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote.toString();
                     }
-
-                    // TODO: Start a timer to expire the stored buy request in 60 seconds
-                    history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
-                    buyRes = quote.toString();
-                } else {
-                    buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote.toString();
+                } catch (Exception e) {
+                    buyRes = "BUY ERROR";
+                    System.out.println(quote.toString());
+                    System.out.println(quote.getErrorString());
+                    System.out.println();
                 }
             } else {
                 buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents;

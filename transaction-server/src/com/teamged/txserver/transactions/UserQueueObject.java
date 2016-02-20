@@ -1,5 +1,7 @@
 package com.teamged.txserver.transactions;
 
+import com.teamged.txserver.InternalLog;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,7 +24,7 @@ public class UserQueueObject {
     }
 
     public void addTransactionObject(TransactionObject txObject) {
-        System.out.println("Adding txObject " + txObject.getSequenceNumber() + ", " + txObject.toString());
+        InternalLog.Log("Adding txObject " + txObject.getSequenceNumber() + ", " + txObject.toString());
         requestSequence.put(txObject.getSequenceNumber(), txObject);
     }
 
@@ -31,7 +33,7 @@ public class UserQueueObject {
      */
     public TransactionObject getNextTransactionObject() {
         Integer nextInteger = nextRequestIndex;
-        System.out.println("Fetching txObject with sequence " + nextRequestIndex);
+        InternalLog.Log("Fetching txObject with sequence " + nextRequestIndex);
 
         /*System.out.print("Keys: ");
         for (Integer i : requestSequence.keySet()) {

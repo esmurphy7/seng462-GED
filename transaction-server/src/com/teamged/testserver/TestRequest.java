@@ -5,10 +5,7 @@ import com.teamged.ServerConstants;
 import java.io.*;
 import java.net.Socket;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +34,7 @@ public class TestRequest {
             "DUMPLOG",
             "DISPLAY_SUMMARY"
     ));
+    private static final HashMap<String, Integer> SEQUENCE_COUNTER = new HashMap<>();
 
     /**
      * This is a scrappy garbage testing file. Its uses are limited, but it does the job alright ...
@@ -89,17 +87,26 @@ public class TestRequest {
         } else {
             // "Workload generator" functionality (only for 1user)
             try (
-                    BufferedReader br = new BufferedReader(new FileReader("1userWorkLoad.sdx"))
+                    BufferedReader br = new BufferedReader(new FileReader("userWorkLoad.sdx"))
             ) {
                 String nextLine;
                 while ((nextLine = br.readLine().trim()) != null) {
                     String req = nextLine.replace(" ", ",") + "," + Calendar.getInstance().getTimeInMillis() + ",0,0";
-                    Pattern re = Pattern.compile("^(\\[\\d+\\],)([A-Z_]+)(,.*)");
+                    Pattern re = Pattern.compile("^(\\[\\d+\\],)([A-Z_]+),([^,]+)(,.*)");
                     Matcher m = re.matcher(req);
-                    if (m.matches() && m.groupCount() == 3) {
+                    if (m.matches() && m.groupCount() == 4) {
                         int command = COMMAND_MAP.indexOf(m.group(2));
                         if (command > 0) {
-                            req = m.group(1) + command + m.group(3);
+                            String user = m.group(3);
+
+                            int seqNum = 0;
+                            if (SEQUENCE_COUNTER.containsKey(user)) {
+                                seqNum = SEQUENCE_COUNTER.get(user);
+                            }
+                            seqNum++;
+                            SEQUENCE_COUNTER.put(user, seqNum);
+
+                            req = m.group(1) + "[" + seqNum + "]," + command + "," + user + m.group(4);
                             // Should probably handle this part in its own sort of try/catch/retry/break thing
                             Socket s = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.PORT_RANGE[0]);
                             PrintWriter out = new PrintWriter(s.getOutputStream(), true);

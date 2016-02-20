@@ -24,7 +24,7 @@ public class TransactionObject {
      *  - A server name index
      *  - A server port index
      */
-    private static final int MinimumArgs = 5;
+    private static final int MinimumArgs = 6;
 
     private static final int StockMaxLength = 3;
 
@@ -152,6 +152,19 @@ public class TransactionObject {
 
             // Parses the user command
             if (parsed) {
+                if (argsArray[idx].contains("[")) {
+                    String sequenceStr = argsArray[idx].substring(1, argsArray[idx].indexOf("]"));
+                    try {
+                        txIdentifier = Integer.parseInt(sequenceStr);
+                    } catch (NumberFormatException e) {
+                        errorString = "Could not find the sequence number from " + args;
+                        parsed = false;
+                    }
+                    idx++;
+                } else {
+                    parsed = false;
+                }
+
                 if (argsArray[idx].contains("[")) {
                     String sequenceStr = argsArray[idx].substring(1, argsArray[idx].indexOf("]"));
                     try {
@@ -395,9 +408,16 @@ public class TransactionObject {
     }
 
     /**
-     * Getter for the sequence number for this request object. If there is no sequence, or the sequence fails to parse,
-     * this will be a negative value. Parse failure will not result in an error for this parameter.
-     * @return  The sequence number of this request for a given user session.
+     *
+     * @return  The transaction identifier number of this request.
+     */
+    public int getTxIdentifier() {
+        return txIdentifier;
+    }
+
+    /**
+     *
+     * @return  The sequence number of this user request.
      */
     public int getSequenceNumber() {
         return sequenceNumber;
@@ -448,12 +468,8 @@ public class TransactionObject {
                     }
                     */
                     amountDollars = Integer.parseInt(amounts[0]);
-                    if (amountDollars < 0) {
-                        errorString = "Error parsing amount - negative dollar values are not allowed";
-                    } else {
-                        amountCents = amountsLength == 2 ? Integer.parseInt(amounts[1]) : 0;
-                        parsed = true;
-                    }
+                    amountCents = amountsLength == 2 ? Integer.parseInt(amounts[1]) : 0;
+                    parsed = true;
                 }
             } catch (NumberFormatException e) {
                 errorString = "Could not parse " + amount + " as a money amount";
