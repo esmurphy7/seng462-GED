@@ -1,8 +1,15 @@
 package com.seng462ged.daytrader.workloadgenerator;
 
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -16,9 +23,25 @@ public class Main {
 
         try {
 
+            // Import transactions from file
             List<Transaction> transactions = Importer.ImportTransactions(workloadFile);
 
-            Requester.SendTransactions(transactions);
+            // Group transactions by users
+            Collection<List<Transaction>> transactionsByUser = transactions.stream()
+                    .filter(transaction -> transaction.getUserId() != null)
+                    .collect(Collectors.groupingBy(transaction -> transaction.getUserId()))
+                    .values();
+
+            // Create thread pool
+            ExecutorService taskExecutor = Executors.newFixedThreadPool(10);
+
+            // Concurrently send sets of transactions to the web server
+            List<Future> results = transactionsByUser.stream()
+                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(transactionSet)))
+                    .collect(Collectors.toList());
+
+            // Print results (currently nothing - no return values)
+            results.forEach(Unchecked.consumer(future -> System.out.println(future.get())));
 
         } catch (FileNotFoundException e) {
 

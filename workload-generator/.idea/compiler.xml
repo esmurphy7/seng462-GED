@@ -25,5 +25,8 @@
         <module name="workload-generator" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="workload-generator" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

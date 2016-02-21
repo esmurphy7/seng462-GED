@@ -17,7 +17,7 @@ public class Requester {
 
         for (Transaction transaction : transactions) {
 
-            System.out.println(String.format("Command: %s", transaction.getCommand()));
+            System.out.println(String.format("User: %s, Command: %s", transaction.getUserId(), transaction.getCommand()));
 
             try {
 
