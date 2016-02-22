@@ -14,15 +14,11 @@ import javax.ws.rs.core.Response;
 public class QuoteResource {
 
     @GET
-    public Response getQuote(@QueryParam("userId") String userId,
+    public void getQuote(@QueryParam("userId") String userId,
                              @QueryParam("stockSymbol") String stockSymbol)
     {
-        // validate the query params
-            // ex: stockSymbol must be all chars (caps?)
-
         // build the command and relay it to transaction server
         UserCommand quoteCommand = new UserCommand(CommandCodes.QUOTE, userId, stockSymbol);
         Response response = TransactionService.sendCommand(quoteCommand);
-        return response;
     }
 }

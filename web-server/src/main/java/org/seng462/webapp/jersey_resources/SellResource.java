@@ -16,57 +16,51 @@ import javax.ws.rs.core.Response;
 public class SellResource
 {
     @POST
-    public Response postSell(@QueryParam("userId") String userId,
+    public void postSell(@QueryParam("userId") String userId,
                              @QueryParam("amount") String amount,
                              @QueryParam("stockSymbol") String stockSymbol)
     {
         UserCommand sellCommand = new UserCommand(CommandCodes.SELL, userId, amount, stockSymbol);
         Response response = TransactionService.sendCommand(sellCommand);
-        return response;
     }
 
     @POST @Path("/commit")
-    public Response postCommitSell(@QueryParam("userId") String userId)
+    public void postCommitSell(@QueryParam("userId") String userId)
     {
         UserCommand commitSell = new UserCommand(CommandCodes.COMMIT_SELL, userId);
         Response response = TransactionService.sendCommand(commitSell);
-        return response;
     }
 
     @POST @Path("/cancel")
-    public Response postCancelSell(@QueryParam("userId") String userId)
+    public void postCancelSell(@QueryParam("userId") String userId)
     {
         UserCommand cancelSell = new UserCommand(CommandCodes.CANCEL_SELL, userId);
         Response response = TransactionService.sendCommand(cancelSell);
-        return response;
     }
 
     @POST @Path("/trigger/amount")
-    public Response postSetSellAmmount(@QueryParam("userId") String userId,
+    public void postSetSellAmmount(@QueryParam("userId") String userId,
                                        @QueryParam("amount") String amount,
                                        @QueryParam("stockSymbol") String stockSymbol)
     {
         UserCommand setSellAmount = new UserCommand(CommandCodes.SET_SELL_AMOUNT, userId, amount, stockSymbol);
         Response response = TransactionService.sendCommand(setSellAmount);
-        return response;
     }
 
     @POST @Path("/trigger/stockprice")
-    public Response postSetSellTrigger(@QueryParam("userId") String userId,
+    public void postSetSellTrigger(@QueryParam("userId") String userId,
                                        @QueryParam("amount") String amount,
                                        @QueryParam("stockSymbol") String stockSymbol)
     {
         UserCommand setSellTrigger = new UserCommand(CommandCodes.SET_SELL_TRIGGER, userId, amount, stockSymbol);
         Response response = TransactionService.sendCommand(setSellTrigger);
-        return response;
     }
 
     @POST @Path("/trigger/cancel")
-    public Response postCancelSetSell(@QueryParam("userId") String userId,
+    public void postCancelSetSell(@QueryParam("userId") String userId,
                                       @QueryParam("stockSymbol") String stockSymbol)
     {
         UserCommand cancelSetSell = new UserCommand(CommandCodes.CANCEL_SET_SELL, userId, stockSymbol);
         Response response = TransactionService.sendCommand(cancelSetSell);
-        return response;
     }
 }

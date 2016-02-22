@@ -20,7 +20,8 @@ import java.util.List;
  */
 public class TransactionService {
 
-    private static final String TX_SERVER_HOST = "http://httpbin.org";
+    // TODO: target a live transaction server
+    private static final String TX_SERVER_HOST = "b136.seng.uvic.ca";
     private static final int TX_SERVER_PORT = 44440;
 
     public static Response sendCommand(UserCommand userCommand)
@@ -50,7 +51,19 @@ public class TransactionService {
         message.add(Integer.toString(userCommand.getCmdCode()));
         message.addAll(userCommand.getArgs());
         message.add(Long.toString(System.currentTimeMillis()));
+
         //TODO: send currently active web server host and port in the message
+        InetAddress ip = null;
+        try {
+            ip = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        String hostname = ip.getHostName();
+        String canonicalHostName = ip.getCanonicalHostName();
+        String hostAddress = ip.getHostAddress();
+        message.add("test.hostname");
+        message.add("8080");
 
         // format the message
         String separator = ",";
@@ -61,7 +74,8 @@ public class TransactionService {
         try
         {
             // get the address of the transaction server
-            InetAddress address = InetAddress.getByName(TX_SERVER_HOST);
+            //InetAddress address = InetAddress.getByName(TX_SERVER_HOST);
+
 
             // open transaction socket
             Socket socket = new Socket(TX_SERVER_HOST, TX_SERVER_PORT);

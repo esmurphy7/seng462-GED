@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 public class DumplogResource
 {
     @GET
-    public Response getDumplog(@QueryParam("userId") String userId,
+    public void getDumplog(@QueryParam("userId") String userId,
                                @QueryParam("filename") String filename)
     {
         // type of dumplog command differs based on existence of userId
@@ -31,6 +31,5 @@ public class DumplogResource
         }
 
         Response response = TransactionService.sendCommand(dumplogCommand);
-        return response;
     }
 }

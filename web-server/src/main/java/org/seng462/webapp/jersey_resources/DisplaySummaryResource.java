@@ -16,10 +16,9 @@ import javax.ws.rs.core.Response;
 public class DisplaySummaryResource
 {
     @GET
-    public Response getDisplaySummary(@QueryParam("userId") String userId)
+    public void getDisplaySummary(@QueryParam("userId") String userId)
     {
         UserCommand displaySummary = new UserCommand(CommandCodes.DISPLAY_SUMMARY);
         Response response = TransactionService.sendCommand(displaySummary);
-        return response;
     }
 }

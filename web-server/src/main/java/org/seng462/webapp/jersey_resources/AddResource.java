@@ -13,18 +13,11 @@ import javax.ws.rs.core.Response;
 public class AddResource
 {
     @POST
-    public Response postAdd(@QueryParam("userId") String userId,
+    public void postAdd(@QueryParam("userId") String userId,
                             @QueryParam("amount") String amount)
     {
-        // validate the command
-            // ex: workloadId, dollars, cents are positive ints
-
         // relay the request to transaction server's api
         UserCommand addCommand = new UserCommand(CommandCodes.ADD, userId, amount);
         Response response = TransactionService.sendCommand(addCommand);
-
-        // return response
-            // ex: handling errors and render html page
-        return response;
     }
 }
