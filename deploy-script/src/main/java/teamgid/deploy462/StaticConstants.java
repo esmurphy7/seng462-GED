@@ -14,4 +14,10 @@ public class StaticConstants {
             "b136.seng.uvic.ca",
             "b137.seng.uvic.ca"
     };
+
+    public static final String[] WEB_SERVERS = new String[] {
+            "b135.seng.uvic.ca",
+            "b136.seng.uvic.ca",
+            "b137.seng.uvic.ca"
+    };
 }
