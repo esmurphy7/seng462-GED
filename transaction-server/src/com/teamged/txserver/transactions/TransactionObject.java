@@ -308,7 +308,7 @@ public class TransactionObject {
                         if (webServerNameIdx < 0 || webServerNameIdx >= ServerConstants.WEB_SERVERS.length) {
                             errorString = "Web server name index is invalid";
                             parsed = false;
-                        } else if (webServerPortIdx < 0 || webServerPortIdx >= ServerConstants.PORT_RANGE.length) {
+                        } else if (webServerPortIdx < 0 || webServerPortIdx >= ServerConstants.TX_PORT_RANGE.length) {
                             errorString = "Web server port index is invalid";
                             parsed = false;
                         }
@@ -400,7 +400,7 @@ public class TransactionObject {
 
     /**
      * Getter for the web server port index. Should only be negative if the error string has a value. Should never be
-     * greater than the number of entries in the ServerConstants.PORT_RANGE.
+     * greater than the number of entries in the ServerConstants.TX_PORT_RANGE.
      * @return  The port index of the web server that made this request.
      */
     public int getWebServerPortIdx() {

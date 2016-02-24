@@ -10,6 +10,8 @@ import net.schmizz.sshj.userauth.UserAuthException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +21,8 @@ import java.util.concurrent.TimeUnit;
 public class DeployLaunch {
     private static final String TX_TYPE = "tx";
     private static final String WEB_TYPE = "web";
-    private static final String BOTH_TYPE = "both";
+    private static final String AUDIT_TYPE = "audit";
+    private static final String ALL_TYPE = "all";
     private static final String TEST_TYPE = "test";
 
     private static String username;
@@ -27,6 +30,7 @@ public class DeployLaunch {
     private static String deploytype; // TODO: Support different deployments
     private static int txDeployInst = -1;
     private static int webDeployInst = -1;
+    private static int auditDeployInst = -1;
 
     /**
      * Deployment script for transaction server. Could easily be extended to deploy other servers.
@@ -104,6 +108,13 @@ public class DeployLaunch {
                 deployWebServer(webClient);
             }
         }
+
+        if (auditDeployInst != -1) {
+            final SSHClient sshClient = new SSHClient();
+            if (connectToAuditServer(sshClient)) {
+
+            }
+        }
     }
 
     private static boolean authorizeUser(SSHClient client) throws IOException {
@@ -124,31 +135,64 @@ public class DeployLaunch {
 
     private static void getUserPref()
     {
+        List<String> deployments = new ArrayList<String>();
         boolean hasDeploymentType = false;
         Scanner userInput = new Scanner(System.in);
         while (!hasDeploymentType) {
-            System.out.println("Which server do you wish to deploy? (tx, web, both):");
+            System.out.println("Deployment options:" +
+                    "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
+                    "\n    '" + WEB_TYPE + "' for Web Server deployment" +
+                    "\n    '" + AUDIT_TYPE + "' for Audit Server deployment" +
+                    "\n    '" + ALL_TYPE + "' for all deployments" +
+                    "\nEnter deployment type: "
+            );
+
+            System.out.println("Which server do you wish to deploy? (tx, web, audit, all):");
             String input = userInput.nextLine();
-            if (input.equals(BOTH_TYPE)) {
-                getTxUserPref();
-                getWebUserPrefs();
+            if (input.equals(ALL_TYPE)) {
+                deployments.add(TX_TYPE);
+                deployments.add(WEB_TYPE);
+                deployments.add(AUDIT_TYPE);
                 hasDeploymentType = true;
             } else if (input.equals(WEB_TYPE)) {
-                getWebUserPrefs();
+                deployments.add(WEB_TYPE);
                 hasDeploymentType = true;
-            }
-            if (input.equals(TX_TYPE)) {
-                getTxUserPref();
+            } else if (input.equals(TX_TYPE)) {
+                deployments.add(TX_TYPE);
+                hasDeploymentType = true;
+            } else if (input.equals(AUDIT_TYPE)) {
+                deployments.add(AUDIT_TYPE);
                 hasDeploymentType = true;
             } else {
                 System.out.println("Not a valid server option");
             }
+        }
 
-            // check that the user can't deploy transaction server and web server to same machine
-            if(input.equals(BOTH_TYPE) && (StaticConstants.TX_SERVERS[txDeployInst] == StaticConstants.WEB_SERVERS[webDeployInst]))
-            {
-                System.out.println("Cannot deploy to the same server...please try again");
-                getUserPref();
+        int maxOpts = 0;
+        String[] options = null;
+        for (String deployment : deployments) {
+            if (deployment.equals(TX_TYPE)) {
+                maxOpts = StaticConstants.TX_SERVERS.length;
+                options = StaticConstants.TX_SERVERS;
+            } else if (deployment.equals(WEB_TYPE)) {
+                maxOpts = StaticConstants.WEB_SERVERS.length;
+                options = StaticConstants.WEB_SERVERS;
+            } else if (deployment.equals(AUDIT_TYPE)) {
+                maxOpts = StaticConstants.AUDIT_SERVERS.length;
+                options = StaticConstants.AUDIT_SERVERS;
+            }
+
+            StringBuilder sb = new StringBuilder("Servers available for " + deployment + " deployment:");
+            for (int i = 0; i < maxOpts; i++) {
+                sb.append("\n    (" + (i + 1) + ") ");
+                sb.append(options[i]);
+            }
+
+            sb.append("\nEnter desired server number: ");
+            System.out.println(sb.toString());
+            int userOpt = userInput.nextInt();
+            if (userOpt < maxOpts && userOpt > 0) {
+                txDeployInst = userOpt - 1;
             }
         }
     }
@@ -328,5 +372,9 @@ public class DeployLaunch {
                 e.printStackTrace();
             }
         }
+    }
+
+    private static boolean connectToAuditServer(SSHClient sshClient) {
+        return false; //TODO
     }
 }

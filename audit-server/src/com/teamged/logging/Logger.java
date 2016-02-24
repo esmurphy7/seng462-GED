@@ -1,21 +1,19 @@
 package com.teamged.logging;
 
-import com.teamged.ServerConstants;
 import com.teamged.logging.xmlelements.generated.LogType;
 import com.teamged.logging.xmlelements.generated.ObjectFactory;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.helpers.DefaultValidationEventHandler;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.*;
-import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -78,21 +76,7 @@ public class Logger
     // Store the log in a list to save later
     public void Log(Object logType)
     {
-        try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT)) {
-            LogType log = new LogType();
-            log.getUserCommandOrQuoteServerOrAccountTransaction().add(logType);
-
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<LogType> jaxbLogType = objectFactory.createLog(log);
-            marshaller.marshal(jaxbLogType, s.getOutputStream());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-        //Logs.add(logType);
+        Logs.add(logType);
     }
 
     // write the log to an xml file on disk

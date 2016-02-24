@@ -39,8 +39,8 @@ public class TransactionMonitor {
      */
     public static void runServer() {
         InternalLog.Log("Launching transaction server socket listeners.");
-        for (int i = 0; i < ServerConstants.PORT_RANGE.length; i++) {
-            int portNum = ServerConstants.PORT_RANGE[i];
+        for (int i = 0; i < ServerConstants.TX_PORT_RANGE.length; i++) {
+            int portNum = ServerConstants.TX_PORT_RANGE[i];
             TransactionServerThread rpThread;
             try {
                 rpThread = new RequestProcessingThread(portNum, ServerConstants.THREAD_POOL_SIZE, syncObject);
