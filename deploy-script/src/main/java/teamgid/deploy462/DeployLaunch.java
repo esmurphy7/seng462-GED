@@ -19,38 +19,35 @@ import java.util.concurrent.TimeUnit;
  * Created by DanielF on 2016-02-15.
  */
 public class DeployLaunch {
+    private static final List<Deployment> deployments = new ArrayList<Deployment>();
+
     private static final String TX_TYPE = "tx";
     private static final String WEB_TYPE = "web";
     private static final String AUDIT_TYPE = "audit";
     private static final String ALL_TYPE = "all";
-    private static final String TEST_TYPE = "test";
 
     private static String username;
     private static String password;
-    private static String deploytype; // TODO: Support different deployments
-    private static int txDeployInst = -1;
-    private static int webDeployInst = -1;
-    private static int auditDeployInst = -1;
 
     /**
      * Deployment script for transaction server. Could easily be extended to deploy other servers.
      * Requires user input - first for deployment type (currently only works with 'tx') and deployment server,
      * and then username and password for logging on to the seng lab machine. To add more server options, edit
      * the StaticConstants file in the deploy-script project.
-     *
+     * <p>
      * Assumes that the transaction-server folder is in a directory level with deploy-script and that the program
      * was launched from the deploy-script folder.
-     *
+     * <p>
      * Copies the contents of the transaction-server project to the specified server. The contents will be placed in
      * the /seng/scratch/group4 directory, under a new (or replaced) src directory. These files will be compiled (note
      * that if new folders are added to the transaction-server project, those will need to be added to the compile
      * definitions in the 'deployTxServer' method below.
-     *
+     * <p>
      * A bash script will be copied to the target server, given execute permissions, and its line endings will be
      * replaced with Unix LF instead of Windows CRLF. This way, the transaction server can be run by going to the
      * /seng/scratch/group4 directory and typing:
-     *      ./txrun.sh
-     *
+     * ./txrun.sh
+     * <p>
      * TODO:
      * - Automatically build the list of directories to compile (could do a recursive traversal of the
      * transaction-server folders to check for which ones have .java files, and then add those to a compile list)
@@ -61,6 +58,7 @@ public class DeployLaunch {
      * - Generate a different target directory to avoid clobbering other 'src' folders, in case something else uses
      * that name
      * - Integrate with the other 'StaticConstants.java' currently in the transaction-server project
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -70,49 +68,51 @@ public class DeployLaunch {
         // get user's name and password
         getUserInfo();
 
-        // connect and deploy to transaction and/or web server
-        if(txDeployInst != -1)
-        {
+        for (Deployment deployment : deployments) {
             boolean connected = false;
-            final SSHClient txClient = new SSHClient();
-            connected = connectToTxServer(connected, txClient);
+            final SSHClient client = new SSHClient();
+            if (connectToServer(client, deployment.getServerLocation())) {
 
-            if (connected) {
-                try {
-                    connected = authorizeUser(txClient);
-                } catch (IOException e) {
-                    // Have to try catch because disconnecting can throw an exception...
-                    e.printStackTrace();
+                switch (deployment.getServerType()) {
+                    case WEB_SERVER:
+                        try {
+                            connected = authorizeUser(client);
+                        } catch (IOException e) {
+                            // Have to try catch because disconnecting can throw an exception...
+                            e.printStackTrace();
+                        }
+                        if (connected) {
+                            deployWebServer(client, deployment.getServerLocation());
+                        }
+                        break;
+
+                    case TRANSACTION_SERVER:
+                        try {
+                            connected = authorizeUser(client);
+                        } catch (IOException e) {
+                            // Have to try catch because disconnecting can throw an exception...
+                            e.printStackTrace();
+                        }
+                        if (connected) {
+                            deployTxServer(client, deployment.getServerLocation());
+                        }
+
+                        break;
+
+                    case AUDIT_SERVER:
+                        try {
+                            connected = authorizeUser(client);
+                        } catch (IOException e) {
+                            // Have to try catch because disconnecting can throw an exception...
+                            e.printStackTrace();
+                        }
+
+                        if (connected) {
+                            deployWebServer(client, deployment.getServerLocation());
+                        }
+
+                        break;
                 }
-            }
-            if (connected) {
-                deployTxServer(txClient);
-            }
-        }
-
-        if(webDeployInst != -1)
-        {
-            boolean connected = false;
-            final SSHClient webClient = new SSHClient();
-            connected = connectToWebServer(connected, webClient);
-
-            if (connected) {
-                try {
-                    connected = authorizeUser(webClient);
-                } catch (IOException e) {
-                    // Have to try catch because disconnecting can throw an exception...
-                    e.printStackTrace();
-                }
-            }
-            if (connected) {
-                deployWebServer(webClient);
-            }
-        }
-
-        if (auditDeployInst != -1) {
-            final SSHClient sshClient = new SSHClient();
-            if (connectToAuditServer(sshClient)) {
-
             }
         }
     }
@@ -133,9 +133,7 @@ public class DeployLaunch {
         return connected;
     }
 
-    private static void getUserPref()
-    {
-        List<String> deployments = new ArrayList<String>();
+    private static void getUserPref() {
         boolean hasDeploymentType = false;
         Scanner userInput = new Scanner(System.in);
         while (!hasDeploymentType) {
@@ -150,18 +148,18 @@ public class DeployLaunch {
             System.out.println("Which server do you wish to deploy? (tx, web, audit, all):");
             String input = userInput.nextLine();
             if (input.equals(ALL_TYPE)) {
-                deployments.add(TX_TYPE);
-                deployments.add(WEB_TYPE);
-                deployments.add(AUDIT_TYPE);
+                deployments.add(new Deployment(ServerType.WEB_SERVER));
+                deployments.add(new Deployment(ServerType.TRANSACTION_SERVER));
+                deployments.add(new Deployment(ServerType.AUDIT_SERVER));
                 hasDeploymentType = true;
             } else if (input.equals(WEB_TYPE)) {
-                deployments.add(WEB_TYPE);
+                deployments.add(new Deployment(ServerType.WEB_SERVER));
                 hasDeploymentType = true;
             } else if (input.equals(TX_TYPE)) {
-                deployments.add(TX_TYPE);
+                deployments.add(new Deployment(ServerType.TRANSACTION_SERVER));
                 hasDeploymentType = true;
             } else if (input.equals(AUDIT_TYPE)) {
-                deployments.add(AUDIT_TYPE);
+                deployments.add(new Deployment(ServerType.AUDIT_SERVER));
                 hasDeploymentType = true;
             } else {
                 System.out.println("Not a valid server option");
@@ -170,91 +168,37 @@ public class DeployLaunch {
 
         int maxOpts = 0;
         String[] options = null;
-        for (String deployment : deployments) {
-            if (deployment.equals(TX_TYPE)) {
-                maxOpts = StaticConstants.TX_SERVERS.length;
-                options = StaticConstants.TX_SERVERS;
-            } else if (deployment.equals(WEB_TYPE)) {
-                maxOpts = StaticConstants.WEB_SERVERS.length;
-                options = StaticConstants.WEB_SERVERS;
-            } else if (deployment.equals(AUDIT_TYPE)) {
-                maxOpts = StaticConstants.AUDIT_SERVERS.length;
-                options = StaticConstants.AUDIT_SERVERS;
+        for (Deployment deployment : deployments) {
+            switch (deployment.getServerType()) {
+                case WEB_SERVER:
+                    maxOpts = StaticConstants.WEB_SERVERS.length;
+                    options = StaticConstants.WEB_SERVERS;
+                    break;
+                case TRANSACTION_SERVER:
+                    maxOpts = StaticConstants.TX_SERVERS.length;
+                    options = StaticConstants.TX_SERVERS;
+                    break;
+                case AUDIT_SERVER:
+                    maxOpts = StaticConstants.AUDIT_SERVERS.length;
+                    options = StaticConstants.AUDIT_SERVERS;
+                    break;
             }
 
-            StringBuilder sb = new StringBuilder("Servers available for " + deployment + " deployment:");
-            for (int i = 0; i < maxOpts; i++) {
-                sb.append("\n    (" + (i + 1) + ") ");
-                sb.append(options[i]);
-            }
+            boolean hasServer = false;
+            while (!hasServer) {
+                StringBuilder sb = new StringBuilder("Servers available for " + deployment + " deployment:");
+                for (int i = 0; i < maxOpts; i++) {
+                    sb.append("\n    (" + (i + 1) + ") ");
+                    sb.append(options[i]);
+                }
 
-            sb.append("\nEnter desired server number: ");
-            System.out.println(sb.toString());
-            int userOpt = userInput.nextInt();
-            if (userOpt < maxOpts && userOpt > 0) {
-                txDeployInst = userOpt - 1;
-            }
-        }
-    }
-
-    private static void getTxUserPref() {
-        Scanner userInput = new Scanner(System.in);
-        boolean hasDeploymentType = false;
-        boolean hasServer = false;
-
-        while (!hasDeploymentType) {
-            System.out.println("Deployment options:" +
-                    "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
-                    "\n    '" + TEST_TYPE + "' for Test Server deployment" +
-                    "\nEnter deployment type: "
-            );
-
-            String input = userInput.nextLine();
-            if (input.equals(TX_TYPE)) {
-                deploytype = input;
-                hasDeploymentType = true;
-            } else if (input.equals(TEST_TYPE)) {
-                System.out.println("Test deployment support coming soon.");
-            } else {
-                System.out.println("Not a valid deployment option.");
-            }
-        }
-
-        // get target transaction server from user
-        int maxOpt = StaticConstants.TX_SERVERS.length;
-        while (!hasServer) {
-            StringBuilder txServersString = new StringBuilder("Servers available for transaction deployment:");
-            for (int i = 0; i < maxOpt; i++) {
-                txServersString.append("\n    (" + (i + 1) + ") ");
-                txServersString.append(StaticConstants.TX_SERVERS[i]);
-            }
-            txServersString.append("\nEnter desired transaction server number: ");
-            System.out.println(txServersString.toString());
-            int userOpt = userInput.nextInt();
-            if (userOpt < maxOpt && userOpt > 0) {
-                txDeployInst = userOpt - 1;
-                hasServer = true;
-            }
-        }
-    }
-
-    private static void getWebUserPrefs()
-    {
-        Scanner userInput = new Scanner(System.in);
-        int maxOpt = StaticConstants.WEB_SERVERS.length;
-        boolean hasServer = false;
-        while (!hasServer) {
-            StringBuilder txServersString = new StringBuilder("Servers available for web server deployment:");
-            for (int i = 0; i < maxOpt; i++) {
-                txServersString.append("\n    (" + (i + 1) + ") ");
-                txServersString.append(StaticConstants.WEB_SERVERS[i]);
-            }
-            txServersString.append("\nEnter desired web server number: ");
-            System.out.println(txServersString.toString());
-            int userOpt = userInput.nextInt();
-            if (userOpt < maxOpt && userOpt > 0) {
-                webDeployInst = userOpt - 1;
-                hasServer = true;
+                sb.append("\nEnter desired server number: ");
+                System.out.println(sb.toString());
+                int userOpt = userInput.nextInt();
+                if (userOpt < maxOpts && userOpt > 0) {
+                    deployment.addServerLocation(userOpt);
+                    hasServer = true;
+                }
             }
         }
     }
@@ -267,11 +211,12 @@ public class DeployLaunch {
         password = userInput.nextLine();
     }
 
-    private static boolean connectToTxServer(boolean connected, SSHClient client) {
-        System.out.println("Connecting to transaction server " + StaticConstants.TX_SERVERS[txDeployInst]);
+    private static boolean connectToServer(SSHClient client, String server) {
+        boolean connected = false;
+        System.out.println("Connecting to server " + server);
         try {
             client.addHostKeyVerifier(new PromiscuousVerifier());
-            client.connect(StaticConstants.TX_SERVERS[txDeployInst]);
+            client.connect(server);
             connected = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -279,8 +224,8 @@ public class DeployLaunch {
         return connected;
     }
 
-    private static void deployTxServer(SSHClient client) {
-        System.out.println("Deploying to transaction server " + StaticConstants.TX_SERVERS[txDeployInst]);
+    private static void deployTxServer(SSHClient client, String server) {
+        System.out.println("Deploying to transaction server " + server);
         try {
             System.out.println("Transferring files...");
             Path txPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("transaction-server").resolve("src");
@@ -330,32 +275,19 @@ public class DeployLaunch {
         }
     }
 
-    private static boolean connectToWebServer(boolean connected, SSHClient client) {
-        System.out.println("Connecting to web server " + StaticConstants.WEB_SERVERS[webDeployInst]);
-        try {
-            client.addHostKeyVerifier(new PromiscuousVerifier());
-            client.connect(StaticConstants.WEB_SERVERS[webDeployInst]);
-            connected = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return connected;
-    }
-
-    private static void deployWebServer(SSHClient webClient)
-    {
-        System.out.println("Deploying to web server " + StaticConstants.TX_SERVERS[webDeployInst]);
+    private static void deployWebServer(SSHClient client, String server) {
+        System.out.println("Deploying to web server " + server);
         System.out.println("Transferring WAR file...");
         Path warPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("web-server").resolve("target").resolve("daytrading.war");
         try {
-            webClient.newSCPFileTransfer().upload(warPath.toString(), "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps");
+            client.newSCPFileTransfer().upload(warPath.toString(), "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps");
             Path bashPath = Paths.get(System.getProperty("user.dir")).resolve("src").resolve("main").resolve("resources").resolve("webrun.sh");
-            webClient.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
+            client.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
             System.out.println("Finished transferring");
 
             // Assigns execute permissions to bash script and replaces any Windows line endings
             System.out.println("Preparing bash script for easy running of web server...");
-            final Session chmod_session = webClient.startSession();
+            final Session chmod_session = client.startSession();
             final Session.Command chmod_cmd = chmod_session.exec("chmod 770 /seng/scratch/group4/webrun.sh; " +
                     "sed -i -e 's/\\r$//' /seng/scratch/group4/webrun.sh"
             );
@@ -367,14 +299,14 @@ public class DeployLaunch {
             e.printStackTrace();
         } finally {
             try {
-                webClient.disconnect();
+                client.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private static boolean connectToAuditServer(SSHClient sshClient) {
+    private static boolean connectToAuditServer(SSHClient client, String server) {
         return false; //TODO
     }
 }
