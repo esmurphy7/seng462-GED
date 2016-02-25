@@ -78,6 +78,7 @@ public class Logger
     // Store the log in a list to save later
     public void Log(Object logType)
     {
+        System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
         try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT)) {
             LogType log = new LogType();
             log.getUserCommandOrQuoteServerOrAccountTransaction().add(logType);

@@ -39,10 +39,10 @@ public class AuditMain {
 
     private static void runServer() {
         InternalLog.Log("Launching audit server socket listeners.");
-        for (int i = 0; i < ServerConstants.PROCESSING_THREAD_COUNT; i++) {
+        for (int i = 0; i < ServerConstants.AUDIT_LOG_PORT_RANGE.length; i++) {
             AuditServerThread audThread = null;
             try {
-                audThread = new AuditProcessingThread(ServerConstants.AUDIT_LOG_PORT, ServerConstants.THREAD_POOL_SIZE, syncObject);
+                audThread = new AuditProcessingThread(ServerConstants.AUDIT_LOG_PORT_RANGE[i], ServerConstants.THREAD_POOL_SIZE, syncObject);
             } catch (IOException e) {
                 e.printStackTrace();
             }

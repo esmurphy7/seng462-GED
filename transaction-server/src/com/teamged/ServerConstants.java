@@ -19,7 +19,7 @@ public class ServerConstants {
     };
 
     public static final String[] AUDIT_SERVERS = new String[] {
-            "b140.seng.uvic.ca"
+            "b141.seng.uvic.ca"
     };
 
     public static final int[] TX_PORT_RANGE = new int[] {
@@ -37,7 +37,7 @@ public class ServerConstants {
             */
     };
 
-    public static final int AUDIT_LOG_PORT = 44440;
+    public static final int AUDIT_LOG_PORT = 44441;
     public static final int AUDIT_DUMP_PORT = 44441;
 
     public static final int PROCESSING_THREAD_COUNT = 4;

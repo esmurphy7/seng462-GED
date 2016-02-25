@@ -1,5 +1,6 @@
 package com.teamged.auditserver.threads;
 
+import com.teamged.auditserver.InternalLog;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.LogType;
 
@@ -24,6 +25,7 @@ public class AuditProcessingHandler implements Runnable {
     public void run() {
         try {
         //try (InputStream is = new ByteArrayInputStream(serializedLog.getBytes(StandardCharsets.UTF_8))){
+            InternalLog.Log("Processing log");
             JAXBContext context = JAXBContext.newInstance(LogType.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
             JAXBElement<LogType> logElem = (JAXBElement<LogType>)unmarshaller.unmarshal(socket.getInputStream());

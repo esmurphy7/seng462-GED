@@ -106,9 +106,8 @@ public class DeployLaunch {
                             // Have to try catch because disconnecting can throw an exception...
                             e.printStackTrace();
                         }
-
                         if (connected) {
-                            deployWebServer(client, deployment.getServerLocation());
+                            deployAuditServer(client, deployment.getServerLocation());
                         }
 
                         break;
@@ -186,7 +185,7 @@ public class DeployLaunch {
 
             boolean hasServer = false;
             while (!hasServer) {
-                StringBuilder sb = new StringBuilder("Servers available for " + deployment + " deployment:");
+                StringBuilder sb = new StringBuilder("Servers available for " + deployment.getServerType() + " deployment:");
                 for (int i = 0; i < maxOpts; i++) {
                     sb.append("\n    (" + (i + 1) + ") ");
                     sb.append(options[i]);
@@ -196,7 +195,7 @@ public class DeployLaunch {
                 System.out.println(sb.toString());
                 int userOpt = userInput.nextInt();
                 if (userOpt < maxOpts && userOpt > 0) {
-                    deployment.addServerLocation(userOpt);
+                    deployment.addServerLocation(userOpt - 1);
                     hasServer = true;
                 }
             }
@@ -225,11 +224,18 @@ public class DeployLaunch {
     }
 
     private static void deployTxServer(SSHClient client, String server) {
-        System.out.println("Deploying to transaction server " + server);
+        System.out.println("\nDEPLOYING TO TRANSACTION SERVER: " + server);
         try {
+            System.out.println("Cleaning old files...");
+            final Session rm_session = client.startSession();
+            final Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/TransactionDeploy/");
+            rm_cmd.join(10, TimeUnit.SECONDS);
+            rm_session.close();
+            System.out.println("Finished cleaning old files");
+
             System.out.println("Transferring files...");
             Path txPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("transaction-server").resolve("src");
-            client.newSCPFileTransfer().upload(txPath.toString(), "/seng/scratch/group4/");
+            client.newSCPFileTransfer().upload(txPath.toString(), "/seng/scratch/group4/TransactionDeploy/");
 
             Path bashPath = Paths.get(System.getProperty("user.dir")).resolve("src").resolve("main").resolve("resources").resolve("txrun.sh");
             client.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
@@ -238,32 +244,34 @@ public class DeployLaunch {
             System.out.println("Compiling transaction server");
             final Session javac_session = client.startSession();
             final Session.Command javac_cmd = javac_session.exec("javac " +
-                    "/seng/scratch/group4/src/com/teamged/txserver/*.java " +
-                    "/seng/scratch/group4/src/com/teamged/*.java " + "" +
-                    "/seng/scratch/group4/src/com/teamged/txserver/transactions/*.java " +
-                    "/seng/scratch/group4/src/com/teamged/txserver/database/*.java " +
-                    "/seng/scratch/group4/src/com/teamged/logging/*.java " +
-                    "/seng/scratch/group4/src/com/teamged/logging/xmlelements/generated/*.java"
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/txserver/*.java " +
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/*.java " + "" +
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/txserver/transactions/*.java " +
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/txserver/database/*.java " +
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/logging/*.java " +
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/logging/xmlelements/generated/*.java"
             );
             String result = IOUtils.readFully(javac_cmd.getInputStream()).toString();
             if (!result.equals("")) {
                 System.out.println(result);
             }
-            javac_cmd.join(30, TimeUnit.SECONDS);
+            javac_cmd.join(60, TimeUnit.SECONDS);
             javac_session.close();
             System.out.println("Finished compiling");
 
-            // Assigns execute permissions to bash script and replaces any Windows line endings
             System.out.println("Preparing bash script for easy running of transaction server...");
+            System.out.println("Setting file and directory permissions...");
             final Session chmod_session = client.startSession();
             final Session.Command chmod_cmd = chmod_session.exec("chmod 770 /seng/scratch/group4/txrun.sh; " +
+                    "chmod -R 770 /seng/scratch/group4/TransactionDeploy; " +
                     "sed -i -e 's/\\r$//' /seng/scratch/group4/txrun.sh"
             );
             chmod_cmd.join(5, TimeUnit.SECONDS);
             chmod_session.close();
             System.out.println("Bash script prepared");
+            System.out.println("File and directory permissions applied");
 
-            System.out.println("Deployment successful!");
+            System.out.println("Transaction server deployment successful!");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -276,7 +284,7 @@ public class DeployLaunch {
     }
 
     private static void deployWebServer(SSHClient client, String server) {
-        System.out.println("Deploying to web server " + server);
+        System.out.println("\nDEPLOYING TO WEB SERVER: " + server);
         System.out.println("Transferring WAR file...");
         Path warPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("web-server").resolve("target").resolve("daytrading.war");
         try {
@@ -285,7 +293,6 @@ public class DeployLaunch {
             client.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
             System.out.println("Finished transferring");
 
-            // Assigns execute permissions to bash script and replaces any Windows line endings
             System.out.println("Preparing bash script for easy running of web server...");
             final Session chmod_session = client.startSession();
             final Session.Command chmod_cmd = chmod_session.exec("chmod 770 /seng/scratch/group4/webrun.sh; " +
@@ -294,7 +301,7 @@ public class DeployLaunch {
             chmod_cmd.join(5, TimeUnit.SECONDS);
             chmod_session.close();
             System.out.println("Bash script prepared");
-            System.out.println("Deployment successful!");
+            System.out.println("Web server deployment successful!");
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -306,7 +313,61 @@ public class DeployLaunch {
         }
     }
 
-    private static boolean connectToAuditServer(SSHClient client, String server) {
-        return false; //TODO
+    private static void deployAuditServer(SSHClient client, String server) {
+        System.out.println("\nDEPLOYING TO AUDIT SERVER: " + server);
+        try {
+            System.out.println("Cleaning old files...");
+            final Session rm_session = client.startSession();
+            final Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/AuditDeploy/");
+            rm_cmd.join(10, TimeUnit.SECONDS);
+            rm_session.close();
+            System.out.println("Finished cleaning old files");
+
+            System.out.println("Transferring files...");
+            Path txPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("audit-server").resolve("src");
+            client.newSCPFileTransfer().upload(txPath.toString(), "/seng/scratch/group4/AuditDeploy/");
+
+            Path bashPath = Paths.get(System.getProperty("user.dir")).resolve("src").resolve("main").resolve("resources").resolve("audrun.sh");
+            client.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
+            System.out.println("Finished transferring");
+
+            System.out.println("Compiling audit server");
+            final Session javac_session = client.startSession();
+            final Session.Command javac_cmd = javac_session.exec("javac " +
+                    "/seng/scratch/group4/AuditDeploy/com/teamged/auditserver/*.java " +
+                    "/seng/scratch/group4/AuditDeploy/com/teamged/*.java " + "" +
+                    "/seng/scratch/group4/AuditDeploy/com/teamged/auditserver/threads/*.java " +
+                    "/seng/scratch/group4/AuditDeploy/com/teamged/logging/*.java " +
+                    "/seng/scratch/group4/AuditDeploy/com/teamged/logging/xmlelements/generated/*.java"
+            );
+            String result = IOUtils.readFully(javac_cmd.getInputStream()).toString();
+            if (!result.equals("")) {
+                System.out.println(result);
+            }
+            javac_cmd.join(60, TimeUnit.SECONDS);
+            javac_session.close();
+            System.out.println("Finished compiling");
+
+            System.out.println("Preparing bash script for easy running of transaction server...");
+            System.out.println("Setting file and directory permissions...");
+            final Session chmod_session = client.startSession();
+            final Session.Command chmod_cmd = chmod_session.exec("chmod 770 /seng/scratch/group4/audrun.sh; " +
+                    "chmod -R 770 /seng/scratch/group4/AuditDeploy; " +
+                    "sed -i -e 's/\\r$//' /seng/scratch/group4/audrun.sh"
+            );
+            chmod_cmd.join(5, TimeUnit.SECONDS);
+            chmod_session.close();
+            System.out.println("Bash script prepared");
+            System.out.println("File and directory permissions applied");
+            System.out.println("Audit server deployment successful!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                client.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

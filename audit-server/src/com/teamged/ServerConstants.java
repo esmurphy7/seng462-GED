@@ -37,7 +37,20 @@ public class ServerConstants {
             */
     };
 
-    public static final int AUDIT_LOG_PORT = 44440;
+    public static final int[] AUDIT_LOG_PORT_RANGE = new int[] {
+            44441
+            /*
+            ,44441
+            ,44442
+            ,44443
+            ,44444
+            ,44445
+            ,44446
+            ,44447
+            ,44448
+            ,44449
+             */
+    };
     public static final int AUDIT_DUMP_PORT = 44441;
 
     public static final int PROCESSING_THREAD_COUNT = 4;
