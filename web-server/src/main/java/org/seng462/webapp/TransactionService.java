@@ -25,11 +25,9 @@ public class TransactionService
         // parse command object into message
         ArrayList<String> message = new ArrayList<String>();
 
-        //TODO: send workload and user sequence number in message
-        //String workloadSeqNo = "["+userCommand.getWorkloadSeqNo()+"]";
-        String workloadSeqNo = "["+0+"]";
-        //String userSeqNo = "["+userCommand.getUserSeqNo()+"]";
-        String userSeqNo = "["+0+"]";
+        // include sequence numbers
+        String workloadSeqNo = "["+userCommand.getWorkloadSeqNo()+"]";
+        String userSeqNo = "["+userCommand.getUserSeqNo()+"]";
         message.add(workloadSeqNo);
         message.add(userSeqNo);
 
