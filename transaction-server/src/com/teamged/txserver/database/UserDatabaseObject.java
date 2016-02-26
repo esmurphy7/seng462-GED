@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by DanielF on 2016-02-02.
@@ -22,6 +24,7 @@ import java.util.*;
 public class UserDatabaseObject {
     private static final int CENT_CAP = 100;
 
+    private final ScheduledExecutorService triggerScheduler;
     private final Object lock = new Object();
     private final List<String> history = new ArrayList<>();
     private final Deque<StockRequest> sellList = new ArrayDeque<>();
@@ -38,6 +41,7 @@ public class UserDatabaseObject {
 
     public UserDatabaseObject(String user) {
         userName = user;
+        triggerScheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     public String add(int dollars, int cents, int tid) {
@@ -379,6 +383,7 @@ public class UserDatabaseObject {
                     if (trigger.getSetAmount().getStock().equals(stock)) {
                         buyTriggers.remove(trigger);
                         buyReq = trigger.getSetAmount();
+                        trigger.cancelTrigger(); // Notify the trigger executor that this trigger is cancelled.
                         break;
                     }
                 }
@@ -497,12 +502,21 @@ public class UserDatabaseObject {
                     if (trigger.getSetAmount().getStock().equals(stock)) {
                         sellTriggers.remove(trigger);
                         sellReq = trigger.getSetAmount();
+                        trigger.cancelTrigger(); // Notify the trigger executor that this trigger is cancelled.
                         break;
                     }
                 }
             }
 
             if (sellReq != null) {
+                // Returns stocks to holdings
+                int stockCount = sellReq.getShares();
+                if (stocksOwned.containsKey(stock)) {
+                    stockCount = stocksOwned.get(stock);
+                }
+
+                stocksOwned.put(stock, stockCount);
+
                 cancelSet = "CANCEL_SET_SELL," + userName + "," + stock + "," + this.dollars + "." + this.cents;
             } else {
                 cancelSet = "CANCEL_SET_SELL ERROR";

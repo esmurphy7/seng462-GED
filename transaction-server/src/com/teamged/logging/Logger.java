@@ -78,22 +78,7 @@ public class Logger
     // Store the log in a list to save later
     public void Log(Object logType)
     {
-        System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
-        try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT)) {
-            LogType log = new LogType();
-            log.getUserCommandOrQuoteServerOrAccountTransaction().add(logType);
-
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<LogType> jaxbLogType = objectFactory.createLog(log);
-            marshaller.marshal(jaxbLogType, s.getOutputStream());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-        //Logs.add(logType);
+        Logs.add(logType);
     }
 
     // write the log to an xml file on disk
