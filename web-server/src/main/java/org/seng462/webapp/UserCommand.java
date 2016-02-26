@@ -7,14 +7,14 @@ import java.util.ArrayList;
  */
 public class UserCommand
 {
-    private int cmdCode;
+    private CommandCodes cmdCode;
     private ArrayList<String> args = new ArrayList<String>();
 
-    public int getCmdCode() {
+    public CommandCodes getCmdCode() {
         return cmdCode;
     }
 
-    public void setCmdCode(int cmdCode) {
+    public void setCmdCode(CommandCodes cmdCode) {
         this.cmdCode = cmdCode;
     }
 
@@ -26,7 +26,7 @@ public class UserCommand
         this.args = args;
     }
 
-    public UserCommand(int cmdCode, String... args)
+    public UserCommand(CommandCodes cmdCode, String... args)
     {
         this.cmdCode = cmdCode;
         for(String arg : args)

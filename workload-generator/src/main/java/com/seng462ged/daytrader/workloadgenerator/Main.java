@@ -1,14 +1,14 @@
 package com.seng462ged.daytrader.workloadgenerator;
 
-import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class Main {

@@ -8,53 +8,53 @@ import retrofit2.http.Query;
 public interface TransactionService {
 
     @POST("trade/command/add")
-    Call<Void> Add(@Query("userId") String userId, @Query("amount") String amount);
+    Call<Void> Add(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("amount") String amount);
 
     @GET("trade/command/quote")
-    Call<Void> Quote(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol);
+    Call<Void> Quote(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol);
 
     @POST("trade/command/buy")
-    Call<Void> Buy(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
+    Call<Void> Buy(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
 
     @POST("trade/command/buy/commit")
-    Call<Void> CommitBuy(@Query("userId") String userId);
+    Call<Void> CommitBuy(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId);
 
     @POST("trade/command/buy/cancel")
-    Call<Void> CancelBuy(@Query("userId") String userId);
+    Call<Void> CancelBuy(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId);
 
     @POST("trade/command/buy/trigger/amount")
-    Call<Void> SetBuyAmount(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
+    Call<Void> SetBuyAmount(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
 
     @POST("trade/command/buy/trigger/stockprice")
-    Call<Void> SetBuyTrigger(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
+    Call<Void> SetBuyTrigger(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
 
     @POST("trade/command/buy/trigger/cancel")
-    Call<Void> CancelSetBuy(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol);
+    Call<Void> CancelSetBuy(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol);
 
     @POST("trade/command/sell")
-    Call<Void> Sell(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
+    Call<Void> Sell(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
 
     @POST("trade/command/sell/commit")
-    Call<Void> CommitSell(@Query("userId") String userId);
+    Call<Void> CommitSell(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId);
 
     @POST("trade/command/sell/cancel")
-    Call<Void> CancelSell(@Query("userId") String userId);
+    Call<Void> CancelSell(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId);
 
     @POST("trade/command/sell/trigger/amount")
-    Call<Void> SetSellAmount(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
+    Call<Void> SetSellAmount(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
 
     @POST("trade/command/sell/trigger/stockprice")
-    Call<Void> SetSellTrigger(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
+    Call<Void> SetSellTrigger(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol, @Query("amount") String amount);
 
     @POST("trade/command/sell/trigger/cancel")
-    Call<Void> CancelSetSell(@Query("userId") String userId, @Query("stockSymbol") String stockSymbol);
+    Call<Void> CancelSetSell(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("stockSymbol") String stockSymbol);
 
     @GET("trade/command/dumplog")
-    Call<Void> Dumplog(@Query("userId") String userId, @Query("filename") String filename);
+    Call<Void> Dumplog(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId, @Query("filename") String filename);
 
     @GET("trade/command/dumplog")
-    Call<Void> Dumplog(@Query("filename") String filename);
+    Call<Void> Dumplog(@Query("globalSequence") int globalSequence, @Query("filename") String filename);
 
     @GET("trade/command/summary")
-    Call<Void> DisplaySummary(@Query("userId") String userId);
+    Call<Void> DisplaySummary(@Query("globalSequence") int globalSequence, @Query("userSequence") int userSequence, @Query("userId") String userId);
 }
