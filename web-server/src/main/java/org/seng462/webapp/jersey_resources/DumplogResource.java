@@ -16,18 +16,20 @@ import javax.ws.rs.core.Response;
 public class DumplogResource
 {
     @GET
-    public void getDumplog(@QueryParam("userId") String userId,
-                               @QueryParam("filename") String filename)
+    public void getDumplog(@QueryParam("globalSequence") String globalSequence,
+                           @QueryParam("userSequence") String userSequence,
+                           @QueryParam("userId") String userId,
+                           @QueryParam("filename") String filename)
     {
         // type of dumplog command differs based on existence of userId
         UserCommand dumplogCommand;
         if(userId != null && !userId.isEmpty())
         {
-            dumplogCommand = new UserCommand(CommandCodes.DUMPLOG, userId, filename);
+            dumplogCommand = new UserCommand(CommandCodes.DUMPLOG, globalSequence, userSequence, userId, filename);
         }
         else
         {
-            dumplogCommand = new UserCommand(CommandCodes.DUMPLOG_ROOT, filename);
+            dumplogCommand = new UserCommand(CommandCodes.DUMPLOG_ROOT,globalSequence, userSequence,  filename);
         }
 
         Response response = TransactionService.sendCommand(dumplogCommand);

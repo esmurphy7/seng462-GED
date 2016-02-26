@@ -16,11 +16,13 @@ import javax.ws.rs.core.Response;
 public class QuoteResource {
 
     @GET
-    public Response getQuote(@QueryParam("userId") String userId,
+    public Response getQuote(@QueryParam("globalSequence") String globalSequence,
+                             @QueryParam("userSequence") String userSequence,
+                             @QueryParam("userId") String userId,
                              @QueryParam("stockSymbol") String stockSymbol)
     {
         // build the command and relay it to transaction server
-        UserCommand quoteCommand = new UserCommand(CommandCodes.QUOTE, userId, stockSymbol);
+        UserCommand quoteCommand = new UserCommand(CommandCodes.QUOTE, globalSequence, userSequence, userId, stockSymbol);
         Response response = TransactionService.sendCommand(quoteCommand);
 
         return response;

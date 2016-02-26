@@ -13,11 +13,13 @@ import javax.ws.rs.core.Response;
 public class AddResource
 {
     @POST
-    public void postAdd(@QueryParam("userId") String userId,
-                            @QueryParam("amount") String amount)
+    public void postAdd(@QueryParam("globalSequence") String globalSequence,
+                        @QueryParam("userSequence") String userSequence,
+                        @QueryParam("userId") String userId,
+                        @QueryParam("amount") String amount)
     {
         // relay the request to transaction server's api
-        UserCommand addCommand = new UserCommand(CommandCodes.ADD, userId, amount);
+        UserCommand addCommand = new UserCommand(CommandCodes.ADD, globalSequence, userSequence, userId, amount);
         Response response = TransactionService.sendCommand(addCommand);
     }
 }

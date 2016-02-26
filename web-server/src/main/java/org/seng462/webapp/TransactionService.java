@@ -44,10 +44,10 @@ public class TransactionService
 
         //TODO: send currently active web server host and port in the message
         InetAddress ip = InetAddress.getLocalHost();
-        String hostname = "0.0.0.0";
+        String hostname = "0";
         //String hostname = ip.getHostName();
         message.add(hostname);
-        message.add("8080");
+        message.add("0");
 
         // format the message with separator
         String separator = ",";
@@ -55,6 +55,7 @@ public class TransactionService
         return messageFmt;
     }
 
+    // Send a command to the transaction server in the form of a formatted packet
     public static Response sendCommand(UserCommand userCommand)
     {
         // format the message
