@@ -14,6 +14,8 @@ x fix typo in CommandCodes
 Jersey Resources
 x AddResource does not include userId when creating UserCommand instance
 x create resource classes for remaining commands
+- change resources to accept workload file sequence numbers and user sequence numbers as query parameters
+    - when developing the web client, ignore user sequence numbers and send 0's (transaction server doesn't care what order the requests came in if they're from a real person)
 - validate incoming commands
     - create class responsible for validating fields of different commands
         - all fields:
@@ -33,9 +35,10 @@ x create resource classes for remaining commands
 ====================================================================================================
 TransactionService
 x update service to take generic UserCommand class as arguement when sending commands
-- change service to send bytes over a socket instead of JSON to improve efficiency
+- change service to send a formatted message over a socket
+    - format the message properly
     - use the transaction server's ServerConstants class to configure target host of transaction server
-    - user ServerConstants to configure and use currently active web server host when sending commands
+    - use ServerConstants to configure and use currently active web server host/port when sending commands
     - receive and interpret response from tx server
 
 ====================================================================================================
