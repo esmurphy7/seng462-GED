@@ -4,6 +4,7 @@ import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.*;
 import com.teamged.txserver.InternalLog;
+import com.teamged.txserver.transactions.TriggerCompletion;
 import sun.rmi.runtime.Log;
 
 import java.io.BufferedReader;
@@ -15,6 +16,10 @@ import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by DanielF on 2016-02-02.
@@ -22,6 +27,7 @@ import java.util.*;
 public class UserDatabaseObject {
     private static final int CENT_CAP = 100;
 
+    private final ScheduledExecutorService triggerScheduler;
     private final Object lock = new Object();
     private final List<String> history = new ArrayList<>();
     private final Deque<StockRequest> sellList = new ArrayDeque<>();
@@ -38,6 +44,7 @@ public class UserDatabaseObject {
 
     public UserDatabaseObject(String user) {
         userName = user;
+        triggerScheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     public String add(int dollars, int cents, int tid) {
@@ -324,7 +331,7 @@ public class UserDatabaseObject {
                 // Returns stocks to holdings
                 int stockCount = sellReq.getShares();
                 if (stocksOwned.containsKey(stock)) {
-                    stockCount = stocksOwned.get(stock);
+                    stockCount += stocksOwned.get(stock);
                 }
 
                 stocksOwned.put(stock, stockCount);
@@ -379,6 +386,7 @@ public class UserDatabaseObject {
                     if (trigger.getSetAmount().getStock().equals(stock)) {
                         buyTriggers.remove(trigger);
                         buyReq = trigger.getSetAmount();
+                        trigger.cancelTrigger(); // Notify the trigger executor that this trigger is cancelled.
                         break;
                     }
                 }
@@ -403,6 +411,7 @@ public class UserDatabaseObject {
     }
 
     public String setBuyTrigger(String stock, int dollars, int cents, int tid) {
+        StockTrigger trigger = null;
         String triggerSet;
         synchronized (lock) {
             if (buyAmount != null && buyAmount.getStock().equals(stock)) {
@@ -441,10 +450,9 @@ public class UserDatabaseObject {
                         triggerSet = "SET_BUY_TRIGGER,BUY,COMMIT_BUY," + quote;
                     } else {
                         // TODO: Update expiry of buy request amount
-                        StockTrigger trigger = new StockTrigger(buy, dollars, cents);
+                        trigger = new StockTrigger(buy, dollars, cents);
                         buyTriggers.add(trigger);
 
-                        // TODO: Start a trigger timer
                         triggerSet = "SET_BUY_TRIGGER," + quote;
                     }
 
@@ -468,7 +476,7 @@ public class UserDatabaseObject {
                 ownedCount = stocksOwned.get(stock);
             }
 
-            if (sellAmount == null && ownedCount >0) {
+            if (sellAmount == null && ownedCount > 0) {
                 sellAmount = new StockRequest(stock, 0, dollars, cents, 0);
 
                 history.add("SET_SELL_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents);
@@ -497,6 +505,16 @@ public class UserDatabaseObject {
                     if (trigger.getSetAmount().getStock().equals(stock)) {
                         sellTriggers.remove(trigger);
                         sellReq = trigger.getSetAmount();
+                        trigger.cancelTrigger(); // Notify the trigger executor that this trigger is cancelled.
+
+                        // Returns stocks to holdings from the trigger
+                        int stockCount = sellReq.getShares();
+                        if (stocksOwned.containsKey(stock)) {
+                            stockCount += stocksOwned.get(stock);
+                        }
+
+                        stocksOwned.put(stock, stockCount);
+
                         break;
                     }
                 }

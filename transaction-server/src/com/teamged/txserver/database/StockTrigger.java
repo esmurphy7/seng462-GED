@@ -7,11 +7,17 @@ public class StockTrigger {
     private final StockRequest setAmount;
     private final int dollarsTrigger;
     private final int centsTrigger;
+    private boolean cancelled;
 
     public StockTrigger(StockRequest setAmount, int dollarsTrigger, int centsTrigger) {
         this.setAmount = setAmount;
         this.dollarsTrigger = dollarsTrigger;
         this.centsTrigger = centsTrigger;
+        cancelled = false;
+    }
+
+    public void cancelTrigger() {
+        cancelled = false;
     }
 
     public StockRequest getSetAmount() {
@@ -24,5 +30,9 @@ public class StockTrigger {
 
     public int getCentsTrigger() {
         return centsTrigger;
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
     }
 }

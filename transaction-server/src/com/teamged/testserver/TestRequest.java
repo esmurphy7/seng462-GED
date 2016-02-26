@@ -60,7 +60,7 @@ public class TestRequest {
 
             for (int i = 0; i < count; i++) {
                 try (
-                        Socket s = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.PORT_RANGE[0]);
+                        Socket s = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
                         PrintWriter out = new PrintWriter(s.getOutputStream(), true)
                 ) {
                     StringBuilder sb = new StringBuilder();
@@ -108,7 +108,7 @@ public class TestRequest {
 
                             req = m.group(1) + "[" + seqNum + "]," + command + "," + user + m.group(4);
                             // Should probably handle this part in its own sort of try/catch/retry/break thing
-                            Socket s = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.PORT_RANGE[0]);
+                            Socket s = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
                             PrintWriter out = new PrintWriter(s.getOutputStream(), true);
                             System.out.println(req);
                             out.println(req);

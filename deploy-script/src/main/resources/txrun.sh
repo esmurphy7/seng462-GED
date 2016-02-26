@@ -1,3 +1,3 @@
 #!/bin/bash
-cd src
+cd TransactionDeploy
 java com/teamged/txserver/TxMain
