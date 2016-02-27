@@ -1,12 +1,14 @@
 package com.teamged.txserver.database;
 
+import com.teamged.txserver.InternalLog;
+
 import java.math.BigDecimal;
 
 /**
  * Created by DanielF on 2016-02-16.
  */
 public class QuoteObject {
-    private static final long QUOTE_LIFE_MILLIS = 60000;
+    private static final long QUOTE_LIFE_MILLIS = 59500;
     private static final int QUOTE_STATEMENT_ARGS = 5;
 
     private int dollars;
@@ -121,6 +123,7 @@ public class QuoteObject {
                 stockSymbol = argsArray[1];
                 userName = argsArray[2];
                 cryptoKey = argsArray[4];
+                InternalLog.Log("Quote fetched for stock " + stockSymbol + " with value $" + price.toString());
             }
         }
     }

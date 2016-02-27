@@ -1,4 +1,4 @@
-package com.teamged.txserver.transactions;
+package com.teamged.txserver.database;
 
 /**
  * Created by DanielF on 2016-02-26.
