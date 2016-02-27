@@ -1,3 +1,2 @@
 #!/bin/bash
-cd WorkloadGeneratorDeploy/classes
-java com/seng462ged/daytrader/workloadgenerator/Main
+java -jar WorkloadGeneratorDeploy/workload-generator.jar "$@"

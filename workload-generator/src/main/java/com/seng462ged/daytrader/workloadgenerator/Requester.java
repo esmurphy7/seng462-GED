@@ -7,11 +7,13 @@ import java.util.List;
 
 public class Requester {
 
-    public static void SendTransactions(List<Transaction> transactions) {
+    public static void SendTransactions(String webServer, List<Transaction> transactions) {
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://localhost:8080/api/")
+                .baseUrl(String.format("http://%s/api/", webServer))
                 .build();
+
+        System.out.println(webServer);
 
         TransactionService transactionService = retrofit.create(TransactionService.class);
 
