@@ -4,8 +4,6 @@ import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.*;
 import com.teamged.txserver.InternalLog;
-import com.teamged.txserver.transactions.TriggerCompletion;
-import sun.rmi.runtime.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,7 +16,6 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -425,27 +422,7 @@ public class UserDatabaseObject {
                     history.add("SET_BUY_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                     if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
-                        long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
-                        long stockPurchaseMoney = (long) buy.getDollars() * CENT_CAP + buy.getCents();
-                        int stockCount = (int) (stockPurchaseMoney / stockPrice);
-                        long remainingMoney = stockPurchaseMoney % stockPrice;
-
-                        logAddFunds((int)(remainingMoney / CENT_CAP), (int)(remainingMoney % CENT_CAP), tid);
-                        this.dollars += (remainingMoney / CENT_CAP);
-                        this.cents += (remainingMoney % CENT_CAP);
-                        if (this.cents >= CENT_CAP) {
-                            this.cents -= CENT_CAP;
-                            this.dollars++;
-                        }
-
-                        int newStockCount = stockCount;
-                        if (stocksOwned.containsKey(stock)) {
-                            newStockCount = stocksOwned.get(stock);
-                        }
-                        stocksOwned.put(stock, newStockCount);
-
-                        history.add("BUY," + userName + "," + stock + "," + buy.getDollars() + "." + buy.getCents());
-                        history.add("COMMIT_BUY," + userName);
+                        purchaseStock(stock, tid, buy, stockDollars, stockCents);
 
                         triggerSet = "SET_BUY_TRIGGER,BUY,COMMIT_BUY," + quote;
                     } else {
@@ -462,6 +439,35 @@ public class UserDatabaseObject {
             } else {
                 triggerSet = "SET_BUY_TRIGGER ERROR";
             }
+        }
+
+        if (trigger != null) {
+            InternalLog.Log("Setting buy trigger");
+            final StockTrigger t = trigger;
+            triggerScheduler.scheduleAtFixedRate(
+                    (Runnable) () -> {
+                        InternalLog.Log("Buy trigger running");
+                        synchronized (lock) {
+                            if (t.isCancelled()) {
+                                throw new TriggerCompletion();
+                            } else {
+                                QuoteObject quote = quote(stock, tid);
+                                if (quote.getErrorString().isEmpty()) {
+                                    int stockDollars = quote.getDollars();
+                                    int stockCents = quote.getCents();
+
+                                    if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
+                                        purchaseStock(stock, tid, t.getSetAmount(), stockDollars, stockCents);
+                                        throw new TriggerCompletion();
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    10,
+                    10,
+                    TimeUnit.SECONDS
+            );
         }
 
         return triggerSet;
@@ -531,6 +537,7 @@ public class UserDatabaseObject {
     }
 
     public String setSellTrigger(String stock, int dollars, int cents, int tid) {
+        StockTrigger trigger = null;
         String triggerSet;
         synchronized (lock) {
             if (sellAmount != null && sellAmount.getStock().equals(stock)) {
@@ -559,16 +566,7 @@ public class UserDatabaseObject {
                         history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                         if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
-                            logAddFunds((int)(actualValue / CENT_CAP), (int)(actualValue % CENT_CAP), tid);
-                            this.dollars += (int) (actualValue / CENT_CAP);
-                            this.cents += (int) (actualValue % CENT_CAP);
-                            if (this.cents >= CENT_CAP) {
-                                this.cents -= CENT_CAP;
-                                this.dollars++;
-                            }
-
-                            history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
-                            history.add("COMMIT_SELL," + userName);
+                            sellStock(stock, tid, sell, actualValue);
 
                             triggerSet = "SET_SELL_TRIGGER,SELL,COMMIT_SELL," + quote;
                         } else {
@@ -579,10 +577,9 @@ public class UserDatabaseObject {
                                     (int) (actualValue % CENT_CAP),
                                     Calendar.getInstance().getTimeInMillis()
                             );
-                            StockTrigger trigger = new StockTrigger(sell, dollars, cents);
+                            trigger = new StockTrigger(sell, dollars, cents);
                             sellTriggers.add(trigger);
 
-                            // TODO: Start a trigger timer
                             triggerSet = "SET_SELL_TRIGGER," + quote;
                         }
                     } else {
@@ -594,6 +591,52 @@ public class UserDatabaseObject {
             } else {
                 triggerSet = "SET_SELL_TRIGGER ERROR";
             }
+        }
+
+        if (trigger != null) {
+            InternalLog.Log("Setting sell trigger");
+            final StockTrigger t = trigger;
+            triggerScheduler.scheduleAtFixedRate(
+                    (Runnable) () -> {
+                        InternalLog.Log("Sell trigger running");
+                        synchronized (lock) {
+                            if (t.isCancelled()) {
+                                throw new TriggerCompletion();
+                            } else {
+                                QuoteObject quote = quote(stock, tid);    // Get a quote first to see if the current price is good
+                                if (quote.getErrorString().isEmpty()) {
+                                    long sellMoney = (long) t.getSetAmount().getDollars() * CENT_CAP + t.getSetAmount().getCents();
+
+                                    int stockDollars = quote.getDollars();
+                                    int stockCents = quote.getCents();
+                                    long stockPrice = (long) stockDollars * CENT_CAP + stockCents;
+
+                                    int ownedCount = 0;
+                                    if (stocksOwned.containsKey(stock)) {
+                                        ownedCount = stocksOwned.get(stock);
+                                    }
+                                    long ownedValue = stockPrice * ownedCount;
+
+                                    int actualSellCount = (int) (sellMoney / stockPrice);
+                                    long actualValue = actualSellCount * stockCents;
+
+                                    if (ownedValue >= actualValue) {
+                                        stocksOwned.put(stock, ownedCount - actualSellCount);
+                                        history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
+
+                                        if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
+                                            sellStock(stock, tid, t.getSetAmount(), actualValue);
+                                            throw new TriggerCompletion();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    10,
+                    10,
+                    TimeUnit.SECONDS
+            );
         }
 
         return triggerSet;
@@ -640,5 +683,82 @@ public class UserDatabaseObject {
         atType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
 
         Logger.getInstance().Log(atType);
+    }
+
+    private void purchaseStock(String stock, int tid, StockRequest buy, long stockDollars, int stockCents) {
+        long stockPrice = stockDollars * CENT_CAP + stockCents;
+        long stockPurchaseMoney = (long) buy.getDollars() * CENT_CAP + buy.getCents();
+        int stockCount = (int) (stockPurchaseMoney / stockPrice);
+        long remainingMoney = stockPurchaseMoney % stockPrice;
+
+        logAddFunds((int)(remainingMoney / CENT_CAP), (int)(remainingMoney % CENT_CAP), tid);
+        this.dollars += (remainingMoney / CENT_CAP);
+        this.cents += (remainingMoney % CENT_CAP);
+        if (this.cents >= CENT_CAP) {
+            this.cents -= CENT_CAP;
+            this.dollars++;
+        }
+
+        int newStockCount = stockCount;
+        if (stocksOwned.containsKey(stock)) {
+            newStockCount = stocksOwned.get(stock);
+        }
+        stocksOwned.put(stock, newStockCount);
+
+        long actualValue = stockDollars * 100 + stockCents;
+
+        SystemEventType set = new SystemEventType();
+        set.setCommand(CommandType.BUY);
+        set.setFunds(BigDecimal.valueOf(actualValue, 2));
+        set.setServer(ServerConstants.TX_SERVERS[0]);
+        set.setStockSymbol(stock);
+        set.setTimestamp(Calendar.getInstance().getTimeInMillis());
+        set.setTransactionNum(BigInteger.valueOf(tid));
+        set.setUsername(userName);
+
+        SystemEventType setc = new SystemEventType();
+        setc.setCommand(CommandType.COMMIT_BUY);
+        setc.setServer(ServerConstants.TX_SERVERS[0]);
+        setc.setTransactionNum(BigInteger.valueOf(tid));
+        setc.setUsername(userName);
+        setc.setTimestamp(Calendar.getInstance().getTimeInMillis());
+
+        Logger.getInstance().Log(set);
+        Logger.getInstance().Log(setc);
+
+        history.add("BUY," + userName + "," + stock + "," + buy.getDollars() + "." + buy.getCents());
+        history.add("COMMIT_BUY," + userName);
+    }
+
+    private void sellStock(String stock, int tid, StockRequest sell, long actualValue) {
+        logAddFunds((int) (actualValue / CENT_CAP), (int) (actualValue % CENT_CAP), tid);
+        this.dollars += (int) (actualValue / CENT_CAP);
+        this.cents += (int) (actualValue % CENT_CAP);
+        if (this.cents >= CENT_CAP) {
+            this.cents -= CENT_CAP;
+            this.dollars++;
+        }
+
+        SystemEventType set = new SystemEventType();
+        set.setCommand(CommandType.SELL);
+        set.setFunds(BigDecimal.valueOf(actualValue, 2));
+        set.setServer(ServerConstants.TX_SERVERS[0]);
+        set.setStockSymbol(stock);
+        set.setTimestamp(Calendar.getInstance().getTimeInMillis());
+        set.setTransactionNum(BigInteger.valueOf(tid));
+        set.setUsername(userName);
+
+        SystemEventType setc = new SystemEventType();
+        setc.setCommand(CommandType.COMMIT_SELL);
+        setc.setServer(ServerConstants.TX_SERVERS[0]);
+        setc.setTransactionNum(BigInteger.valueOf(tid));
+        setc.setUsername(userName);
+        setc.setTimestamp(Calendar.getInstance().getTimeInMillis());
+
+        Logger.getInstance().Log(set);
+        Logger.getInstance().Log(setc);
+
+        history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
+        history.add("COMMIT_SELL," + userName);
     }
 }
