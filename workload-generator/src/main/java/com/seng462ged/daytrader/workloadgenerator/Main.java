@@ -50,9 +50,6 @@ public class Main {
                     .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(tempWebServer, transactionSet)))
                     .collect(Collectors.toList());
 
-            // Print results (currently nothing - no return values)
-            results.forEach(Unchecked.consumer(future -> System.out.println(future.get())));
-
         } catch (FileNotFoundException e) {
 
             System.out.println(String.format("Could not find file '%s'", workloadFile));
