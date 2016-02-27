@@ -17,6 +17,7 @@ public class Main {
 
         if (args.length == 0) {
             System.out.println("You must specify a workload file");
+            return;
         }
 
         String workloadFile = args[0];

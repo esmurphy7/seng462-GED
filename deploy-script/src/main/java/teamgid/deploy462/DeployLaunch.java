@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class DeployLaunch {
     private static final List<Deployment> deployments = new ArrayList<Deployment>();
 
+    private static final String WORKLOAD_GENERATOR_TYPE = "wg";
     private static final String TX_TYPE = "tx";
     private static final String WEB_TYPE = "web";
     private static final String AUDIT_TYPE = "audit";
@@ -74,6 +75,19 @@ public class DeployLaunch {
             if (connectToServer(client, deployment.getServerLocation())) {
 
                 switch (deployment.getServerType()) {
+
+                    case WORKLOAD_GENERATOR_SERVER:
+                        try {
+                            connected = authorizeUser(client);
+                        } catch (IOException e) {
+                            // Have to try catch because disconnecting can throw an exception...
+                            e.printStackTrace();
+                        }
+                        if (connected) {
+                            deployWorkloadGenerator(client, deployment.getServerLocation());
+                        }
+                        break;
+
                     case WEB_SERVER:
                         try {
                             connected = authorizeUser(client);
@@ -137,6 +151,7 @@ public class DeployLaunch {
         Scanner userInput = new Scanner(System.in);
         while (!hasDeploymentType) {
             System.out.println("Deployment options:" +
+                    "\n    '" + WORKLOAD_GENERATOR_TYPE + "' for Workload Generator deployment" +
                     "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
                     "\n    '" + WEB_TYPE + "' for Web Server deployment" +
                     "\n    '" + AUDIT_TYPE + "' for Audit Server deployment" +
@@ -144,12 +159,16 @@ public class DeployLaunch {
                     "\nEnter deployment type: "
             );
 
-            System.out.println("Which server do you wish to deploy? (tx, web, audit, all):");
+            System.out.println("Which server do you wish to deploy? (wg, tx, web, audit, all):");
             String input = userInput.nextLine();
             if (input.equals(ALL_TYPE)) {
+                deployments.add(new Deployment(ServerType.WORKLOAD_GENERATOR_SERVER));
                 deployments.add(new Deployment(ServerType.WEB_SERVER));
                 deployments.add(new Deployment(ServerType.TRANSACTION_SERVER));
                 deployments.add(new Deployment(ServerType.AUDIT_SERVER));
+                hasDeploymentType = true;
+            } else if (input.equals(WORKLOAD_GENERATOR_TYPE)) {
+                deployments.add(new Deployment(ServerType.WORKLOAD_GENERATOR_SERVER));
                 hasDeploymentType = true;
             } else if (input.equals(WEB_TYPE)) {
                 deployments.add(new Deployment(ServerType.WEB_SERVER));
@@ -169,6 +188,10 @@ public class DeployLaunch {
         String[] options = null;
         for (Deployment deployment : deployments) {
             switch (deployment.getServerType()) {
+                case WORKLOAD_GENERATOR_SERVER:
+                    maxOpts = StaticConstants.WORKLOAD_GENERATOR_SERVERS.length;
+                    options = StaticConstants.WORKLOAD_GENERATOR_SERVERS;
+                    break;
                 case WEB_SERVER:
                     maxOpts = StaticConstants.WEB_SERVERS.length;
                     options = StaticConstants.WEB_SERVERS;
@@ -194,7 +217,7 @@ public class DeployLaunch {
                 sb.append("\nEnter desired server number: ");
                 System.out.println(sb.toString());
                 int userOpt = userInput.nextInt();
-                if (userOpt < maxOpts && userOpt > 0) {
+                if (userOpt <= maxOpts && userOpt > 0) {
                     deployment.addServerLocation(userOpt - 1);
                     hasServer = true;
                 }
@@ -208,6 +231,9 @@ public class DeployLaunch {
         username = userInput.nextLine();
         System.out.println("Enter password: ");
         password = userInput.nextLine();
+
+        // Clear console to hide password
+        for (int i = 0; i < 20; i++) System.out.println();
     }
 
     private static boolean connectToServer(SSHClient client, String server) {
@@ -366,6 +392,69 @@ public class DeployLaunch {
             try {
                 client.disconnect();
             } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void deployWorkloadGenerator(SSHClient client, String server) {
+
+        System.out.println("\nDEPLOYING TO WORKLOAD GENERATOR SERVER: " + server);
+
+        try {
+
+            System.out.println("Cleaning old files...");
+
+            final Session rm_session = client.startSession();
+            final Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/WorkloadGeneratorDeploy/");
+            rm_cmd.join(10, TimeUnit.SECONDS);
+            rm_session.close();
+
+            System.out.println("Finished cleaning old files");
+
+            System.out.println("Transferring files...");
+
+            // Copy over pre-compiled JAR file
+            Path wgPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("workload-generator").resolve("out").resolve("artifacts").resolve("workload_generator_jar");
+            client.newSCPFileTransfer().upload(wgPath.toString(), "/seng/scratch/group4/WorkloadGeneratorDeploy/");
+
+            // Copy over workload generator files
+            Path workloadFilesPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("workload-generator").resolve("workload-files");
+            client.newSCPFileTransfer().upload(workloadFilesPath.toString(), "/seng/scratch/group4/workload-files/");
+
+            // Copy over bash run file
+            Path bashPath = Paths.get(System.getProperty("user.dir")).resolve("src").resolve("main").resolve("resources").resolve("wgrun.sh");
+            client.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
+
+            System.out.println("Finished transferring");
+
+            System.out.println("Preparing bash script for easy running of workload generator...");
+            System.out.println("Setting file and directory permissions...");
+
+            final Session chmod_session = client.startSession();
+            final Session.Command chmod_cmd = chmod_session.exec("chmod 770 /seng/scratch/group4/wgrun.sh; " +
+                    "chmod -R 770 /seng/scratch/group4/WorkloadGeneratorDeploy; " +
+                    "sed -i -e 's/\\r$//' /seng/scratch/group4/wgrun.sh"
+            );
+            chmod_cmd.join(5, TimeUnit.SECONDS);
+            chmod_session.close();
+
+            System.out.println("Bash script prepared");
+            System.out.println("File and directory permissions applied");
+            System.out.println("Workload generator deployment successful!");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        } finally {
+
+            try {
+
+                client.disconnect();
+
+            } catch (IOException e) {
+
                 e.printStackTrace();
             }
         }

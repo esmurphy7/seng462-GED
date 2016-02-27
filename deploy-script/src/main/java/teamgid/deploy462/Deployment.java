@@ -13,6 +13,9 @@ public class Deployment {
 
     public void addServerLocation(int locationId) {
         switch (type) {
+            case WORKLOAD_GENERATOR_SERVER:
+                serverLocation = StaticConstants.WORKLOAD_GENERATOR_SERVERS[locationId];
+                break;
             case TRANSACTION_SERVER:
                 serverLocation = StaticConstants.TX_SERVERS[locationId];
                 break;
