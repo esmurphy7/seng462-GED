@@ -2,6 +2,7 @@ package teamgid.deploy462.deployments;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
+import teamgid.deploy462.DeploymentConfig;
 import teamgid.deploy462.base.SingleDeployment;
 
 import java.nio.file.Path;
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class WorkloadGeneratorDeployment extends SingleDeployment {
 
     @Override
-    protected void deployHandler(SSHClient client) {
+    protected void deployHandler(SSHClient client, DeploymentConfig deploymentConfig) {
 
         try {
 

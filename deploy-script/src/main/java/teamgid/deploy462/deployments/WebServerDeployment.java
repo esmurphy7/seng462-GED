@@ -2,6 +2,7 @@ package teamgid.deploy462.deployments;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
+import teamgid.deploy462.DeploymentConfig;
 import teamgid.deploy462.base.MultipleDeployment;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class WebServerDeployment extends MultipleDeployment {
 
     @Override
-    protected void deployHandler(SSHClient client) {
+    protected void deployHandler(SSHClient client, DeploymentConfig deploymentConfig) {
 
         System.out.println("Transferring WAR file...");
         Path warPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("web-server").resolve("target").resolve("daytrading.war");

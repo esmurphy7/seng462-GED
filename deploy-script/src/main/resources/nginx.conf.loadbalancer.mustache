@@ -33,9 +33,9 @@ http {
     #gzip  on;
 
     upstream gedwebserver {
-        server b136.seng.uvic.ca:44440;
-        server b137.seng.uvic.ca:44440;
-        server b138.seng.uvic.ca:44440;
+        {{#webServers}}
+        server {{.}}:44440;
+        {{/webServers}}
     }
 
     server {

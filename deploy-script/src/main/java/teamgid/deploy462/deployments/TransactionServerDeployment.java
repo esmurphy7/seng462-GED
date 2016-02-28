@@ -3,6 +3,7 @@ package teamgid.deploy462.deployments;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.channel.direct.Session;
+import teamgid.deploy462.DeploymentConfig;
 import teamgid.deploy462.base.MultipleDeployment;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class TransactionServerDeployment extends MultipleDeployment {
 
     @Override
-    public void deployHandler(SSHClient client) {
+    public void deployHandler(SSHClient client, DeploymentConfig deploymentConfig) {
 
         try {
 

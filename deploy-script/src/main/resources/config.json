@@ -6,9 +6,6 @@
             "server": "b145.seng.uvic.ca"
         },
         "webLoadBalancer": {
-            "resources": [
-                "nginx.conf.loadbalancer"
-            ],
             "deployScripts": [
                 "install-nginx.sh",
                 "config-nginx-loadbalancer.sh"

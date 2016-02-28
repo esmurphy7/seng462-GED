@@ -21,7 +21,7 @@ public abstract class BaseDeployment {
 
     public abstract void deploy(String username, String password, DeploymentConfig deploymentConfig);
 
-    protected abstract void deployHandler(SSHClient client);
+    protected abstract void deployHandler(SSHClient client, DeploymentConfig deploymentConfig);
 
     public List<String> getResources() {
         return resources;
@@ -50,7 +50,7 @@ public abstract class BaseDeployment {
     protected void singleDeployment(SSHClient client, DeploymentConfig deploymentConfig) throws IOException {
 
         // Run the main deployment
-        this.deployHandler(client);
+        this.deployHandler(client, deploymentConfig);
 
         // Copy resources
         List<String> resources = this.getResources();
