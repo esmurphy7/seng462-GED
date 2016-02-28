@@ -85,6 +85,11 @@ public abstract class BaseDeployment {
             String remoteScriptPath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), runScript);
             this.copyScript(client, runScript, remoteScriptPath);
         }
+
+        // Copy over config.json
+        String configFile = "config.json";
+        String remotePath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), configFile);
+        this.copyResource(client, configFile, remotePath);
     }
 
     protected static SSHClient getSSHClient(String server, String username, String password) throws IOException {
