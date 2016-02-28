@@ -5,7 +5,7 @@ package teamgid.deploy462;
  */
 public enum ServerType {
     WORKLOAD_GENERATOR_SERVER,
-    TRANSACTION_SERVER,
     WEB_SERVER,
+    TRANSACTION_SERVER,
     AUDIT_SERVER
 }
