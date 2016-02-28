@@ -13,8 +13,6 @@ public class Requester {
                 .baseUrl(String.format("http://%s/api/", webServer))
                 .build();
 
-        System.out.println(webServer);
-
         TransactionService transactionService = retrofit.create(TransactionService.class);
 
         for (int i = 0; i < transactions.size(); i++) {
@@ -22,7 +20,7 @@ public class Requester {
             Transaction transaction = transactions.get(i);
             int userSequenceId = i + 1;
 
-            System.out.println(String.format("User: %s, Command: %s", transaction.getUserId(), transaction.getCommand()));
+            System.out.println(String.format("[%d] User: %s [%d], Command: %s", transaction.getId(), transaction.getUserId(), userSequenceId, transaction.getCommand()));
 
             try {
 
