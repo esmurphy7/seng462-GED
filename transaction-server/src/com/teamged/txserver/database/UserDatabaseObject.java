@@ -464,8 +464,8 @@ public class UserDatabaseObject {
                             }
                         }
                     },
-                    10,
-                    10,
+                    60,
+                    60,
                     TimeUnit.SECONDS
             );
         }
@@ -633,8 +633,8 @@ public class UserDatabaseObject {
                             }
                         }
                     },
-                    10,
-                    10,
+                    60,
+                    60,
                     TimeUnit.SECONDS
             );
         }

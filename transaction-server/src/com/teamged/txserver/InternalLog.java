@@ -5,6 +5,6 @@ package com.teamged.txserver;
  */
 public class InternalLog {
     public static void Log(String log) {
-        System.out.println(log); // :(
+        //System.out.println(log); // :(
     }
 }
