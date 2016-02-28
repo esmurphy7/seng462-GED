@@ -7,4 +7,8 @@ public class InternalLog {
     public static void Log(String log) {
         //System.out.println(log); // :(
     }
+
+    public static void Critical(String log) {
+        System.out.println(log);
+    }
 }

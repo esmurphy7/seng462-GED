@@ -9,6 +9,7 @@ import java.math.BigDecimal;
  */
 public class QuoteObject {
     private static final long QUOTE_LIFE_MILLIS = 59500;
+    private static final long QUOTE_SHORT_LIFE_MILLIS = 500;
     private static final int QUOTE_STATEMENT_ARGS = 5;
 
     private int dollars;
@@ -17,6 +18,7 @@ public class QuoteObject {
     private String stockSymbol;
     private String userName;
     private long quoteTime;
+    private long quoteShortTimeout;
     private long quoteTimeout;
     private String cryptoKey;
     private String errorString;
@@ -29,6 +31,7 @@ public class QuoteObject {
         stockSymbol = "";
         userName = "";
         quoteTime = 0;
+        quoteShortTimeout = 0;
         quoteTimeout = 0;
         cryptoKey = "";
         errorString = "";
@@ -63,6 +66,10 @@ public class QuoteObject {
 
     public long getQuoteTime() {
         return quoteTime;
+    }
+
+    public long getQuoteShortTimeout() {
+        return quoteShortTimeout;
     }
 
     public long getQuoteTimeout() {
@@ -113,6 +120,7 @@ public class QuoteObject {
                 try {
                     quoteTime = Long.parseLong(argsArray[3]);
                     quoteTimeout = quoteTime + QUOTE_LIFE_MILLIS;
+                    quoteShortTimeout = quoteTime + QUOTE_SHORT_LIFE_MILLIS;
                 } catch (NumberFormatException e) {
                     errorString = "Unable to parse server time: " + argsArray[3];
                     parsed = false;
