@@ -1,0 +1,40 @@
+{
+    "remoteDirectory": "/seng/scratch/group4",
+    "deployments": {
+        "workloadGenerator": {
+            "runScript": "run-wg.sh",
+            "server": "b145.seng.uvic.ca"
+        },
+        "webLoadBalancer": {
+            "resources": [
+                "nginx.conf.loadbalancer"
+            ],
+            "deployScripts": [
+                "install-nginx.sh",
+                "config-nginx-loadbalancer.sh"
+            ],
+            "runScript": "run-nginx.sh",
+            "server": "b133.seng.uvic.ca"
+        },
+        "webServers": {
+            "runScript": "run-web-server.sh",
+            "servers": [
+                "b130.seng.uvic.ca",
+                "b131.seng.uvic.ca",
+                "b132.seng.uvic.ca"
+            ]
+        },
+        "transactionServers": {
+            "runScript": "run-tx-server.sh",
+            "servers": [
+                "b135.seng.uvic.ca",
+                "b136.seng.uvic.ca",
+                "b137.seng.uvic.ca"
+            ]
+        },
+        "auditServer": {
+            "runScript": "run-audit-server.sh",
+            "server": "b140.seng.uvic.ca"
+        }
+    }
+}
