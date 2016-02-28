@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="workload-generator:jar">
+  <artifact type="jar" build-on-make="true" name="workload-generator:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/workload_generator_jar</output-path>
     <root id="archive" name="workload-generator.jar">
       <element id="module-output" name="workload-generator" />

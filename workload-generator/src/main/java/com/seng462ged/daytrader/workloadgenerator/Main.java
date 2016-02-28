@@ -22,6 +22,13 @@ public class Main {
 
         String workloadFile = args[0];
 
+        // Default web server is localhost
+        String webServer = "localhost:8080";
+
+        if (args.length == 2) {
+            webServer = args[1];
+        }
+
         try {
 
             // Import transactions from file
@@ -36,13 +43,12 @@ public class Main {
             // Create thread pool
             ExecutorService taskExecutor = Executors.newFixedThreadPool(10);
 
+            final String tempWebServer = webServer;
+
             // Concurrently send sets of transactions to the web server
             List<Future> results = transactionsByUser.stream()
-                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(transactionSet)))
+                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(tempWebServer, transactionSet)))
                     .collect(Collectors.toList());
-
-            // Print results (currently nothing - no return values)
-            results.forEach(Unchecked.consumer(future -> System.out.println(future.get())));
 
         } catch (FileNotFoundException e) {
 

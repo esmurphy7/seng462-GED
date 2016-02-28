@@ -22,7 +22,7 @@ public class SellResource
                          @QueryParam("amount") String amount,
                          @QueryParam("stockSymbol") String stockSymbol)
     {
-        UserCommand sellCommand = new UserCommand(CommandCodes.SELL, globalSequence, userSequence, userId, amount, stockSymbol);
+        UserCommand sellCommand = new UserCommand(CommandCodes.SELL, globalSequence, userSequence, userId, stockSymbol, amount);
         Response response = TransactionService.sendCommand(sellCommand);
     }
 
@@ -51,7 +51,7 @@ public class SellResource
                                    @QueryParam("amount") String amount,
                                    @QueryParam("stockSymbol") String stockSymbol)
     {
-        UserCommand setSellAmount = new UserCommand(CommandCodes.SET_SELL_AMOUNT, globalSequence, userSequence, userId, amount, stockSymbol);
+        UserCommand setSellAmount = new UserCommand(CommandCodes.SET_SELL_AMOUNT, globalSequence, userSequence, userId, stockSymbol, amount);
         Response response = TransactionService.sendCommand(setSellAmount);
     }
 
@@ -62,7 +62,7 @@ public class SellResource
                                    @QueryParam("amount") String amount,
                                    @QueryParam("stockSymbol") String stockSymbol)
     {
-        UserCommand setSellTrigger = new UserCommand(CommandCodes.SET_SELL_TRIGGER, globalSequence, userSequence, userId, amount, stockSymbol);
+        UserCommand setSellTrigger = new UserCommand(CommandCodes.SET_SELL_TRIGGER, globalSequence, userSequence, userId, stockSymbol, amount);
         Response response = TransactionService.sendCommand(setSellTrigger);
     }
 
