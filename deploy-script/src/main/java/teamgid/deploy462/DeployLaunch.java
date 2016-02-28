@@ -64,6 +64,9 @@ public class DeployLaunch {
 
         try {
 
+            System.out.println("Reading config.json...");
+            System.out.println();
+
             // Load deployment config
             InputStream inputStream = new FileInputStream(configPath.toString());
             Reader reader = new InputStreamReader(inputStream);
@@ -104,10 +107,13 @@ public class DeployLaunch {
                     "\n    '" + WEB_TYPE + "' for Web Server deployment" +
                     "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
                     "\n    '" + AUDIT_TYPE + "' for Audit Server deployment" +
-                    "\n    '" + ALL_TYPE + "' for all deployments" +
-                    "\nEnter deployment type: "
+                    "\n    '" + ALL_TYPE + "' for all deployments"
             );
 
+            System.out.println();
+            System.out.println("The configuration for each deployment is in config.json");
+            System.out.println();
+            System.out.println("Enter deployment type: ");
             System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, all):");
             String input = userInput.nextLine();
 
