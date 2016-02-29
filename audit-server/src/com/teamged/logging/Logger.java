@@ -27,7 +27,6 @@ public class Logger
 
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
     private static final String OUTPUT_LOGFILE = "outputLog.xml";
-    private static Marshaller marshaller;
     private static Queue<Object> Logs = new ConcurrentLinkedQueue<>();
 
     private Logger(){}
@@ -37,8 +36,6 @@ public class Logger
         if (instance == null)
         {
             instance = new Logger();
-            Marshaller marshaller = Logger.buildMarshaller();
-            instance.marshaller = marshaller;
         }
         return instance;
     }
@@ -98,7 +95,7 @@ public class Logger
             JAXBElement<LogType> jaxbLogType = objectFactory.createLog(logType);
 
             // marshall the data
-            //marshaller.marshal(jaxbLogType, System.out);
+            Marshaller marshaller = Logger.getInstance().buildMarshaller();
             marshaller.marshal(jaxbLogType, outStream);
             outStream.close();
         } catch (FileNotFoundException e) {
