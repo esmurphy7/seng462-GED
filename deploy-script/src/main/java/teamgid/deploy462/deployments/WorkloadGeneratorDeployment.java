@@ -19,16 +19,16 @@ public class WorkloadGeneratorDeployment extends SingleDeployment {
             System.out.println("Cleaning old files...");
 
             // Remove workload generator jar
-            final Session rm_session = client.startSession();
-            final Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/WorkloadGeneratorDeploy/");
+            Session rm_session = client.startSession();
+            Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/WorkloadGeneratorDeploy/");
             rm_cmd.join(10, TimeUnit.SECONDS);
             rm_session.close();
 
             // Remove workload files
-            final Session rm_workload_files_session = client.startSession();
-            final Session.Command rm_workload_files_cmd = rm_workload_files_session .exec("rm -r /seng/scratch/group4/workload-files/");
-            rm_cmd.join(10, TimeUnit.SECONDS);
-            rm_session.close();
+            Session rm_workload_files_session = client.startSession();
+            Session.Command rm_workload_files_cmd = rm_workload_files_session.exec("rm -r /seng/scratch/group4/workload-files/");
+            rm_workload_files_cmd.join(10, TimeUnit.SECONDS);
+            rm_workload_files_session.close();
 
             System.out.println("Finished cleaning old files");
 

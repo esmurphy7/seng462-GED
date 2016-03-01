@@ -57,12 +57,6 @@ public class TransactionServerDeployment extends MultipleDeployment {
 
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                client.disconnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

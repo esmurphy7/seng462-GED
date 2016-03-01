@@ -34,14 +34,9 @@ public class WebServerDeployment extends MultipleDeployment {
             chmod_session.close();
             System.out.println("Bash script prepared");
             System.out.println("Web server deployment successful!");
+
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                client.disconnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
