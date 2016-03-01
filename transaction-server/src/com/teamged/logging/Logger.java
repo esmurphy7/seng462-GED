@@ -43,7 +43,7 @@ public class Logger
     }
 
     // build and return the marshaller to use for this singleton
-    private static <T> Marshaller buildMarshaller(Class<T> logType)
+    private static Marshaller buildMarshaller()
     {
         Marshaller marshaller = null;
         try
@@ -62,7 +62,6 @@ public class Logger
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setSchema(schema);
             marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-            //marshaller.setEventHandler(new DebugValidationEventHandler());
             marshaller.setEventHandler(new DefaultValidationEventHandler());
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -73,17 +72,17 @@ public class Logger
         return marshaller;
     }
 
-    // Store the log in a list to save later
-    public <T> void Log(T logInstance) {
-        System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
+    // Marshall the log object and send it over the socket to the audit server
+    public void Log(Object logInstance) {
+        //System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
         try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT))
         {
             // create a logtype to marshall
             LogType logType = new LogType();
             logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logInstance);
 
-            // create the marshaller
-            Marshaller marshaller = Logger.buildMarshaller(logInstance.getClass());
+            // get the marshaller
+            Marshaller marshaller = Logger.getInstance().buildMarshaller();
 
             // create jaxb element from xml element name, class, and instance
             JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
