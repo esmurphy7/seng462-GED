@@ -1,6 +1,7 @@
 package com.teamged.auditserver;
 
 import com.teamged.ServerConstants;
+import com.teamged.auditserver.threads.AuditDumpThread;
 import com.teamged.auditserver.threads.AuditProcessingHandler;
 import com.teamged.auditserver.threads.AuditProcessingThread;
 import com.teamged.auditserver.threads.AuditServerThread;
@@ -51,5 +52,15 @@ public class AuditMain {
             new Thread(audThread).start();
 
         }
+
+        InternalLog.Log("Launching audit server dump thread.");
+        AuditServerThread audThread = null;
+        try {
+            audThread = new AuditDumpThread(ServerConstants.AUDIT_DUMP_PORT, 1, syncObject);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        auditDumpThreads.add(audThread);
+        new Thread(audThread).start();
     }
 }

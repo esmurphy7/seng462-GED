@@ -23,13 +23,15 @@ public class DumplogResource
     {
         // type of dumplog command differs based on existence of userId
         UserCommand dumplogCommand;
+        // default user sequence number
+        String defaultUserSeqNo = "99999";
         if(userId != null && !userId.isEmpty())
         {
             dumplogCommand = new UserCommand(CommandCodes.DUMPLOG, globalSequence, userSequence, userId, filename);
         }
         else
         {
-            dumplogCommand = new UserCommand(CommandCodes.DUMPLOG_ROOT,globalSequence, userSequence,  filename);
+            dumplogCommand = new UserCommand(CommandCodes.DUMPLOG_ROOT, globalSequence, defaultUserSeqNo,  filename);
         }
 
         Response response = TransactionService.sendCommand(dumplogCommand);
