@@ -6,7 +6,6 @@ import teamgid.deploy462.DeploymentConfig;
 import teamgid.deploy462.base.BaseDeployment;
 import teamgid.deploy462.base.MultipleDeployment;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,28 +16,14 @@ public class WebServerDeployment extends MultipleDeployment {
     @Override
     protected void deployHandler(SSHClient client, DeploymentConfig deploymentConfig)
     {
-
-        // tomcat requires deletion of existing WAR (and exploded WAR)
-        System.out.println("Deleting existing remote WAR file...");
-        String remoteWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/daytrading.war";
-        String remoteExplodedWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/daytrading";
         try {
+
+            // tomcat requires deletion of existing WAR (and exploded WAR)
+            System.out.println("Deleting existing remote WAR file...");
+            String remoteWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/daytrading.war";
+            String remoteExplodedWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/daytrading";
             BaseDeployment.removeScript(client, remoteWarPath);
             BaseDeployment.removeScript(client, remoteExplodedWarPath);
-        } catch (IOException e) {
-            // abort the process unless the files weren't found (just continue to upload the new ones)
-            if(!(e instanceof FileNotFoundException))
-            {
-                e.printStackTrace();
-                try {
-                    client.disconnect();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-
-        try {
 
             System.out.println("Transferring WAR file...");
             Path localWarPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("web-server").resolve("target").resolve("daytrading.war");
