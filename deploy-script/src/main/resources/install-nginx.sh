@@ -35,6 +35,9 @@ if [ ! -d "$installDirectory/$programName" ]; then
 
     # Remove nginx source folder
     rm nginx-$nginxVersion -r
+
+    # Add write permissions so multiple people can edit contents
+    chmod -R +w $programName
     
     if [ -d "$installDirectory/$programName" ]; then
     

@@ -61,6 +61,7 @@ public abstract class BaseDeployment {
 
                 String remotePath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), resource);
                 this.copyResource(client, resource, remotePath);
+                this.setPermissions(client, 660, remotePath);
             }
         }
 
@@ -90,6 +91,7 @@ public abstract class BaseDeployment {
         String configFile = "config.json";
         String remotePath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), configFile);
         this.copyResource(client, configFile, remotePath);
+        this.setPermissions(client, 660, remotePath);
     }
 
     protected static SSHClient getSSHClient(String server, String username, String password) throws IOException {
@@ -145,21 +147,8 @@ public abstract class BaseDeployment {
     protected static void copyScript(SSHClient client, String scriptName, String destinationPath) throws IOException {
 
         copyResource(client, scriptName, destinationPath);
-
-        System.out.println(String.format("Setting permissions on script %s", scriptName));
-
-        // Set permissions on script and strip Windows line endings
-        Session chmod_session = client.startSession();
-
-        Session.Command chmod_cmd = chmod_session.exec(
-                String.format("chmod 770 %s; ", destinationPath) +
-                        String.format("sed -i -e 's/\\r$//' %s", destinationPath)
-        );
-
-        chmod_cmd.join(5, TimeUnit.SECONDS);
-        chmod_session.close();
-
-        System.out.println("Permissions have been set");
+        setPermissions(client, 770, destinationPath);
+        stripWindowsLineEndings(client, destinationPath);
     }
 
     protected static void removeScript(SSHClient client, String destinationPath) throws IOException {
@@ -174,5 +163,33 @@ public abstract class BaseDeployment {
         chmod_session.close();
 
         System.out.println("Script removed");
+    }
+
+    protected static void stripWindowsLineEndings(SSHClient client, String destinationPath) throws IOException {
+
+        System.out.println(String.format("Removing windows line endings on file %s", destinationPath));
+
+        Session session = client.startSession();
+
+        Session.Command command = session.exec(String.format("sed -i -e 's/\\r$//' %s", destinationPath));
+
+        command.join(5, TimeUnit.SECONDS);
+        session.close();
+
+        System.out.println(String.format("Windows line endings removed", destinationPath));
+    }
+
+    protected static void setPermissions(SSHClient client, int permission, String destinationPath) throws IOException {
+
+        System.out.println(String.format("Setting permissions on script %s", destinationPath));
+
+        Session session = client.startSession();
+
+        Session.Command command = session.exec(String.format("chmod %d %s; ", permission, destinationPath));
+
+        command.join(5, TimeUnit.SECONDS);
+        session.close();
+
+        System.out.println("Permissions have been set");
     }
 }
