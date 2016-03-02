@@ -20,13 +20,13 @@ public class WebServerDeployment extends MultipleDeployment {
 
             // tomcat requires deletion of existing WAR (and exploded WAR)
             System.out.println("Deleting existing remote WAR file...");
-            String remoteWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/daytrading.war";
-            String remoteExplodedWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/daytrading";
+            String remoteWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/ROOT.war";
+            String remoteExplodedWarPath = "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps/ROOT";
             BaseDeployment.removeScript(client, remoteWarPath);
             BaseDeployment.removeScript(client, remoteExplodedWarPath);
 
             System.out.println("Transferring WAR file...");
-            Path localWarPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("web-server").resolve("target").resolve("daytrading.war");
+            Path localWarPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("web-server").resolve("target").resolve("ROOT.war");
             client.newSCPFileTransfer().upload(localWarPath.toString(), "/seng/seng462/group4/local/apache-tomcat-9.0.0.M3/webapps");
             Path bashPath = Paths.get(System.getProperty("user.dir")).resolve("src").resolve("main").resolve("resources").resolve("run-web-server.sh");
             client.newSCPFileTransfer().upload(bashPath.toString(), "/seng/scratch/group4/");
