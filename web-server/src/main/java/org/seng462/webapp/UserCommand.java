@@ -45,12 +45,6 @@ public class UserCommand
         this.args = args;
     }
 
-    public String getArg(String argKey)
-    {
-        String arg = args.get(argKey);
-        return (arg != null) ? arg : "";
-    }
-
     public UserCommand(CommandCodes cmdCode, String workloadSeqNo, String userSeqNo, HashMap<String,String> args)
     {
         this.cmdCode = cmdCode;

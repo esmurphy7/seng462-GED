@@ -5,6 +5,7 @@ package org.seng462.webapp;
  */
 public enum CommandCodes
 {
+    NO_COMMAND,
     ADD,
     QUOTE,
     BUY,

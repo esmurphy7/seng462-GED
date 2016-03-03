@@ -11,6 +11,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 /**
  * Created by Evan on 2/7/2016.
@@ -22,8 +23,8 @@ public class DumplogResource
     public Response getDumplog(@Context UriInfo uriInfo)
     {
         CommandCodes cmdCode;
-        String defaultUserSeqNo = "99999";
-        String userId = uriInfo.getQueryParameters().get("userId").toString();
+        List<String> userIdParam = uriInfo.getQueryParameters().get("userId");
+        String userId = (userIdParam != null) ? userIdParam.get(0).toString() : null;
 
         // type of dumplog command differs based on existence of userId
         if(userId != null && !userId.isEmpty())
