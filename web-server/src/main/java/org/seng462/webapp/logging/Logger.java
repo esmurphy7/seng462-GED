@@ -1,5 +1,6 @@
 package org.seng462.webapp.logging;
 
+import org.seng462.webapp.ServerConstants;
 import org.seng462.webapp.logging.xmlelements.generated.LogType;
 import org.seng462.webapp.logging.xmlelements.generated.ObjectFactory;
 import org.xml.sax.SAXException;
@@ -12,7 +13,9 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.helpers.DefaultValidationEventHandler;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -26,8 +29,6 @@ public class Logger
     private static Logger instance = null;
 
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
-    private static final String OUTPUT_LOGFILE = "outputLog.xml";
-    private static Queue<Object> Logs = new ConcurrentLinkedQueue<>();
 
     private Logger(){}
 
@@ -70,37 +71,24 @@ public class Logger
         return marshaller;
     }
 
-    // Store the log in a list to save later
-    public void Log(Object logType)
-    {
-        Logs.add(logType);
-    }
+    // Marshall the log object and send it over the socket to the audit server
+    public void Log(Object logInstance) {
+        //System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
+        try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT))
+        {
+            // create a logtype to marshall
+            LogType logType = new LogType();
+            logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logInstance);
 
-    // write the log to an xml file on disk
-    public void SaveLog() throws JAXBException {
-        // include log type instances in base log element
-        LogType logType = new LogType();
-        for (Object log : Logs) {
-            logType.getUserCommandOrQuoteServerOrAccountTransaction().add(log);
-        }
-        
-        try {
-            // define output location
-            URL url = Logger.class.getResource("");
-            File outfile = new File(url.getPath() + OUTPUT_LOGFILE);
-            outfile.createNewFile();
-            OutputStream outStream = new FileOutputStream(outfile);
-
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<LogType> jaxbLogType = objectFactory.createLog(logType);
-
-            // marshall the data
+            // get the marshaller
             Marshaller marshaller = Logger.getInstance().buildMarshaller();
-            marshaller.marshal(jaxbLogType, outStream);
-            outStream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+
+            // create jaxb element from xml element name, class, and instance
+            JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
+
+            // marshall the element over the socket
+            marshaller.marshal(jaxbElement, s.getOutputStream());
+        } catch (IOException | JAXBException e) {
             e.printStackTrace();
         }
     }
