@@ -28,7 +28,7 @@ public class Logger
 {
     private static Logger instance = null;
 
-    private static final String LOGFILE_SCHEMA = "logfile.xsd";
+    private static final String LOGFILE_SCHEMA = "/logfile.xsd";
 
     private Logger(){}
 

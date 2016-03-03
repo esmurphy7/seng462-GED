@@ -6,7 +6,7 @@
   </xsd:documentation>
  </xsd:annotation>
 
- <xsd:element name="log" type="LogType"/> 
+ <xsd:element name="log" type="LogType"/>
 
 <!-- The log file created by the students consists of user commands, quote server
  hits, account changes, system events, error messages and debug messages -->
@@ -21,7 +21,7 @@
   </xsd:choice>
  </xsd:complexType>
 
-<!-- User commands come from the user command files or from manual entries in 
+<!-- User commands come from the user command files or from manual entries in
 the students' web forms -->
  <xsd:complexType name="UserCommandType">
   <xsd:all>
@@ -36,7 +36,7 @@ the students' web forms -->
   </xsd:all>
  </xsd:complexType>
 
-<!-- Every hit to the quote server requires a log entry with the results. The 
+<!-- Every hit to the quote server requires a log entry with the results. The
 price, symbol, username, timestamp and cryptokey are as returned by the quote server -->
  <xsd:complexType name="QuoteServerType">
   <xsd:all>
@@ -51,7 +51,7 @@ price, symbol, username, timestamp and cryptokey are as returned by the quote se
   </xsd:all>
  </xsd:complexType>
 
-<!-- Any time a user's account is touched, an account message is printed.  
+<!-- Any time a user's account is touched, an account message is printed.
 Appropriate actions are "add" or "remove". -->
  <xsd:complexType name="AccountTransactionType">
   <xsd:all>
@@ -59,12 +59,12 @@ Appropriate actions are "add" or "remove". -->
    <xsd:element name="server" type="xsd:string"/>
    <xsd:element name="transactionNum" type="xsd:positiveInteger"/>
    <xsd:element name="action" type="xsd:string"/>
-   <xsd:element name="username" type="xsd:string"/> 
+   <xsd:element name="username" type="xsd:string"/>
    <xsd:element name="funds" type="xsd:decimal"/>
   </xsd:all>
  </xsd:complexType>
 
-<!-- System events can be current user commands, interserver communications, 
+<!-- System events can be current user commands, interserver communications,
 or the execution of previously set triggers -->
  <xsd:complexType name="SystemEventType">
   <xsd:all>
@@ -79,7 +79,7 @@ or the execution of previously set triggers -->
   </xsd:all>
  </xsd:complexType>
 
-<!-- Error messages contain all the information of user commands, in 
+<!-- Error messages contain all the information of user commands, in
 addition to an optional error message -->
  <xsd:complexType name="ErrorEventType">
   <xsd:all>
@@ -92,10 +92,10 @@ addition to an optional error message -->
    <xsd:element name="filename" type="xsd:string" minOccurs="0"/>
    <xsd:element name="funds" type="xsd:decimal" minOccurs="0"/>
    <xsd:element name="errorMessage" type="xsd:string" minOccurs="0"/>
-  </xsd:all> 
+  </xsd:all>
  </xsd:complexType>
 
-<!-- Debugging messages contain all the information of user commands, in 
+<!-- Debugging messages contain all the information of user commands, in
 addition to an optional debug message -->
  <xsd:complexType name="DebugType">
   <xsd:all>
