@@ -3,6 +3,7 @@ package com.teamged.txserver.transactions;
 import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
+import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.logging.xmlelements.generated.UserCommandType;
 
 import java.math.BigDecimal;
@@ -52,6 +53,76 @@ public class TransactionObject {
     public TransactionObject(String args) {
         originalArgs = args;
         parseArgs(args);
+        logRequest();
+    }
+
+    private void logRequest() {
+        CommandType commandType = null;
+        switch (userCommand) {
+            case ADD:
+                commandType = CommandType.ADD;
+                break;
+            case QUOTE:
+                commandType = CommandType.QUOTE;
+                break;
+            case BUY:
+                commandType = CommandType.BUY;
+                break;
+            case COMMIT_BUY:
+                commandType = CommandType.COMMIT_BUY;
+                break;
+            case CANCEL_BUY:
+                commandType = CommandType.CANCEL_BUY;
+                break;
+            case SELL:
+                commandType = CommandType.SELL;
+                break;
+            case COMMIT_SELL:
+                commandType = CommandType.COMMIT_SELL;
+                break;
+            case CANCEL_SELL:
+                commandType = CommandType.CANCEL_SELL;
+                break;
+            case SET_BUY_AMOUNT:
+                commandType = CommandType.SET_BUY_AMOUNT;
+                break;
+            case CANCEL_SET_BUY:
+                commandType = CommandType.CANCEL_SET_BUY;
+                break;
+            case SET_BUY_TRIGGER:
+                commandType = CommandType.SET_BUY_TRIGGER;
+                break;
+            case SET_SELL_AMOUNT:
+                commandType = CommandType.SET_SELL_AMOUNT;
+                break;
+            case SET_SELL_TRIGGER:
+                commandType = CommandType.SET_SELL_TRIGGER;
+                break;
+            case CANCEL_SET_SELL:
+                commandType = CommandType.CANCEL_SET_SELL;
+                break;
+            case DUMPLOG:
+                commandType = CommandType.DUMPLOG;
+                break;
+            case DUMPLOG_ROOT:
+                commandType = CommandType.DUMPLOG;
+                break;
+            case DISPLAY_SUMMARY:
+                commandType = CommandType.DISPLAY_SUMMARY;
+                break;
+        }
+
+        SystemEventType systemEvent = new SystemEventType();
+        systemEvent.setTimestamp(System.currentTimeMillis());
+        systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
+        systemEvent.setTransactionNum(BigInteger.valueOf(txIdentifier));
+        systemEvent.setUsername(userName);
+        systemEvent.setCommand(commandType);
+        systemEvent.setStockSymbol(stockSymbol);
+        systemEvent.setFilename(fileName);
+        systemEvent.setFunds(new BigDecimal(amountDollars + "." + amountCents));
+
+        Logger.getInstance().Log(systemEvent);
     }
 
     /**
