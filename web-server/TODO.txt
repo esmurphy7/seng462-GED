@@ -16,21 +16,8 @@ x AddResource does not include userId when creating UserCommand instance
 x create resource classes for remaining commands
 - change resources to accept workload file sequence numbers and user sequence numbers as query parameters
     - when developing the web client, ignore user sequence numbers and send 0's (transaction server doesn't care what order the requests came in if they're from a real person)
-- validate incoming commands
-    - create class responsible for validating fields of different commands
-        - all fields:
-            - presence of field value (if required)
-            - conforms to regex (if applicable)
 
-        - workloadId:
-            - positive integer
-
-        - dollars/cents:
-            - positive integer
-
-        - stockSymbol:
-            - all chars (all caps?)
-
+- update jersey resources to be asynchronous
 
 ====================================================================================================
 TransactionService
