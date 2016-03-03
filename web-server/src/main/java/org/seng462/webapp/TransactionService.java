@@ -71,6 +71,46 @@ public class TransactionService
     public static Response sendCommand(UserCommand userCommand)
     {
         // log a user command to the audit server
+        TransactionService.LogUserCommand(userCommand);
+
+        // format the message
+        String message = "";
+        try {
+            message = TransactionService.formatMessage(userCommand);
+        } catch (UnknownHostException e) {
+            String errorMsg = "Cannot find local hostname to include in message" + "\n" + e.getMessage();
+            e.printStackTrace();
+            Response response = Response.serverError().entity(errorMsg).build();
+            return response;
+        }
+
+        // send the message as a packet to the transaction server
+        try
+        {
+            // open transaction socket
+            Socket socket = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // send packet over socket
+            out.println(message);
+
+            //TODO:// translate response from tx server into jersey response and return it
+            Response response = Response.ok().build();
+            return response;
+
+        }catch (Exception e) {
+            String errorMsg = "Could not connect to transaction server: "+  ServerConstants.TX_SERVERS[0] + ":" + ServerConstants.TX_PORT_RANGE[0] + "\n" + e.getMessage();
+            e.printStackTrace();
+            Response response = Response.serverError().entity(errorMsg).build();
+            return response;
+        }
+    }
+
+    // Build a user command log and send it to the transaction server
+    private static void LogUserCommand(UserCommand userCommand)
+    {
+        // map JAXB command types to custom command code enum
         CommandType commandType = null;
         switch (userCommand.getCmdCode()) {
             case ADD:
@@ -139,38 +179,5 @@ public class TransactionService
         //TODO: log currently active web server instead of first index
         userCommandLog.setServer(ServerConstants.WEB_SERVERS[0]);
         Logger.getInstance().Log(userCommandLog);
-
-        // format the message
-        String message = "";
-        try {
-            message = TransactionService.formatMessage(userCommand);
-        } catch (UnknownHostException e) {
-            String errorMsg = "Cannot find local hostname to include in message" + "\n" + e.getMessage();
-            e.printStackTrace();
-            Response response = Response.serverError().entity(errorMsg).build();
-            return response;
-        }
-
-        // send the message as a packet to the transaction server
-        try
-        {
-            // open transaction socket
-            Socket socket = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            // send packet over socket
-            out.println(message);
-
-            //TODO:// translate response from tx server into jersey response and return it
-            Response response = Response.ok().build();
-            return response;
-
-        }catch (Exception e) {
-            String errorMsg = "Could not connect to transaction server: "+  ServerConstants.TX_SERVERS[0] + ":" + ServerConstants.TX_PORT_RANGE[0] + "\n" + e.getMessage();
-            e.printStackTrace();
-            Response response = Response.serverError().entity(errorMsg).build();
-            return response;
-        }
     }
 }
