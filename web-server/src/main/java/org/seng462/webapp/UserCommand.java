@@ -1,6 +1,7 @@
 package org.seng462.webapp;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Evan on 2/5/2016.
@@ -10,7 +11,7 @@ public class UserCommand
     private CommandCodes cmdCode;
     private String workloadSeqNo;
     private String userSeqNo;
-    private ArrayList<String> args = new ArrayList<String>();
+    private Map<String, String> args = new HashMap<>();
 
     public CommandCodes getCmdCode() {
         return cmdCode;
@@ -36,22 +37,25 @@ public class UserCommand
         this.workloadSeqNo = workloadSeqNo;
     }
 
-    public ArrayList<String> getArgs() {
+    public Map<String, String> getArgs() {
         return args;
     }
 
-    public void setArgs(ArrayList<String> args) {
+    public void setArgs(Map<String, String> args) {
         this.args = args;
     }
 
-    public UserCommand(CommandCodes cmdCode, String workloadSeqNo, String userSeqNo, String... args)
+    public String getArg(String argKey)
+    {
+        String arg = args.get(argKey);
+        return (arg != null) ? arg : "";
+    }
+
+    public UserCommand(CommandCodes cmdCode, String workloadSeqNo, String userSeqNo, HashMap<String,String> args)
     {
         this.cmdCode = cmdCode;
         this.workloadSeqNo = workloadSeqNo;
         this.userSeqNo = userSeqNo;
-        for(String arg : args)
-        {
-            this.args.add(arg);
-        }
+        this.args = args;
     }
 }
