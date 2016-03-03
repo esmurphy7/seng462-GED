@@ -9,8 +9,13 @@ import java.util.Calendar;
  * Created by DanielF on 2016-02-16.
  */
 public class QuoteObject {
+    // If a user just wants a regular quote, then we just want it to be valid when sent back
     private static final long QUOTE_LIFE_MILLIS = 59500;
-    private static final long QUOTE_SHORT_LIFE_MILLIS = 750;
+
+    // If a user wants to make a buy or sell, we want the system to have time to realize an update needs to be sent soon
+    private static final long QUOTE_SHORT_LIFE_MILLIS = 55000;
+
+    // Number of arguments the quote server should return
     private static final int QUOTE_STATEMENT_ARGS = 5;
 
     private int dollars;

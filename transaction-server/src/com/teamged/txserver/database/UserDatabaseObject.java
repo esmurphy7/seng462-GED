@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class UserDatabaseObject {
     private static final int CENT_CAP = 100;
 
-    //private final ScheduledExecutorService triggerScheduler;
+    private final ScheduledExecutorService triggerScheduler;
     private final Object lock = new Object();
     private final List<String> history = new ArrayList<>();
     private final Deque<StockRequest> sellList = new ArrayDeque<>();
@@ -38,7 +38,7 @@ public class UserDatabaseObject {
 
     public UserDatabaseObject(String user) {
         userName = user;
-        //triggerScheduler = Executors.newSingleThreadScheduledExecutor();
+        triggerScheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     public String add(int dollars, int cents, int tid) {
@@ -70,12 +70,12 @@ public class UserDatabaseObject {
     }
 
     public QuoteObject quote(String stock, int tid) {
-        InternalLog.Critical("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+        InternalLog.CacheDebug("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
         return performQuote(stock, tid, false);
     }
 
     public QuoteObject realtimeQuote(String stock, int tid) {
-        InternalLog.Critical("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+        InternalLog.CacheDebug("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
         return performQuote(stock, tid, true);
     }
 
@@ -109,7 +109,8 @@ public class UserDatabaseObject {
                             this.cents += CENT_CAP;
                         }
 
-                        // TODO: Start a timer to expire the stored buy request in 60 seconds
+                        // TODO: Start a timer to expire the buy request in 60 seconds
+                        // TODO: Start a timer on the remaining life of the buy request to notify user
                         history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
                         buyRes = quote.toString();
                     } else {
@@ -212,7 +213,8 @@ public class UserDatabaseObject {
 
                     sellList.push(sr);
                     stocksOwned.put(stock, ownedCount - actualSellCount);
-                    // TODO: Start a timer to expire the stored buy request in 60 seconds
+                    // TODO: Start a timer to expire the stored sell request in 60 seconds
+                    // TODO: Start a timer on the remaining life of the sell request to notify user
                     history.add("SELL," + userName + "," + stock + "," + dollars + "." + cents);
                     sellRes = quote.toString();
                 } else {
@@ -375,7 +377,7 @@ public class UserDatabaseObject {
                 triggerSet = "SET_BUY_TRIGGER ERROR";
             }
         }
-/*
+
         if (trigger != null) {
             InternalLog.Log("Setting buy trigger");
             final StockTrigger t = trigger;
@@ -404,7 +406,7 @@ public class UserDatabaseObject {
                     TimeUnit.SECONDS
             );
         }
-*/
+
         return triggerSet;
     }
 
@@ -527,7 +529,7 @@ public class UserDatabaseObject {
                 triggerSet = "SET_SELL_TRIGGER ERROR";
             }
         }
-/*
+
         if (trigger != null) {
             InternalLog.Log("Setting sell trigger");
             final StockTrigger t = trigger;
@@ -573,7 +575,7 @@ public class UserDatabaseObject {
                     TimeUnit.SECONDS
             );
         }
-*/
+
         return triggerSet;
     }
 
@@ -645,7 +647,7 @@ public class UserDatabaseObject {
             }
 
             if (quote == null) {
-                InternalLog.Critical("[QUOTE C1] Cache Level I miss for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                InternalLog.CacheDebug("[QUOTE C1] Cache Level I miss for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
                 InternalLog.Log("[DEBUG PRINT] FETCHING QUOTE");
                 if (useShortTimeout) {
                     quote = QuoteCache.fetchNewQuote(stock, userName, tid);
@@ -657,16 +659,16 @@ public class UserDatabaseObject {
                     stockCache.put(stock, quote);
                 }
             } else {
-                InternalLog.Critical("[QUOTE C1] Cache Level I hit for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                InternalLog.CacheDebug("[QUOTE C1] Cache Level I hit for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
             }
 
             history.add("QUOTE," + userName + "," + stock);
         }
 
         if (quote.getErrorString().isEmpty()) {
-            InternalLog.Critical("[QUOTE] Quote fetch complete. Stock: " + stock + "; User: " + userName + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+            InternalLog.CacheDebug("[QUOTE] Quote fetch complete. Stock: " + stock + "; User: " + userName + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
         } else {
-            InternalLog.Critical("[QUOTE] Quote fetch complete. Stock: " + stock + "; User: " + userName + "; Value: $NA; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+            InternalLog.CacheDebug("[QUOTE] Quote fetch complete. Stock: " + stock + "; User: " + userName + "; Value: $NA; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
         }
         return quote;
     }

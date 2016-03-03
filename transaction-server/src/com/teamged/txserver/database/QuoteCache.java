@@ -15,8 +15,6 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -44,7 +42,7 @@ public class QuoteCache {
     public static QuoteObject fetchQuote(String stock, String callingUser, int tid) {
         QuoteObject q;
         try {
-            InternalLog.Critical("[QUOTE C2] Fetching regular quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+            InternalLog.CacheDebug("[QUOTE C2] Fetching regular quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
             q = fetchQuoteObject(stock, callingUser, tid, false);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -77,7 +75,7 @@ public class QuoteCache {
     public static QuoteObject fetchNewQuote(String stock, String callingUser, int tid) {
         QuoteObject q;
         try {
-            InternalLog.Critical("[QUOTE C2] Fetching realtime quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+            InternalLog.CacheDebug("[QUOTE C2] Fetching realtime quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
             q = fetchQuoteObject(stock, callingUser, tid, true);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -118,7 +116,6 @@ public class QuoteCache {
             Future<QuoteObject> fq;
             long nowMillis = Calendar.getInstance().getTimeInMillis();
 
-            //synchronized (lock) {
             fq = quoteMap.get(stock);
             // Check if a new query needs to be prepped
             if (fq == null || // Not in cache
@@ -126,13 +123,14 @@ public class QuoteCache {
                 (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) || // Cached, but older than a minute
                 (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) // Cached, but older than half a second and we need brand new
             {
-                InternalLog.Critical("[QUOTE C2] Cache Level II miss for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                // TODO: Take out some sort of write lock here? Could have unnecessary QUOTE requests here.
+                InternalLog.CacheDebug("[QUOTE C2] Cache Level II miss for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
                 fq = quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid));
                 quoteMap.put(stock, fq);
             } else {
-                InternalLog.Critical("[QUOTE C2] Cache Level II hit for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                InternalLog.CacheDebug("[QUOTE C2] Cache Level II hit for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
             }
-            //}
+
             q = fq.get();
         } else {
             q = fetchQuoteFromServer(stock, callingUser, tid);
@@ -164,10 +162,10 @@ public class QuoteCache {
 
             if (!quote.getErrorString().isEmpty()) {
                 // Log error
-                InternalLog.Critical("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
             } else {
                 try {
-                    InternalLog.Critical("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                    InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
                     QuoteServerType qst = new QuoteServerType();
                     qst.setTimestamp(nowMillis);
                     qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteTime()));
@@ -182,8 +180,6 @@ public class QuoteCache {
                     e.printStackTrace();
                     InternalLog.Log("Logging error");
                 }
-
-                //history.add("QUOTE," + userName + "," + stock);
             }
         } catch(IOException e) {
             e.printStackTrace();
