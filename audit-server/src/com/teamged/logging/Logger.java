@@ -104,4 +104,10 @@ public class Logger
             e.printStackTrace();
         }
     }
+
+    // clear and reset the list of logs
+    public void ClearLogs()
+    {
+        Logs.clear();
+    }
 }
