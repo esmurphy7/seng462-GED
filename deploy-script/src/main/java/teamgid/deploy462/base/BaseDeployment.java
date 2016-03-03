@@ -181,7 +181,7 @@ public abstract class BaseDeployment {
 
     protected static void setPermissions(SSHClient client, int permission, String destinationPath) throws IOException {
 
-        System.out.println(String.format("Setting permissions on script %s", destinationPath));
+        System.out.println(String.format("Setting permissions on file %s", destinationPath));
 
         Session session = client.startSession();
 

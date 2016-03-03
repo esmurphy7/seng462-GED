@@ -53,6 +53,13 @@ public class WorkloadGeneratorDeployment extends SingleDeployment {
             chmod_cmd.join(5, TimeUnit.SECONDS);
             chmod_session.close();
 
+            chmod_session = client.startSession();
+
+            chmod_cmd = chmod_session.exec("chmod -R 770 /seng/scratch/group4/workload-files");
+
+            chmod_cmd.join(5, TimeUnit.SECONDS);
+            chmod_session.close();
+
             System.out.println("File and directory permissions applied");
 
         } catch (Exception e) {

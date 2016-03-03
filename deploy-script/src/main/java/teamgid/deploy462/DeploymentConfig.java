@@ -32,6 +32,7 @@ public class DeploymentConfig {
         private WebServerDeployment webServers;
         private TransactionServerDeployment transactionServers;
         private AuditServerDeployment auditServer;
+        private CacheServerDeployment cacheServer;
 
         public WorkloadGeneratorDeployment getWorkloadGenerator() {
             return workloadGenerator;
@@ -71,6 +72,14 @@ public class DeploymentConfig {
 
         public void setAuditServer(AuditServerDeployment auditServer) {
             this.auditServer = auditServer;
+        }
+
+        public CacheServerDeployment getCacheServer() {
+            return cacheServer;
+        }
+
+        public void setCacheServer(CacheServerDeployment cacheServer) {
+            this.cacheServer = cacheServer;
         }
     }
 }

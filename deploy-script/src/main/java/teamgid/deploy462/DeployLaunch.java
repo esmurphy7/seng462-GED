@@ -21,6 +21,7 @@ public class DeployLaunch {
     private static final String WEB_TYPE = "web";
     private static final String TX_TYPE = "tx";
     private static final String AUDIT_TYPE = "audit";
+    private static final String CACHE_TYPE = "cache";
     private static final String ALL_TYPE = "all";
 
     private static String username;
@@ -107,6 +108,7 @@ public class DeployLaunch {
                     "\n    '" + WEB_TYPE + "' for Web Server deployment" +
                     "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
                     "\n    '" + AUDIT_TYPE + "' for Audit Server deployment" +
+                    "\n    '" + CACHE_TYPE + "' for Cache Server deployment" +
                     "\n    '" + ALL_TYPE + "' for all deployments"
             );
 
@@ -114,7 +116,7 @@ public class DeployLaunch {
             System.out.println("The configuration for each deployment is in config.json");
             System.out.println();
             System.out.println("Enter deployment type: ");
-            System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, all):");
+            System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, cache, all):");
             String input = userInput.nextLine();
 
             if (input.equals(ALL_TYPE)) {
@@ -124,6 +126,7 @@ public class DeployLaunch {
                 deployments.add(deploymentConfig.getDeployments().getWebServers());
                 deployments.add(deploymentConfig.getDeployments().getTransactionServers());
                 deployments.add(deploymentConfig.getDeployments().getAuditServer());
+                deployments.add(deploymentConfig.getDeployments().getCacheServer());
                 hasDeploymentType = true;
 
             } else if (input.equals(WORKLOAD_GENERATOR_TYPE)) {
@@ -149,6 +152,11 @@ public class DeployLaunch {
             } else if (input.equals(AUDIT_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getAuditServer());
+                hasDeploymentType = true;
+
+            } else if (input.equals(CACHE_TYPE)) {
+
+                deployments.add(deploymentConfig.getDeployments().getCacheServer());
                 hasDeploymentType = true;
 
             } else {

@@ -1,14 +1,14 @@
 #!/bin/bash
 
 installDirectory=/seng/scratch/group4
-programName=nginx
+programName=redis
 
 if [ -d "$installDirectory/$programName" ]; then
 
     echo "Configuring $programName"
     
     # Move config file to program directory
-    mv $installDirectory/nginx.conf.loadbalancer $installDirectory/$programName/conf/
+    mv $installDirectory/redis.conf $installDirectory/$programName
     
     echo "$programName configured"
     

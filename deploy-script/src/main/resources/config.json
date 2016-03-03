@@ -32,6 +32,17 @@
         "auditServer": {
             "runScript": "run-audit-server.sh",
             "server": "b140.seng.uvic.ca"
+        },
+        "cacheServer": {
+            "resources": [
+                "redis.conf"
+            ],
+            "deployScripts": [
+                "install-redis.sh",
+                "config-redis.sh"
+            ],
+            "runScript": "run-redis.sh",
+            "server": "b144.seng.uvic.ca"
         }
     }
 }
