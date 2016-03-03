@@ -1,13 +1,19 @@
 package org.seng462.webapp;
 
 import jersey.repackaged.com.google.common.base.Joiner;
+import org.seng462.webapp.logging.Logger;
+import org.seng462.webapp.logging.xmlelements.generated.CommandType;
+import org.seng462.webapp.logging.xmlelements.generated.UserCommandType;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created by Evan on 1/18/2016.
@@ -23,7 +29,7 @@ public class TransactionService
     // Format: [workload seq. no], [user seq. no], cmdCode, commandArgs, web server address, web server port
     private static String formatMessage(UserCommand userCommand) throws UnknownHostException {
         // parse command object into message
-        ArrayList<String> message = new ArrayList<String>();
+        ArrayList<String> message = new ArrayList<>();
 
         // include sequence numbers
         String workloadSeqNo = "["+userCommand.getWorkloadSeqNo()+"]";
@@ -34,13 +40,26 @@ public class TransactionService
         // include command code
         message.add(Integer.toString(userCommand.getCmdCode().ordinal()));
 
-        // include command args
-        message.addAll(userCommand.getArgs());
+        // include command arguments in the correct order: userId, stockSymbol, amount, filename
+        Map<String, String> args = userCommand.getArgs();
+        String[] argKeys = {
+                "userId",
+                "stockSymbol",
+                "amount",
+                "filename"
+        };
+        for(String argKey : argKeys)
+        {
+            if(args.get(argKey) != null)
+            {
+                message.add(args.get(argKey));
+            }
+        }
 
         // include timestamp
         message.add(Long.toString(System.currentTimeMillis()));
 
-        //TODO: send currently active web server host and port in the message
+        //TODO: send currently active web server host index and port index in the message
         InetAddress ip = InetAddress.getLocalHost();
         String hostname = "0";
         //String hostname = ip.getHostName();
@@ -56,6 +75,19 @@ public class TransactionService
     // Send a command to the transaction server in the form of a formatted packet
     public static Response sendCommand(UserCommand userCommand)
     {
+        // log a user command to the audit server
+        UserCommandType userCommandLog = new UserCommandType();
+        userCommandLog.setCommand(CommandType.values()[userCommand.getCmdCode().ordinal()]);
+        userCommandLog.setUsername(userCommand.getArg("userId"));
+        userCommandLog.setStockSymbol(userCommand.getArg("stockSymbol"));
+        userCommandLog.setFunds(new BigDecimal(userCommand.getArg("amount")));
+        userCommandLog.setTimestamp(System.currentTimeMillis());
+        userCommandLog.setFilename(userCommand.getArg("filename"));
+        userCommandLog.setTransactionNum(new BigInteger(userCommand.getWorkloadSeqNo()));
+        //TODO: log currently active web server instead of first index
+        userCommandLog.setServer(ServerConstants.WEB_SERVERS[0]);
+        Logger.getInstance().Log(userCommandLog);
+
         // format the message
         String message = "";
         try {
