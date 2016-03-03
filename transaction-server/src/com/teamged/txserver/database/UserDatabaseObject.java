@@ -2,17 +2,14 @@ package com.teamged.txserver.database;
 
 import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.*;
+import com.teamged.logging.xmlelements.generated.AccountTransactionType;
+import com.teamged.logging.xmlelements.generated.CommandType;
+import com.teamged.logging.xmlelements.generated.ErrorEventType;
+import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.txserver.InternalLog;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class UserDatabaseObject {
     private static final int CENT_CAP = 100;
 
-    private final ScheduledExecutorService triggerScheduler;
+    //private final ScheduledExecutorService triggerScheduler;
     private final Object lock = new Object();
     private final List<String> history = new ArrayList<>();
     private final Deque<StockRequest> sellList = new ArrayDeque<>();
@@ -41,7 +38,7 @@ public class UserDatabaseObject {
 
     public UserDatabaseObject(String user) {
         userName = user;
-        triggerScheduler = Executors.newSingleThreadScheduledExecutor();
+        //triggerScheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     public String add(int dollars, int cents, int tid) {
@@ -378,7 +375,7 @@ public class UserDatabaseObject {
                 triggerSet = "SET_BUY_TRIGGER ERROR";
             }
         }
-
+/*
         if (trigger != null) {
             InternalLog.Log("Setting buy trigger");
             final StockTrigger t = trigger;
@@ -407,7 +404,7 @@ public class UserDatabaseObject {
                     TimeUnit.SECONDS
             );
         }
-
+*/
         return triggerSet;
     }
 
@@ -530,7 +527,7 @@ public class UserDatabaseObject {
                 triggerSet = "SET_SELL_TRIGGER ERROR";
             }
         }
-
+/*
         if (trigger != null) {
             InternalLog.Log("Setting sell trigger");
             final StockTrigger t = trigger;
@@ -576,7 +573,7 @@ public class UserDatabaseObject {
                     TimeUnit.SECONDS
             );
         }
-
+*/
         return triggerSet;
     }
 

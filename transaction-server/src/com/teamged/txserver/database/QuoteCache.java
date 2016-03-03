@@ -17,10 +17,7 @@ import java.net.Socket;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Created by DanielF on 2016-02-27.
@@ -28,7 +25,10 @@ import java.util.concurrent.Future;
 public class QuoteCache {
     private static ExecutorService quotePool = Executors.newFixedThreadPool(ServerConstants.PROCESSING_THREAD_COUNT);
     private static final Object lock = new Object();
-    private static final Map<String, Future<QuoteObject>> quoteMap = new HashMap<>();
+    //private static final Map<String, Future<QuoteObject>> quoteMap = new HashMap<>();
+    private static final ConcurrentHashMap<String, Future<QuoteObject>> quoteMap =
+            new ConcurrentHashMap<>(/* TODO: args */);
+
     // TODO: Add a cleanup service that occasionally traverses the quote map and removes anything expired
 
     /**
@@ -118,21 +118,21 @@ public class QuoteCache {
             Future<QuoteObject> fq;
             long nowMillis = Calendar.getInstance().getTimeInMillis();
 
-            synchronized (lock) {
-                fq = quoteMap.get(stock);
-                // Check if a new query needs to be prepped
-                if (fq == null || // Not in cache
-                        fq.isCancelled() || // Cached a version with no value
-                        (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) || // Cached, but older than a minute
-                        (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) // Cached, but older than half a second and we need brand new
-                {
-                    InternalLog.Critical("[QUOTE C2] Cache Level II miss for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
-                    fq = quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid));
-                    quoteMap.put(stock, fq);
-                } else {
-                    InternalLog.Critical("[QUOTE C2] Cache Level II hit for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
-                }
+            //synchronized (lock) {
+            fq = quoteMap.get(stock);
+            // Check if a new query needs to be prepped
+            if (fq == null || // Not in cache
+                fq.isCancelled() || // Cached a version with no value
+                (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) || // Cached, but older than a minute
+                (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) // Cached, but older than half a second and we need brand new
+            {
+                InternalLog.Critical("[QUOTE C2] Cache Level II miss for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                fq = quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid));
+                quoteMap.put(stock, fq);
+            } else {
+                InternalLog.Critical("[QUOTE C2] Cache Level II hit for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
             }
+            //}
             q = fq.get();
         } else {
             q = fetchQuoteFromServer(stock, callingUser, tid);

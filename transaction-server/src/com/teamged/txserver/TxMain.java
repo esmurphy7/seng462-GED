@@ -6,6 +6,7 @@ public class TxMain {
     private static boolean rt = true;
 
     public static void main(String[] args) {
+        System.out.println("Deploy 2016-03-01 16:30pm");
         if (args != null) {
             for (String arg : args) {
                 if (arg.equals("-L1")) {

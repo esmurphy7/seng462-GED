@@ -3,13 +3,14 @@ package com.teamged.txserver.database;
 import com.teamged.txserver.InternalLog;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 
 /**
  * Created by DanielF on 2016-02-16.
  */
 public class QuoteObject {
     private static final long QUOTE_LIFE_MILLIS = 59500;
-    private static final long QUOTE_SHORT_LIFE_MILLIS = 500;
+    private static final long QUOTE_SHORT_LIFE_MILLIS = 750;
     private static final int QUOTE_STATEMENT_ARGS = 5;
 
     private int dollars;
@@ -18,6 +19,7 @@ public class QuoteObject {
     private String stockSymbol;
     private String userName;
     private long quoteTime;
+    private long quoteInternalTime;
     private long quoteShortTimeout;
     private long quoteTimeout;
     private String cryptoKey;
@@ -118,7 +120,8 @@ public class QuoteObject {
 
             if (parsed) {
                 try {
-                    quoteTime = Long.parseLong(argsArray[3]);
+                    quoteInternalTime = Long.parseLong(argsArray[3]);
+                    quoteTime = Calendar.getInstance().getTimeInMillis();
                     quoteTimeout = quoteTime + QUOTE_LIFE_MILLIS;
                     quoteShortTimeout = quoteTime + QUOTE_SHORT_LIFE_MILLIS;
                 } catch (NumberFormatException e) {
