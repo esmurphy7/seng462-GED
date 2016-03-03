@@ -2,17 +2,14 @@ package com.teamged.txserver.database;
 
 import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.*;
+import com.teamged.logging.xmlelements.generated.AccountTransactionType;
+import com.teamged.logging.xmlelements.generated.CommandType;
+import com.teamged.logging.xmlelements.generated.ErrorEventType;
+import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.txserver.InternalLog;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -72,83 +69,21 @@ public class UserDatabaseObject {
         return userName + ", " + this.dollars + "." + this.cents;
     }
 
-    /**
-     * Gets a raw quote string from the request server.
-     *
-     * @param stock
-     * @return
-     */
     public QuoteObject quote(String stock, int tid) {
-        QuoteObject quote;
-        synchronized (lock) {
-            long currTime = Calendar.getInstance().getTimeInMillis();
-            if ((quote = stockCache.get(stock)) != null) {
-                if (!quote.getErrorString().isEmpty()) {
-                    // Log error
-                    quote = null;
-                } else {
-                    if (currTime >= quote.getQuoteTimeout()) {
-                        // Log timed out quote
-                        stockCache.remove(stock);
-                        quote = null;
-                    }
-                }
-            }
+        InternalLog.CacheDebug("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+        return performQuote(stock, tid, false);
+    }
 
-            if (quote == null) {
-                InternalLog.Log("[DEBUG PRINT] FETCHING QUOTE");
-                try (
-                        Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
-                        PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                        BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-                ) {
-                    String quoteString;
-                    out.println(stock + "," + userName);
-                    quoteString = in.readLine();
-                    quote = QuoteObject.fromQuote(quoteString);
-
-                    if (!quote.getErrorString().isEmpty()) {
-                        // Log error
-                    } else {
-                        stockCache.put(stock, quote);
-                        try {
-                            //String[] qp = quote.split(",");
-                            QuoteServerType qtype = new QuoteServerType();
-                            qtype.setTimestamp(currTime);
-                            qtype.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteTime()));
-                            qtype.setServer(ServerConstants.TX_SERVERS[0]);
-                            qtype.setTransactionNum(BigInteger.valueOf(tid));
-                            qtype.setPrice(quote.getPrice());
-                            qtype.setStockSymbol(quote.getStockSymbol());
-                            qtype.setUsername(quote.getUserName());
-                            qtype.setCryptokey(quote.getCryptoKey());
-
-                            Logger.getInstance().Log(qtype);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            InternalLog.Log("Error logging");
-                        }
-
-                        history.add("QUOTE," + userName + "," + stock);
-                    }
-                } catch(UnknownHostException e) {
-                    e.printStackTrace();
-                    quote = QuoteObject.fromQuote("QUOTE ERROR");
-                } catch(IOException e) {
-                    e.printStackTrace();
-                    quote = QuoteObject.fromQuote("QUOTE ERROR");
-                }
-            }
-        }
-
-        return quote;
+    public QuoteObject realtimeQuote(String stock, int tid) {
+        InternalLog.CacheDebug("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+        return performQuote(stock, tid, true);
     }
 
     public String buy(String stock, int dollars, int cents, int tid) {
         String buyRes;
         synchronized (lock) {
             if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
-                QuoteObject quote = quote(stock, tid);
+                QuoteObject quote = realtimeQuote(stock, tid);
 
                 try {
                     if (quote.getErrorString().isEmpty()) {
@@ -174,7 +109,8 @@ public class UserDatabaseObject {
                             this.cents += CENT_CAP;
                         }
 
-                        // TODO: Start a timer to expire the stored buy request in 60 seconds
+                        // TODO: Start a timer to expire the buy request in 60 seconds
+                        // TODO: Start a timer on the remaining life of the buy request to notify user
                         history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
                         buyRes = quote.toString();
                     } else {
@@ -246,7 +182,7 @@ public class UserDatabaseObject {
     public String sell(String stock, int dollars, int cents, int tid) {
         String sellRes;
         synchronized (lock) {
-            QuoteObject quote = quote(stock, tid);
+            QuoteObject quote = realtimeQuote(stock, tid);
 
             if (quote.getErrorString().isEmpty()) {
                 long sellMoney = (long) dollars * CENT_CAP + cents;
@@ -277,7 +213,8 @@ public class UserDatabaseObject {
 
                     sellList.push(sr);
                     stocksOwned.put(stock, ownedCount - actualSellCount);
-                    // TODO: Start a timer to expire the stored buy request in 60 seconds
+                    // TODO: Start a timer to expire the stored sell request in 60 seconds
+                    // TODO: Start a timer on the remaining life of the sell request to notify user
                     history.add("SELL," + userName + "," + stock + "," + dollars + "." + cents);
                     sellRes = quote.toString();
                 } else {
@@ -422,7 +359,7 @@ public class UserDatabaseObject {
                     history.add("SET_BUY_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                     if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
-                        purchaseStock(stock, tid, buy, stockDollars, stockCents);
+                        triggerPurchaseStock(stock, tid, buy, stockDollars, stockCents);
 
                         triggerSet = "SET_BUY_TRIGGER,BUY,COMMIT_BUY," + quote;
                     } else {
@@ -457,7 +394,7 @@ public class UserDatabaseObject {
                                     int stockCents = quote.getCents();
 
                                     if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
-                                        purchaseStock(stock, tid, t.getSetAmount(), stockDollars, stockCents);
+                                        triggerPurchaseStock(stock, tid, t.getSetAmount(), stockDollars, stockCents);
                                         throw new TriggerCompletion();
                                     }
                                 }
@@ -566,7 +503,7 @@ public class UserDatabaseObject {
                         history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                         if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
-                            sellStock(stock, tid, sell, actualValue);
+                            triggerSellStock(stock, tid, sell, actualValue);
 
                             triggerSet = "SET_SELL_TRIGGER,SELL,COMMIT_SELL," + quote;
                         } else {
@@ -625,7 +562,7 @@ public class UserDatabaseObject {
                                         history.add("SET_SELL_TRIGGER," + userName + "," + stock + "," + dollars + "." + cents);
 
                                         if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
-                                            sellStock(stock, tid, t.getSetAmount(), actualValue);
+                                            triggerSellStock(stock, tid, t.getSetAmount(), actualValue);
                                             throw new TriggerCompletion();
                                         }
                                     }
@@ -645,11 +582,6 @@ public class UserDatabaseObject {
     public String dumplog(String filename, int tid) {
         // TODO: May have to eventually handle this (or just handle elsewhere)
         history.add("DUMPLOG," + userName + "," + filename);
-        return "";
-    }
-
-    public String dumplog(int tid) {
-        // TODO: May have to eventually handle this (or just handle elsewhere)
         return "";
     }
 
@@ -685,7 +617,63 @@ public class UserDatabaseObject {
         Logger.getInstance().Log(atType);
     }
 
-    private void purchaseStock(String stock, int tid, StockRequest buy, long stockDollars, int stockCents) {
+    /**
+     * Performs a quote operation with multiple caching levels. First, the local cache for this user is consulted.
+     * If the local user cache has no item, or an outdated item for the operation requested, the secondary quote cache
+     * will be consulted. That quote cache will either return a cached value or else fetch a quote from the quote
+     * server.
+     *
+     * @param stock The name of the stock to fetch a quote for.
+     * @param tid The transaction identifier for this operation.
+     * @param useShortTimeout True to use a short timeout period, false to use a regular timeout.
+     * @return The quote.
+     */
+    private QuoteObject performQuote(String stock, int tid, boolean useShortTimeout) {
+        QuoteObject quote;
+        synchronized (lock) {
+            long currTime = Calendar.getInstance().getTimeInMillis();
+            if ((quote = stockCache.get(stock)) != null) {
+                if (!quote.getErrorString().isEmpty()) {
+                    // Log error
+                    quote = null;
+                } else {
+                    long timeout = useShortTimeout ? quote.getQuoteShortTimeout() : quote.getQuoteTimeout();
+                    if (currTime >= timeout) {
+                        // Log timed out quote?
+                        stockCache.remove(stock);
+                        quote = null;
+                    }
+                }
+            }
+
+            if (quote == null) {
+                InternalLog.CacheDebug("[QUOTE C1] Cache Level I miss for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                InternalLog.Log("[DEBUG PRINT] FETCHING QUOTE");
+                if (useShortTimeout) {
+                    quote = QuoteCache.fetchNewQuote(stock, userName, tid);
+                } else {
+                    quote = QuoteCache.fetchQuote(stock, userName, tid);
+                }
+
+                if (quote.getErrorString().isEmpty()) {
+                    stockCache.put(stock, quote);
+                }
+            } else {
+                InternalLog.CacheDebug("[QUOTE C1] Cache Level I hit for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+            }
+
+            history.add("QUOTE," + userName + "," + stock);
+        }
+
+        if (quote.getErrorString().isEmpty()) {
+            InternalLog.CacheDebug("[QUOTE] Quote fetch complete. Stock: " + stock + "; User: " + userName + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+        } else {
+            InternalLog.CacheDebug("[QUOTE] Quote fetch complete. Stock: " + stock + "; User: " + userName + "; Value: $NA; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+        }
+        return quote;
+    }
+
+    private void triggerPurchaseStock(String stock, int tid, StockRequest buy, long stockDollars, int stockCents) {
         long stockPrice = stockDollars * CENT_CAP + stockCents;
         long stockPurchaseMoney = (long) buy.getDollars() * CENT_CAP + buy.getCents();
         int stockCount = (int) (stockPurchaseMoney / stockPrice);
@@ -730,7 +718,7 @@ public class UserDatabaseObject {
         history.add("COMMIT_BUY," + userName);
     }
 
-    private void sellStock(String stock, int tid, StockRequest sell, long actualValue) {
+    private void triggerSellStock(String stock, int tid, StockRequest sell, long actualValue) {
         logAddFunds((int) (actualValue / CENT_CAP), (int) (actualValue % CENT_CAP), tid);
         this.dollars += (int) (actualValue / CENT_CAP);
         this.cents += (int) (actualValue % CENT_CAP);

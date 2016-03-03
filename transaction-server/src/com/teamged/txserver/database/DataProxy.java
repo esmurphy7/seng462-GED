@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by DanielF on 2016-02-02.
  */
 public class DataProxy {
-    private static final Object lock = new Object();
     private static final ConcurrentHashMap<String, UserDatabaseObject> dbInterfaces = new ConcurrentHashMap<>();
 
     public static String dbOperation(TransactionObject tx) {

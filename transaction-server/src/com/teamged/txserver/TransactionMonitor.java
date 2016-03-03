@@ -43,7 +43,7 @@ public class TransactionMonitor {
             int portNum = ServerConstants.TX_PORT_RANGE[i];
             TransactionServerThread rpThread;
             try {
-                rpThread = new RequestProcessingThread(portNum, ServerConstants.THREAD_POOL_SIZE, syncObject);
+                rpThread = new RequestProcessingThread(portNum, ServerConstants.COMM_THREAD_COUNT, syncObject);
                 reqProcThreads.add(rpThread);
                 new Thread(rpThread).start();
             } catch (IOException e) {

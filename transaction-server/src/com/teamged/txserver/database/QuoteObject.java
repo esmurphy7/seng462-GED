@@ -3,12 +3,19 @@ package com.teamged.txserver.database;
 import com.teamged.txserver.InternalLog;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 
 /**
  * Created by DanielF on 2016-02-16.
  */
 public class QuoteObject {
+    // If a user just wants a regular quote, then we just want it to be valid when sent back
     private static final long QUOTE_LIFE_MILLIS = 59500;
+
+    // If a user wants to make a buy or sell, we want the system to have time to realize an update needs to be sent soon
+    private static final long QUOTE_SHORT_LIFE_MILLIS = 55000;
+
+    // Number of arguments the quote server should return
     private static final int QUOTE_STATEMENT_ARGS = 5;
 
     private int dollars;
@@ -17,6 +24,8 @@ public class QuoteObject {
     private String stockSymbol;
     private String userName;
     private long quoteTime;
+    private long quoteInternalTime;
+    private long quoteShortTimeout;
     private long quoteTimeout;
     private String cryptoKey;
     private String errorString;
@@ -29,6 +38,7 @@ public class QuoteObject {
         stockSymbol = "";
         userName = "";
         quoteTime = 0;
+        quoteShortTimeout = 0;
         quoteTimeout = 0;
         cryptoKey = "";
         errorString = "";
@@ -63,6 +73,10 @@ public class QuoteObject {
 
     public long getQuoteTime() {
         return quoteTime;
+    }
+
+    public long getQuoteShortTimeout() {
+        return quoteShortTimeout;
     }
 
     public long getQuoteTimeout() {
@@ -111,8 +125,10 @@ public class QuoteObject {
 
             if (parsed) {
                 try {
-                    quoteTime = Long.parseLong(argsArray[3]);
+                    quoteInternalTime = Long.parseLong(argsArray[3]);
+                    quoteTime = Calendar.getInstance().getTimeInMillis();
                     quoteTimeout = quoteTime + QUOTE_LIFE_MILLIS;
+                    quoteShortTimeout = quoteTime + QUOTE_SHORT_LIFE_MILLIS;
                 } catch (NumberFormatException e) {
                     errorString = "Unable to parse server time: " + argsArray[3];
                     parsed = false;
