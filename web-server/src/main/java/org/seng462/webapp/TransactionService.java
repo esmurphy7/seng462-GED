@@ -20,11 +20,6 @@ import java.util.Map;
  */
 public class TransactionService
 {
-    private static final String DEBUG_TX_SERVER_HOST = "localhost";
-    private static final String TX_SERVER_HOST = "b136.seng.uvic.ca";
-    private static final int DEBUG_TX_SERVER_PORT = 44440;
-    private static final int TX_SERVER_PORT = 44440;
-
     // format the message to send to the transaction server
     // Format: [workload seq. no], [user seq. no], cmdCode, commandArgs, web server address, web server port
     private static String formatMessage(UserCommand userCommand) throws UnknownHostException {
@@ -76,13 +71,70 @@ public class TransactionService
     public static Response sendCommand(UserCommand userCommand)
     {
         // log a user command to the audit server
+        CommandType commandType = null;
+        switch (userCommand.getCmdCode()) {
+            case ADD:
+                commandType = CommandType.ADD;
+                break;
+            case QUOTE:
+                commandType = CommandType.QUOTE;
+                break;
+            case BUY:
+                commandType = CommandType.BUY;
+                break;
+            case COMMIT_BUY:
+                commandType = CommandType.COMMIT_BUY;
+                break;
+            case CANCEL_BUY:
+                commandType = CommandType.CANCEL_BUY;
+                break;
+            case SELL:
+                commandType = CommandType.SELL;
+                break;
+            case COMMIT_SELL:
+                commandType = CommandType.COMMIT_SELL;
+                break;
+            case CANCEL_SELL:
+                commandType = CommandType.CANCEL_SELL;
+                break;
+            case SET_BUY_AMOUNT:
+                commandType = CommandType.SET_BUY_AMOUNT;
+                break;
+            case CANCEL_SET_BUY:
+                commandType = CommandType.CANCEL_SET_BUY;
+                break;
+            case SET_BUY_TRIGGER:
+                commandType = CommandType.SET_BUY_TRIGGER;
+                break;
+            case SET_SELL_AMOUNT:
+                commandType = CommandType.SET_SELL_AMOUNT;
+                break;
+            case SET_SELL_TRIGGER:
+                commandType = CommandType.SET_SELL_TRIGGER;
+                break;
+            case CANCEL_SET_SELL:
+                commandType = CommandType.CANCEL_SET_SELL;
+                break;
+            case DUMPLOG:
+                commandType = CommandType.DUMPLOG;
+                break;
+            case DUMPLOG_ROOT:
+                commandType = CommandType.DUMPLOG;
+                break;
+            case DISPLAY_SUMMARY:
+                commandType = CommandType.DISPLAY_SUMMARY;
+                break;
+        }
+
         UserCommandType userCommandLog = new UserCommandType();
-        userCommandLog.setCommand(CommandType.values()[userCommand.getCmdCode().ordinal()]);
-        userCommandLog.setUsername(userCommand.getArg("userId"));
-        userCommandLog.setStockSymbol(userCommand.getArg("stockSymbol"));
-        userCommandLog.setFunds(new BigDecimal(userCommand.getArg("amount")));
+        userCommandLog.setCommand(commandType);
+        userCommandLog.setUsername(userCommand.getArgs().get("userId"));
+        userCommandLog.setStockSymbol(userCommand.getArgs().get("stockSymbol"));
+        String amount = userCommand.getArgs().get("amount");
+        BigDecimal amountVal = (amount != null) ? new BigDecimal(amount) : null;
+        userCommandLog.setFunds(amountVal);
         userCommandLog.setTimestamp(System.currentTimeMillis());
-        userCommandLog.setFilename(userCommand.getArg("filename"));
+        userCommandLog.setFilename(userCommand.getArgs().get("filename"));
         userCommandLog.setTransactionNum(new BigInteger(userCommand.getWorkloadSeqNo()));
         //TODO: log currently active web server instead of first index
         userCommandLog.setServer(ServerConstants.WEB_SERVERS[0]);
@@ -103,7 +155,7 @@ public class TransactionService
         try
         {
             // open transaction socket
-            Socket socket = new Socket(DEBUG_TX_SERVER_HOST, DEBUG_TX_SERVER_PORT);
+            Socket socket = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
@@ -115,7 +167,7 @@ public class TransactionService
             return response;
 
         }catch (Exception e) {
-            String errorMsg = "Could not connect to transaction server: "+  TX_SERVER_HOST + ":" + TX_SERVER_PORT + "\n" + e.getMessage();
+            String errorMsg = "Could not connect to transaction server: "+  ServerConstants.TX_SERVERS[0] + ":" + ServerConstants.TX_PORT_RANGE[0] + "\n" + e.getMessage();
             e.printStackTrace();
             Response response = Response.serverError().entity(errorMsg).build();
             return response;
