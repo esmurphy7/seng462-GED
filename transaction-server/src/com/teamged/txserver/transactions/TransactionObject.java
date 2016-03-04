@@ -4,7 +4,6 @@ import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.SystemEventType;
-import com.teamged.logging.xmlelements.generated.UserCommandType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,8 +39,8 @@ public class TransactionObject {
     private String fileName = "";
     private int webServerNameIdx = -1;
     private int webServerPortIdx = -1;
-    private int txIdentifier = -1; // TODO: This needs to come along too!
-    private int sequenceNumber = -1;
+    private int workloadSeqNum = -1;
+    private int userSeqNum = -1;
     private String errorString = ""; // TODO: Use an enum instead?
 
     /**
@@ -115,7 +114,7 @@ public class TransactionObject {
         SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
         systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
-        systemEvent.setTransactionNum(BigInteger.valueOf(txIdentifier));
+        systemEvent.setTransactionNum(BigInteger.valueOf(workloadSeqNum));
         systemEvent.setUsername(userName);
         systemEvent.setCommand(commandType);
         systemEvent.setStockSymbol(stockSymbol);
@@ -154,7 +153,7 @@ public class TransactionObject {
                 if (argsArray[idx].contains("[")) {
                     String sequenceStr = argsArray[idx].substring(1, argsArray[idx].indexOf("]"));
                     try {
-                        txIdentifier = Integer.parseInt(sequenceStr);
+                        workloadSeqNum = Integer.parseInt(sequenceStr);
                     } catch (NumberFormatException e) {
                         errorString = "Could not find the sequence number from " + args;
                         parsed = false;
@@ -167,7 +166,7 @@ public class TransactionObject {
                 if (argsArray[idx].contains("[")) {
                     String sequenceStr = argsArray[idx].substring(1, argsArray[idx].indexOf("]"));
                     try {
-                        sequenceNumber = Integer.parseInt(sequenceStr);
+                        userSeqNum = Integer.parseInt(sequenceStr);
 
                         // If one of the parameters was a sequence, then there needs to be one more argument at minimum
                         if (argsArrayLen < MinimumArgs + 1) {
@@ -408,18 +407,18 @@ public class TransactionObject {
 
     /**
      *
-     * @return  The transaction identifier number of this request.
+     * @return  The workload sequence identifier number of this request. Primarily for test logging purposes.
      */
-    public int getTxIdentifier() {
-        return txIdentifier;
+    public int getWorkloadSeqNum() {
+        return workloadSeqNum;
     }
 
     /**
      *
-     * @return  The sequence number of this user request.
+     * @return  The sequence number of this user request for transaction processing ordering.
      */
-    public int getSequenceNumber() {
-        return sequenceNumber;
+    public int getUserSeqNum() {
+        return userSeqNum;
     }
 
     /**

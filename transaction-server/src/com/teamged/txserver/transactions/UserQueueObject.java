@@ -24,8 +24,8 @@ public class UserQueueObject {
     }
 
     public void addTransactionObject(TransactionObject txObject) {
-        InternalLog.Log("Adding txObject " + txObject.getSequenceNumber() + ", " + txObject.toString());
-        requestSequence.put(txObject.getSequenceNumber(), txObject);
+        InternalLog.Log("Adding txObject " + txObject.getUserSeqNum() + ", " + txObject.toString());
+        requestSequence.put(txObject.getUserSeqNum(), txObject);
     }
 
     /**
