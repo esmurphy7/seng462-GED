@@ -51,7 +51,7 @@ public class ServerConstants {
             ,44449
              */
     };
-    public static final int AUDIT_DUMP_PORT = 44441;
+    public static final int AUDIT_DUMP_PORT = 44440;
 
     public static final int PROCESSING_THREAD_COUNT = 4;
     public static final int THREAD_POOL_SIZE = 8;
