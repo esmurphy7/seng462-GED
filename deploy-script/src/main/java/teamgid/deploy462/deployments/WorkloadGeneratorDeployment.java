@@ -16,21 +16,11 @@ public class WorkloadGeneratorDeployment extends SingleDeployment {
 
         try {
 
-            System.out.println("Cleaning old files...");
-
             // Remove workload generator jar
-            Session rm_session = client.startSession();
-            Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/WorkloadGeneratorDeploy/");
-            rm_cmd.join(10, TimeUnit.SECONDS);
-            rm_session.close();
+            this.removeFile(client, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "WorkloadGeneratorDeploy"));
 
             // Remove workload files
-            Session rm_workload_files_session = client.startSession();
-            Session.Command rm_workload_files_cmd = rm_workload_files_session.exec("rm -r /seng/scratch/group4/workload-files/");
-            rm_workload_files_cmd.join(10, TimeUnit.SECONDS);
-            rm_workload_files_session.close();
-
-            System.out.println("Finished cleaning old files");
+            this.removeFile(client, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "workload-files"));
 
             System.out.println("Transferring files...");
 
@@ -44,12 +34,9 @@ public class WorkloadGeneratorDeployment extends SingleDeployment {
 
             System.out.println("Finished transferring");
 
-            System.out.println("Setting file and directory permissions...");
-
+            // Set permissions
             this.setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "WorkloadGeneratorDeploy"));
             this.setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "workload-files"));
-
-            System.out.println("File and directory permissions applied");
 
         } catch (Exception e) {
 

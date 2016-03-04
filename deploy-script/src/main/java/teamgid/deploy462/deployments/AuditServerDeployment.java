@@ -18,14 +18,7 @@ public class AuditServerDeployment extends SingleDeployment {
 
         try {
 
-            System.out.println("Cleaning old files...");
-
-            final Session rm_session = client.startSession();
-            final Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/AuditDeploy/");
-            rm_cmd.join(10, TimeUnit.SECONDS);
-            rm_session.close();
-
-            System.out.println("Finished cleaning old files");
+            this.removeFile(client, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "AuditDeploy"));
 
             System.out.println("Transferring files...");
 
@@ -56,16 +49,7 @@ public class AuditServerDeployment extends SingleDeployment {
 
             System.out.println("Finished compiling");
 
-            System.out.println("Setting file and directory permissions...");
-
-            final Session chmod_session = client.startSession();
-
-            final Session.Command chmod_cmd = chmod_session.exec("chmod -R 770 /seng/scratch/group4/AuditDeploy");
-
-            chmod_cmd.join(5, TimeUnit.SECONDS);
-            chmod_session.close();
-
-            System.out.println("File and directory permissions applied");
+            this.setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "AuditDeploy"));
 
         } catch (Exception e) {
 
