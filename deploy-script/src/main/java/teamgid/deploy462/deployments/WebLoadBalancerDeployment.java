@@ -42,6 +42,7 @@ public class WebLoadBalancerDeployment extends SingleDeployment {
             mustache.execute(new FileWriter(tempFile), scopes).flush();
 
             String remoteDirectory = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), file);
+            this.removeFile(client, remoteDirectory);
             client.newSCPFileTransfer().upload(tempFile.getAbsolutePath(), remoteDirectory);
             this.setPermissions(client, 660, remoteDirectory);
 
