@@ -27,6 +27,7 @@ public class RequestProcessingHandler implements Runnable {
         if (!to.getErrorString().isEmpty()) {
             InternalLog.Log("Error processing request: " + to.toString() + "; Error msg: " + to.getErrorString());
         } else {
+            InternalLog.Log("[REQUEST] " + request);
             // This has the potential to block for a while (if the request queue is full)
             // TODO: This does not properly deal with transactions that have no user name (DUMPLOG_ROOT)
             TransactionMonitor.AddTransactionObject(to);

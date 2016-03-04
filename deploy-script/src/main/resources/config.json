@@ -31,7 +31,7 @@
         },
         "auditServer": {
             "runScript": "run-audit-server.sh",
-            "server": "b140.seng.uvic.ca"
+            "server": "b141.seng.uvic.ca"
         },
         "cacheServer": {
             "resources": [

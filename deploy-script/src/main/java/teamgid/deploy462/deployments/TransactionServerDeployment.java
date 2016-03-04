@@ -34,7 +34,7 @@ public class TransactionServerDeployment extends MultipleDeployment {
             final Session javac_session = client.startSession();
             final Session.Command javac_cmd = javac_session.exec("javac " +
                     "/seng/scratch/group4/TransactionDeploy/com/teamged/txserver/*.java " +
-                    "/seng/scratch/group4/TransactionDeploy/com/teamged/*.java " + "" +
+                    "/seng/scratch/group4/TransactionDeploy/com/teamged/*.java " +
                     "/seng/scratch/group4/TransactionDeploy/com/teamged/txserver/transactions/*.java " +
                     "/seng/scratch/group4/TransactionDeploy/com/teamged/txserver/database/*.java " +
                     "/seng/scratch/group4/TransactionDeploy/com/teamged/logging/*.java " +

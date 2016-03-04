@@ -29,11 +29,7 @@ public class DataProxy {
         String opResult;
         if (tx.getUserCommand().equals(UserCommand.DUMPLOG_ROOT)) {
             opResult = "DUMPLOG_ROOT";
-            try {
-                Logger.getInstance().SaveLog();
-            } catch (JAXBException e) {
-                e.printStackTrace();
-            }
+            System.out.println("RECEIVED DUMPLOG_ROOT COMMAND!");
         } else {
 
             UserDatabaseObject dbProxy = getDBProxy(tx.getUserName());

@@ -4,6 +4,7 @@ import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.SystemEventType;
+import com.teamged.txserver.InternalLog;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -321,6 +322,10 @@ public class TransactionObject {
             // avoid hard-to-find errors
             if (errorString.isEmpty() && !parsed) {
                 errorString = "Unknown parsing error";
+            }
+
+            if (!parsed) {
+                InternalLog.Log("[TX OBJECT ERROR] " + errorString);
             }
         }
     }

@@ -2,11 +2,9 @@ package com.teamged.auditserver;
 
 import com.teamged.ServerConstants;
 import com.teamged.auditserver.threads.AuditDumpThread;
-import com.teamged.auditserver.threads.AuditProcessingHandler;
 import com.teamged.auditserver.threads.AuditProcessingThread;
 import com.teamged.auditserver.threads.AuditServerThread;
 
-import java.io.IOError;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -16,7 +14,8 @@ import java.util.ArrayList;
 public class AuditMain {
 
     private static final int DUMP_TOKEN = 0xF4F3F2F1;
-
+    private static int highestSeqNum = 0;
+    private static Object dumpLockObject = new Object();
     private static Object syncObject = new Object();
     private static final ArrayList<AuditServerThread> auditProcThreads = new ArrayList<>();
     private static final ArrayList<AuditServerThread> auditDumpThreads = new ArrayList<>();
@@ -25,6 +24,10 @@ public class AuditMain {
         defineServerTopology(args);
         runServer();
         InternalLog.Log("Exiting audit server");
+    }
+
+    public static void updateHighestSequenceNumber(int number) {
+
     }
 
     private static void defineServerTopology(String[] args) {

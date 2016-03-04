@@ -28,6 +28,7 @@ public class AuditDumpHandler implements Runnable
             String message = in.readLine();
             if( message != null && message.equals("DUMPLOG"))
             {
+                InternalLog.Log("Dumping log");
                 Logger.getInstance().SaveLog();
                 Logger.getInstance().ClearLogs();
             }

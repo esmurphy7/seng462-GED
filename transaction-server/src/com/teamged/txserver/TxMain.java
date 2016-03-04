@@ -3,6 +3,7 @@ package com.teamged.txserver;
 public class TxMain {
 
     private static boolean cache_debug = false;
+    private static boolean verbose = false;
     private static boolean l2 = true;
     private static boolean rt = true;
 
@@ -23,6 +24,9 @@ public class TxMain {
                 } else if (arg.equals("-LL")) {
                     cache_debug = true;
                     InternalLog.CacheDebug("Cache debug enabled");
+                } else if (arg.equals("-V")) {
+                    verbose = true;
+                    InternalLog.Log("Verbose mode");
                 }
             }
         }
@@ -33,6 +37,10 @@ public class TxMain {
 
         TransactionMonitor.runServer();
         System.out.println("Exiting server");
+    }
+
+    public static boolean isVerbose() {
+        return verbose;
     }
 
     public static boolean cacheDebugMode() {
