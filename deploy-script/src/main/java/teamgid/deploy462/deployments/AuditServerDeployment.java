@@ -34,8 +34,7 @@ public class AuditServerDeployment extends SingleDeployment {
                     "/seng/scratch/group4/AuditDeploy/com/teamged/auditserver/*.java " +
                     "/seng/scratch/group4/AuditDeploy/com/teamged/*.java " + "" +
                     "/seng/scratch/group4/AuditDeploy/com/teamged/auditserver/threads/*.java " +
-                    "/seng/scratch/group4/AuditDeploy/com/teamged/logging/*.java " +
-                    "/seng/scratch/group4/AuditDeploy/com/teamged/logging/xmlelements/generated/*.java"
+                    "/seng/scratch/group4/AuditDeploy/com/teamged/logging/*.java "
             );
 
             String result = IOUtils.readFully(javac_cmd.getInputStream()).toString();
