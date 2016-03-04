@@ -2,11 +2,9 @@ package com.teamged.logging;
 
 import com.teamged.ServerConstants;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -18,8 +16,6 @@ public class Logger
 {
     private static Logger instance = null;
     private final BlockingQueue<Object> logs;
-
-    private static final String OUTPUT_LOGFILE = "outputLog.xml";
 
     private Logger() {
         logs = new LinkedBlockingQueue<>();
@@ -44,13 +40,11 @@ public class Logger
         }
     }
 
-    public void SaveLog() throws JAXBException {
+    public void SaveLog(int tid) {
         System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
         try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_DUMP_PORT)) {
             PrintWriter out = new PrintWriter(s.getOutputStream(), true);
-            out.println("DUMPLOG");
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+            out.println("DUMPLOG," + tid);
         } catch (IOException e) {
             e.printStackTrace();
         }

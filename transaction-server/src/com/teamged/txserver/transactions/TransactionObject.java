@@ -112,6 +112,7 @@ public class TransactionObject {
                 break;
         }
 
+        //UserCommandType systemEvent = new UserCommandType(); // For testing an isolated tx server with audit log
         SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
         systemEvent.setServer(ServerConstants.TX_SERVERS[0]);

@@ -8,7 +8,6 @@ import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.transactions.TransactionObject;
 import com.teamged.txserver.transactions.UserCommand;
 
-import javax.xml.bind.JAXBException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,11 +28,7 @@ public class DataProxy {
         String opResult;
         if (tx.getUserCommand().equals(UserCommand.DUMPLOG_ROOT)) {
             opResult = "DUMPLOG_ROOT";
-            try {
-                Logger.getInstance().SaveLog();
-            } catch (JAXBException e) {
-                e.printStackTrace();
-            }
+            Logger.getInstance().SaveLog(tx.getWorkloadSeqNum());
             System.out.println("RECEIVED DUMPLOG_ROOT COMMAND!");
         } else {
 
