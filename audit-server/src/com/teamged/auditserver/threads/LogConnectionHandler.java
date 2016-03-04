@@ -1,35 +1,30 @@
 package com.teamged.auditserver.threads;
 
 import com.teamged.auditserver.AuditMain;
-import com.teamged.auditserver.InternalLog;
-import com.teamged.logging.DebugValidationEventHandler;
-import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.LogType;
-import com.teamged.logging.xmlelements.generated.QuoteServerType;
-import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.bind.*;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by DanielF on 2016-02-23.
  */
 public class LogConnectionHandler implements Runnable {
+    private static Pattern userCommandTidPattern = Pattern.compile(".*<userCommand>.*<transactionNum>(\\d+)<.*", Pattern.DOTALL);
     private final Socket socket;
 
     public LogConnectionHandler(Socket socket) {
         this.socket = socket;
     }
 
+    /**
+     * Reads all the text available from the client socket and adds it to the log queue. If the log is a
+     * user command, the transaction number is stored in preparation for performing a log dump. If a log
+     * dump has been requested and the necessary logs are present, then one will be performed.
+     */
     @Override
     public void run() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())))
@@ -40,7 +35,19 @@ public class LogConnectionHandler implements Runnable {
                 s.append(message);
             }
 
-            AuditMain.PutLogQueue(s.toString());
+            message = s.toString();
+            AuditMain.putLogQueue(message);
+
+            Matcher m = userCommandTidPattern.matcher(message);
+            if (m.matches()) {
+                AuditMain.updateSequenceId(Integer.parseInt(m.group(1)));
+            }
+
+            // This is the sequence with the least lock contention - dumpIsQueued is a simple boolean
+            // read; dumpIfReady calls dumpIsReady internally, and both are potentially blocking calls
+            if (AuditMain.dumpIsQueued()) {
+                AuditMain.dumpIfReady();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

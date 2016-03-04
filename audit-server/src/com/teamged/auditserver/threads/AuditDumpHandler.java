@@ -1,10 +1,10 @@
 package com.teamged.auditserver.threads;
 
-import com.teamged.auditserver.InternalLog;
-import com.teamged.logging.Logger;
+import com.teamged.auditserver.AuditMain;
 
-import javax.xml.bind.JAXBException;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
 /**
@@ -22,18 +22,21 @@ public class AuditDumpHandler implements Runnable
     @Override
     public void run()
     {
-        // when a dumplog is signalled, save the logs to a file and clear the list
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())))
         {
             String message = in.readLine();
-            if( message != null && message.equals("DUMPLOG"))
+            if( message != null && message.contains("DUMPLOG,"))
             {
-                Logger.getInstance().SaveLog();
-                Logger.getInstance().ClearLogs();
+                try {
+                    int tid = Integer.parseInt(message.split(",")[1]);
+                    AuditMain.enableLogDumpRequest(tid);
+                    AuditMain.dumpIfReady();
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (IOException | JAXBException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
     }
 }

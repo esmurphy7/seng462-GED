@@ -26,7 +26,7 @@ public class LogConnectionThread extends AuditServerThread {
 
     @Override
     public boolean isRunning() {
-        return false;
+        return running;
     }
 
     @Override
