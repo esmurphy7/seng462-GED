@@ -168,7 +168,7 @@ public class QuoteCache {
                     InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
                     QuoteServerType qst = new QuoteServerType();
                     qst.setTimestamp(nowMillis);
-                    qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteTime()));
+                    qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteInternalTime()));
                     qst.setServer(ServerConstants.TX_SERVERS[0]);
                     qst.setTransactionNum(BigInteger.valueOf(tid));
                     qst.setPrice(quote.getPrice());

@@ -111,15 +111,7 @@ public class DataProxy {
             }
         }
 
-        // TODO: This is a hideous HACK!!
-        /*if (tx.getWorkloadSeqNum() == 99) {
-            System.out.println("[SYS DUMP] DUMPING!");
-            try {
-                Logger.getInstance().SaveLog();
-            } catch (JAXBException e) {
-                e.printStackTrace();
-            }
-        }*/
+        Logger.getInstance().Log("IDX," + tx.getWorkloadSeqNum());
 
         // TODO: Some additional processing and parsing of the result will be needed.
         return "[DATA PROXY RESULT]" + opResult;
