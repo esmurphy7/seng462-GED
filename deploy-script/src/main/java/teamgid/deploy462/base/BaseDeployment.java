@@ -160,7 +160,7 @@ public abstract class BaseDeployment {
 
         Session chmod_session = client.startSession();
 
-        Session.Command chmod_cmd = chmod_session.exec(String.format("rm %s -r", destinationPath));
+        Session.Command chmod_cmd = chmod_session.exec(String.format("rm -r %s", destinationPath));
 
         chmod_cmd.join(5, TimeUnit.SECONDS);
         chmod_session.close();

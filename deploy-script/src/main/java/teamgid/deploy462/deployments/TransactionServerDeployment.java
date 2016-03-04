@@ -18,12 +18,7 @@ public class TransactionServerDeployment extends MultipleDeployment {
 
         try {
 
-            System.out.println("Cleaning old files...");
-            final Session rm_session = client.startSession();
-            final Session.Command rm_cmd = rm_session.exec("rm -r /seng/scratch/group4/TransactionDeploy/");
-            rm_cmd.join(10, TimeUnit.SECONDS);
-            rm_session.close();
-            System.out.println("Finished cleaning old files");
+            this.removeFile(client, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "TransactionDeploy"));
 
             System.out.println("Transferring files...");
             Path txPath = Paths.get(System.getProperty("user.dir")).getParent().resolve("transaction-server").resolve("src");
@@ -48,12 +43,7 @@ public class TransactionServerDeployment extends MultipleDeployment {
             javac_session.close();
             System.out.println("Finished compiling");
 
-            System.out.println("Setting file and directory permissions...");
-            Session chmod_session = client.startSession();
-            Session.Command chmod_cmd = chmod_session.exec("chmod -R 770 /seng/scratch/group4/TransactionDeploy");
-            chmod_cmd.join(5, TimeUnit.SECONDS);
-            chmod_session.close();
-            System.out.println("File and directory permissions applied");
+            this.setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "TransactionDeploy"));
 
         } catch (Exception e) {
             e.printStackTrace();
