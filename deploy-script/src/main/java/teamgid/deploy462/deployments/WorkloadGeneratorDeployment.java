@@ -46,19 +46,8 @@ public class WorkloadGeneratorDeployment extends SingleDeployment {
 
             System.out.println("Setting file and directory permissions...");
 
-            Session chmod_session = client.startSession();
-
-            Session.Command chmod_cmd = chmod_session.exec("chmod -R 770 /seng/scratch/group4/WorkloadGeneratorDeploy");
-
-            chmod_cmd.join(5, TimeUnit.SECONDS);
-            chmod_session.close();
-
-            chmod_session = client.startSession();
-
-            chmod_cmd = chmod_session.exec("chmod -R 770 /seng/scratch/group4/workload-files");
-
-            chmod_cmd.join(5, TimeUnit.SECONDS);
-            chmod_session.close();
+            this.setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "WorkloadGeneratorDeploy"));
+            this.setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "workload-files"));
 
             System.out.println("File and directory permissions applied");
 

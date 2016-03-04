@@ -60,6 +60,7 @@ public abstract class BaseDeployment {
             for (String resource : resources) {
 
                 String remotePath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), resource);
+                this.removeFile(client, remotePath);
                 this.copyResource(client, resource, remotePath);
                 this.setPermissions(client, 660, remotePath);
             }
@@ -75,7 +76,7 @@ public abstract class BaseDeployment {
                 String remoteScriptPath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), deployScript);
                 this.copyScript(client, deployScript, remoteScriptPath);
                 this.runScript(client, remoteScriptPath);
-                this.removeScript(client, remoteScriptPath);
+                this.removeFile(client, remoteScriptPath);
             }
         }
 
@@ -84,12 +85,14 @@ public abstract class BaseDeployment {
         if (runScript != null) {
 
             String remoteScriptPath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), runScript);
+            this.removeFile(client, remoteScriptPath);
             this.copyScript(client, runScript, remoteScriptPath);
         }
 
         // Copy over config.json
         String configFile = "config.json";
         String remotePath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), configFile);
+        this.removeFile(client, remotePath);
         this.copyResource(client, configFile, remotePath);
         this.setPermissions(client, 660, remotePath);
     }
@@ -151,9 +154,9 @@ public abstract class BaseDeployment {
         stripWindowsLineEndings(client, destinationPath);
     }
 
-    protected static void removeScript(SSHClient client, String destinationPath) throws IOException {
+    protected static void removeFile(SSHClient client, String destinationPath) throws IOException {
 
-        System.out.println(String.format("Removing script %s", destinationPath));
+        System.out.println(String.format("Removing file %s", destinationPath));
 
         Session chmod_session = client.startSession();
 
@@ -162,7 +165,7 @@ public abstract class BaseDeployment {
         chmod_cmd.join(5, TimeUnit.SECONDS);
         chmod_session.close();
 
-        System.out.println("Script removed");
+        System.out.println("File removed");
     }
 
     protected static void stripWindowsLineEndings(SSHClient client, String destinationPath) throws IOException {
@@ -181,11 +184,11 @@ public abstract class BaseDeployment {
 
     protected static void setPermissions(SSHClient client, int permission, String destinationPath) throws IOException {
 
-        System.out.println(String.format("Setting permissions on file %s", destinationPath));
+        System.out.println(String.format("Setting permission %d on %s", permission, destinationPath));
 
         Session session = client.startSession();
 
-        Session.Command command = session.exec(String.format("chmod %d %s; ", permission, destinationPath));
+        Session.Command command = session.exec(String.format("chmod -R %d %s; ", permission, destinationPath));
 
         command.join(5, TimeUnit.SECONDS);
         session.close();
