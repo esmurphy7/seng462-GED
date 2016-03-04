@@ -1,5 +1,6 @@
 package com.teamged.logging;
 
+import com.teamged.auditserver.InternalLog;
 import com.teamged.logging.xmlelements.generated.LogType;
 import com.teamged.logging.xmlelements.generated.ObjectFactory;
 import org.xml.sax.SAXException;
@@ -16,6 +17,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Evan on 2/3/2016.
@@ -25,6 +27,7 @@ public class Logger
 {
     private static Logger instance = null;
 
+    private static AtomicInteger count = new AtomicInteger();
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
     private static final String OUTPUT_LOGFILE = "outputLog.xml";
     private static Queue<Object> Logs = new ConcurrentLinkedQueue<>();
@@ -73,6 +76,7 @@ public class Logger
     // Store the log in a list to save later
     public void Log(Object logType)
     {
+        InternalLog.Log("Processed log " + count.incrementAndGet());
         Logs.add(logType);
     }
 

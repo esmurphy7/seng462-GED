@@ -10,13 +10,13 @@ import java.util.concurrent.Executors;
 /**
  * Created by DanielF on 2016-02-23.
  */
-public class AuditProcessingThread extends AuditServerThread {
+public class LogConnectionThread extends AuditServerThread {
     private final ServerSocket serverSocket;
     private final ExecutorService pool;
     private final Object syncObject;
     private boolean running;
 
-    public AuditProcessingThread(int port, int poolSize, Object syncObject) throws IOException {
+    public LogConnectionThread(int port, int poolSize, Object syncObject) throws IOException {
         this.serverSocket = new ServerSocket(port);
         this.pool = Executors.newFixedThreadPool(poolSize);
         this.syncObject = syncObject;
@@ -34,7 +34,7 @@ public class AuditProcessingThread extends AuditServerThread {
         InternalLog.Log("Audit log listener running on port " + serverSocket.getLocalPort());
         try {
             while (true) {
-                pool.execute(new AuditProcessingHandler(serverSocket.accept()));
+                pool.execute(new LogConnectionHandler(serverSocket.accept()));
             }
         } catch (IOException e) {
             running = false;

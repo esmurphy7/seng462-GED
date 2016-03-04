@@ -1,41 +1,39 @@
 package com.teamged.auditserver.threads;
 
-import com.teamged.auditserver.InternalLog;
 import com.teamged.logging.DebugValidationEventHandler;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.LogType;
-import com.teamged.logging.xmlelements.generated.QuoteServerType;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.*;
-import java.net.Socket;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.net.URL;
 
 /**
- * Created by DanielF on 2016-02-23.
+ * Created by DanielF on 2016-03-03.
  */
-public class AuditProcessingHandler implements Runnable {
+public class AuditQueueHandler implements Runnable {
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
-    private final Socket socket;
+    private final String log;
 
-    public AuditProcessingHandler(Socket socket) {
-        this.socket = socket;
+    public AuditQueueHandler(String log) {
+        this.log = log;
     }
 
     @Override
     public void run() {
-        try
-        {
-            InternalLog.Log("Processing log");
-
+        XMLStreamReader xmlSr = null;
+        try {
             // define schema
             SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             URL url = Logger.class.getResource(LOGFILE_SCHEMA);
@@ -57,8 +55,7 @@ public class AuditProcessingHandler implements Runnable {
             unmarshaller.setEventHandler(new DebugValidationEventHandler());
 
             // read xml from socket
-            InputStream in = socket.getInputStream();
-            XMLStreamReader xmlSr = XMLInputFactory.newInstance().createXMLStreamReader(in);
+            xmlSr = XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(log.getBytes()));
             JAXBElement<LogType> outerLog = unmarshaller.unmarshal(xmlSr, LogType.class);
 
             // since the current logging system wraps each log with the root log, it must be unwrapped
@@ -70,8 +67,18 @@ public class AuditProcessingHandler implements Runnable {
             }
 
             Logger.getInstance().Log(innerValue);
-        } catch (IOException | JAXBException | XMLStreamException e) {
+        } catch (XMLStreamException e) {
             e.printStackTrace();
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        } finally {
+            if (xmlSr != null) {
+                try {
+                    xmlSr.close();
+                } catch (XMLStreamException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
