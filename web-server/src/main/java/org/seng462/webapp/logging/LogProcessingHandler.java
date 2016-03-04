@@ -23,7 +23,18 @@ import java.net.URL;
  */
 public class LogProcessingHandler implements Runnable {
     private static final String LOGFILE_SCHEMA = "/logfile.xsd";
+    private static JAXBContext jc;
     private final Object logObj;
+
+    static
+    {
+        try {
+            jc = JAXBContext.newInstance(LogType.class);
+        } catch (JAXBException e) {
+            jc = null;
+            e.printStackTrace();
+        }
+    }
 
     public LogProcessingHandler(Object log) {
         logObj = log;
@@ -63,7 +74,7 @@ public class LogProcessingHandler implements Runnable {
             Schema schema = sf.newSchema(schemaFile);
 
             // build jaxb context
-            JAXBContext jc = JAXBContext.newInstance(LogType.class);
+
 
             // build marshaller
             marshaller = jc.createMarshaller();

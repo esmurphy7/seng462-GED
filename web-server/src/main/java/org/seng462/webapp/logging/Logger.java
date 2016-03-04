@@ -10,11 +10,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Logger
 {
     private static Logger instance = null;
-    private final BlockingQueue<Object> logs;
+    //private final BlockingQueue<Object> logs;
 
     private Logger() {
-        logs = new LinkedBlockingQueue<>();
-        new Thread(new LogProcessingThread(logs)).start();
+        //logs = new LinkedBlockingQueue<>();
+        //new Thread(new LogProcessingThread(logs)).start();
     }
 
     public static synchronized Logger getInstance()
@@ -29,7 +29,8 @@ public class Logger
     // Store a log in a list
     public void Log(Object logInstance) {
         try {
-            logs.add(logInstance);
+            //logs.add(logInstance);
+            new Thread(new LogProcessingHandler(logInstance)).start();
         } catch (Exception e) {
             e.printStackTrace();
         }

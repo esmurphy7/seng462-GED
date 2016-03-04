@@ -55,7 +55,7 @@ public class TransactionService
         message.add(Long.toString(System.currentTimeMillis()));
 
         //TODO: send currently active web server host index and port index in the message
-        InetAddress ip = InetAddress.getLocalHost();
+        //InetAddress ip = InetAddress.getLocalHost();
         String hostname = "0";
         //String hostname = ip.getHostName();
         message.add(hostname);
