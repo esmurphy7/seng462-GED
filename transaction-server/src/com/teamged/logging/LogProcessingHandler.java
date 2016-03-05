@@ -16,6 +16,7 @@ import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -56,20 +57,29 @@ public class LogProcessingHandler implements Runnable {
         } else {
 
             //System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
-            try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT)) {
-                // create a logtype to marshall
-                LogType logType = new LogType();
-                logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logObj);
+            // create a logtype to marshall
+            LogType logType = new LogType();
+            logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logObj);
 
-                // get the marshaller
-                Marshaller marshaller = BuildMarshaller();
+            // get the marshaller
+            Marshaller marshaller = BuildMarshaller();
 
-                // create jaxb element from xml element name, class, and instance
-                JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
+            // create jaxb element from xml element name, class, and instance
+            JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
 
-                // marshall the element over the socket
-                marshaller.marshal(jaxbElement, s.getOutputStream());
-            } catch (IOException | JAXBException e) {
+            String ser;
+            // marshall the element over the socket
+            StringWriter sw = new StringWriter();
+            try {
+                marshaller.marshal(jaxbElement, sw);
+                ser = sw.toString();
+                try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT);
+                     PrintWriter pw = new PrintWriter(s.getOutputStream(), true)) {
+                    pw.println(ser);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (JAXBException e) {
                 e.printStackTrace();
             }
         }

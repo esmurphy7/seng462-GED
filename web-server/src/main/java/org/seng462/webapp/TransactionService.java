@@ -88,7 +88,10 @@ public class TransactionService
         try
         {
             // open transaction socket
-            Socket socket = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
+            int userNameSort = userCommand.getArgs().get("userId").charAt(0);
+            int serverNum = userNameSort % 3;
+
+            Socket socket = new Socket(ServerConstants.TX_SERVERS[serverNum], ServerConstants.TX_PORT_RANGE[0]);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 

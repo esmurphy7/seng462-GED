@@ -36,7 +36,7 @@ public class DataProxy {
             if (dbProxy != null) {
 
                 // Log the database connection as a system event
-                SystemEventType systemEvent = new SystemEventType();
+                /*SystemEventType systemEvent = new SystemEventType();
 
                 systemEvent.setTimestamp(System.currentTimeMillis());
                 systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
@@ -46,7 +46,7 @@ public class DataProxy {
                 systemEvent.setStockSymbol(tx.getStockSymbol());
                 systemEvent.setFilename(tx.getFileName());
 
-                Logger.getInstance().Log(systemEvent);
+                Logger.getInstance().Log(systemEvent);*/
 
                 switch (tx.getUserCommand()) {
                     case NO_COMMAND:
