@@ -58,9 +58,9 @@ public class LogProcessingHandler implements Runnable {
         try {
             marshaller.marshal(jaxbElement, sw);
             String xmlStr = sw.toString();
-            try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT))
+            try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT);
+                 PrintWriter pw = new PrintWriter(s.getOutputStream(), true))
             {
-                PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
                 pw.println(xmlStr);
             } catch (UnknownHostException e) {
                 e.printStackTrace();

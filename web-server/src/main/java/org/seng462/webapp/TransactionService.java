@@ -90,14 +90,11 @@ public class TransactionService
         int serverIndex = userNameSort % 3;
         String targetServer = ServerConstants.TX_SERVERS[serverIndex];
         int targetPort = ServerConstants.TX_PORT_RANGE[0];
-        try
-        {
-            // open transaction socket
-            //System.out.println("Connecting to "+targetServer+":"+targetPort);
-            Socket socket = new Socket(targetServer, targetPort);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+        // open transaction socket
+        try (Socket socket = new Socket(targetServer, targetPort);
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true))
+        {
             // send packet over socket
             out.println(message);
 
