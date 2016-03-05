@@ -13,10 +13,10 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.helpers.DefaultValidationEventHandler;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 /**
  * Created by DanielF on 2016-03-03.
@@ -42,21 +42,32 @@ public class LogProcessingHandler implements Runnable {
 
     @Override
     public void run() {
-        //System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
-        try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT)) {
-            // create a logtype to marshall
-            LogType logType = new LogType();
-            logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logObj);
 
-            // get the marshaller
-            Marshaller marshaller = BuildMarshaller();
+        // create a logtype to marshall
+        LogType logType = new LogType();
+        logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logObj);
 
-            // create jaxb element from xml element name, class, and instance
-            JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
+        // get the marshaller
+        Marshaller marshaller = BuildMarshaller();
 
-            // marshall the element over the socket
-            marshaller.marshal(jaxbElement, s.getOutputStream());
-        } catch (IOException | JAXBException e) {
+        // create jaxb element from xml element name, class, and instance
+        JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
+
+        // marshall the element over the socket
+        StringWriter sw = new StringWriter();
+        try {
+            marshaller.marshal(jaxbElement, sw);
+            String xmlStr = sw.toString();
+            try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT);
+                 PrintWriter pw = new PrintWriter(s.getOutputStream(), true))
+            {
+                pw.println(xmlStr);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (JAXBException e) {
             e.printStackTrace();
         }
     }
