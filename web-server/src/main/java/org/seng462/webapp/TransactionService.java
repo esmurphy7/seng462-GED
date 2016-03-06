@@ -85,6 +85,12 @@ public class TransactionService
             return response;
         }
 
+        // determine the target transaction server
+        int userNameSort = (userCommand.getArgs().get("userId") != null) ? userCommand.getArgs().get("userId").charAt(0) : 1;
+        int serverIndex = userNameSort % 3;
+        String targetServer = ServerConstants.TX_SERVERS[serverIndex];
+        int targetPort = ServerConstants.TX_PORT_RANGE[0];
+
         // open transaction socket
         try (Socket socket = new Socket(targetServer, targetPort);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true))
