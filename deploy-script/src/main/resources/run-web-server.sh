@@ -1,3 +1,6 @@
 #!/bin/bash
-cd ../../seng462/group4/local
-./apache-tomcat-9.0.0.M3/bin/startup.sh
+
+installDirectory=/seng/scratch/group4
+programName=tomcat
+
+$installDirectory/$programName/bin/startup.sh
