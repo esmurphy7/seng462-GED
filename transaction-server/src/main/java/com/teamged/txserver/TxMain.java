@@ -10,7 +10,7 @@ public class TxMain {
     private static boolean verbose = false;
     private static boolean l2 = true;
     private static boolean rt = true;
-    private static int sidx = 0;
+    private static String hostname;
 
     public static void main(String... args) {
         parseArgs(args);
@@ -34,7 +34,7 @@ public class TxMain {
             System.out.println(Deployment.getTransactionServers().getInternals().getProcedureThreads());
             System.out.println(Deployment.getTransactionServers().getInternals().getCommunicationThreads());
             System.out.println(Deployment.getTransactionServers().getInternals().getQueueSize());
-            System.out.println("\nServer says: 'I am " + Deployment.getTransactionServers().getServers().get(sidx) + "'");
+            System.out.println("\nServer says: 'I am " + getServerName() + "'");
             TransactionMonitor.runServer();
         }
         System.out.println("Exiting server");
@@ -57,13 +57,13 @@ public class TxMain {
     }
 
     public static String getServerName() {
-        return Deployment.getTransactionServers().getServers().get(sidx);
+        return hostname;
     }
 
     private static void parseArgs(String... args) {
         if (args != null && args.length != 0) {
             try {
-                sidx = Integer.parseInt(args[0]);
+                hostname = args[0];
             } catch (NumberFormatException e) {
                 System.out.println("Could not determine server index number. Defaulting to 0");
             }
