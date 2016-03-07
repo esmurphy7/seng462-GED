@@ -15,7 +15,9 @@ public class ServerConstants {
     };
 
     public static final String[] TX_SERVERS = new String[] {
-            "b135.seng.uvic.ca"
+            "b135.seng.uvic.ca",
+            "b136.seng.uvic.ca",
+            "b137.seng.uvic.ca"
     };
 
     public static final String[] AUDIT_SERVERS = new String[] {

@@ -55,7 +55,7 @@ public class TransactionService
         message.add(Long.toString(System.currentTimeMillis()));
 
         //TODO: send currently active web server host index and port index in the message
-        InetAddress ip = InetAddress.getLocalHost();
+        //InetAddress ip = InetAddress.getLocalHost();
         String hostname = "0";
         //String hostname = ip.getHostName();
         message.add(hostname);
@@ -71,6 +71,7 @@ public class TransactionService
     public static Response sendCommand(UserCommand userCommand)
     {
         // log a user command to the audit server
+        System.out.println("Logging transaction "+userCommand.getWorkloadSeqNo()+": "+userCommand.getCmdCode());
         TransactionService.LogUserCommand(userCommand);
 
         // format the message
@@ -84,14 +85,16 @@ public class TransactionService
             return response;
         }
 
-        // send the message as a packet to the transaction server
-        try
-        {
-            // open transaction socket
-            Socket socket = new Socket(ServerConstants.TX_SERVERS[0], ServerConstants.TX_PORT_RANGE[0]);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        // determine the target transaction server
+        int userNameSort = (userCommand.getArgs().get("userId") != null) ? userCommand.getArgs().get("userId").charAt(0) : 1;
+        int serverIndex = userNameSort % 3;
+        String targetServer = ServerConstants.TX_SERVERS[serverIndex];
+        int targetPort = ServerConstants.TX_PORT_RANGE[0];
 
+        // open transaction socket
+        try (Socket socket = new Socket(targetServer, targetPort);
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true))
+        {
             // send packet over socket
             out.println(message);
 
@@ -100,7 +103,7 @@ public class TransactionService
             return response;
 
         }catch (Exception e) {
-            String errorMsg = "Could not connect to transaction server: "+  ServerConstants.TX_SERVERS[0] + ":" + ServerConstants.TX_PORT_RANGE[0] + "\n" + e.getMessage();
+            String errorMsg = "Could not connect to transaction server: "+  targetServer + ":" + targetPort + "\n" + e.getMessage();
             e.printStackTrace();
             Response response = Response.serverError().entity(errorMsg).build();
             return response;

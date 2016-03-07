@@ -79,6 +79,10 @@ public class QuoteObject {
         return quoteShortTimeout;
     }
 
+    public long getQuoteInternalTime() {
+        return quoteInternalTime;
+    }
+
     public long getQuoteTimeout() {
         return quoteTimeout;
     }

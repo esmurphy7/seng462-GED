@@ -14,15 +14,28 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 /**
  * Created by DanielF on 2016-03-03.
  */
 public class LogProcessingHandler implements Runnable {
+    private static JAXBContext jc;
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
     private final Object logObj;
+
+    static {
+        try {
+            jc = JAXBContext.newInstance(LogType.class);
+        } catch (JAXBException e) {
+            jc = null;
+            e.printStackTrace();
+        }
+    }
 
     public LogProcessingHandler(Object log) {
         logObj = log;
@@ -30,8 +43,17 @@ public class LogProcessingHandler implements Runnable {
 
     @Override
     public void run() {
-        //System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
-        try (Socket s = new Socket(Logger.AUDIT_DEPLOY.getServer(), Logger.AUDIT_DEPLOY.getPort())) {
+        if (logObj.getClass() == String.class) {
+            try (Socket s = new Socket(Logger.AUDIT_DEPLOY.getServer(), Logger.AUDIT_DEPLOY.getPort());
+                 PrintWriter out = new PrintWriter(s.getOutputStream(), true)
+            ) {
+                out.println(logObj);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
             // create a logtype to marshall
             LogType logType = new LogType();
             logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logObj);
@@ -42,27 +64,33 @@ public class LogProcessingHandler implements Runnable {
             // create jaxb element from xml element name, class, and instance
             JAXBElement<LogType> jaxbElement = new ObjectFactory().createLog(logType);
 
+            String ser;
             // marshall the element over the socket
-            marshaller.marshal(jaxbElement, s.getOutputStream());
-        } catch (IOException | JAXBException e) {
-            e.printStackTrace();
+            StringWriter sw = new StringWriter();
+            try {
+                marshaller.marshal(jaxbElement, sw);
+                ser = sw.toString();
+                try (Socket s = new Socket(Logger.AUDIT_DEPLOY.getServer(), Logger.AUDIT_DEPLOY.getPort());
+                     PrintWriter pw = new PrintWriter(s.getOutputStream(), true)) {
+                    pw.println(ser);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     // build and return the marshaller to use for this singleton
-    private static Marshaller BuildMarshaller()
-    {
+    private static Marshaller BuildMarshaller() {
         Marshaller marshaller = null;
-        try
-        {
+        try {
             // define schema
             SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             URL url = Logger.class.getResource(LOGFILE_SCHEMA);
             File schemaFile = new File(url.getPath());
             Schema schema = sf.newSchema(schemaFile);
-
-            // build jaxb context
-            JAXBContext jc = JAXBContext.newInstance(LogType.class);
 
             // build marshaller
             marshaller = jc.createMarshaller();

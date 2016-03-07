@@ -18,6 +18,14 @@
             "server": "b133.seng.uvic.ca"
         },
         "webServers": {
+            "resources": [
+                "build.properties",
+                "server.xml"
+            ],
+            "deployScripts": [
+                "install-tomcat.sh",
+                "config-tomcat.sh"
+            ],
             "runScript": "run-web-server.sh",
             "servers": [
                 "b130.seng.uvic.ca",

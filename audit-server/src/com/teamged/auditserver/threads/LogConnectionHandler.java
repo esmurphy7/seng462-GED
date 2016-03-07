@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
  * Created by DanielF on 2016-02-23.
  */
 public class LogConnectionHandler implements Runnable {
-    private static Pattern userCommandTidPattern = Pattern.compile(".*<userCommand>.*<transactionNum>(\\d+)<.*", Pattern.DOTALL);
+    //private static Pattern userCommandTidPattern = Pattern.compile(".*<userCommand>.*<transactionNum>(\\d+)<.*", Pattern.DOTALL);
+    private static Pattern userCommandTidPattern = Pattern.compile("IDX,(\\d+)");
     private final Socket socket;
 
     public LogConnectionHandler(Socket socket) {
@@ -27,20 +28,23 @@ public class LogConnectionHandler implements Runnable {
      */
     @Override
     public void run() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())))
-        {
+        String message = null;
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             StringBuilder s = new StringBuilder();
-            String message;
             while ((message = in.readLine()) != null) {
                 s.append(message);
             }
-
             message = s.toString();
-            AuditMain.putLogQueue(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        if (message != null) {
             Matcher m = userCommandTidPattern.matcher(message);
             if (m.matches()) {
                 AuditMain.updateSequenceId(Integer.parseInt(m.group(1)));
+            } else {
+                AuditMain.putLogQueue(message);
             }
 
             // This is the sequence with the least lock contention - dumpIsQueued is a simple boolean
@@ -48,8 +52,6 @@ public class LogConnectionHandler implements Runnable {
             if (AuditMain.dumpIsQueued()) {
                 AuditMain.dumpIfReady();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }
