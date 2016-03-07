@@ -28,6 +28,9 @@
             "internal": {}
         },
         "transactionServers": {
+            "resources": [
+                "gson-2.6.2.jar"
+            ],
             "runScript": "run-tx-server.sh",
             "servers": [
                 "b135.seng.uvic.ca",

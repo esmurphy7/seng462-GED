@@ -9,7 +9,6 @@ import java.util.List;
 public class BaseDeployment {
     protected Integer port;
     protected List<String> resources;
-    protected Internals internal;
 
     public BaseDeployment() {
         this.resources = new ArrayList<>();
@@ -21,9 +20,5 @@ public class BaseDeployment {
 
     public List<String> getResources() {
         return resources;
-    }
-
-    public Internals getInternals() {
-        return internal;
     }
 }

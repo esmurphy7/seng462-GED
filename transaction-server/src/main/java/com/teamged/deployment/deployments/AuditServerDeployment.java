@@ -8,12 +8,13 @@ import com.teamged.deployment.internals.AuditInternals;
  */
 public class AuditServerDeployment extends SingleDeployment {
 
+    private AuditInternals internal;
+
     public AuditServerDeployment() {
         this.internal = new AuditInternals();
     }
 
-    @Override
     public AuditInternals getInternals() {
-        return (AuditInternals) this.internal;
+        return internal;
     }
 }

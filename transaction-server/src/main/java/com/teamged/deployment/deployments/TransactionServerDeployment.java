@@ -8,12 +8,13 @@ import com.teamged.deployment.internals.TransactionInternals;
  */
 public class TransactionServerDeployment extends MultipleDeployment {
 
+    private TransactionInternals internal;
+
     public TransactionServerDeployment() {
         this.internal = new TransactionInternals();
     }
 
-    @Override
     public TransactionInternals getInternals() {
-        return (TransactionInternals) this.internal;
+        return internal;
     }
 }

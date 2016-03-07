@@ -60,9 +60,9 @@ public abstract class BaseDeployment {
             for (String resource : resources) {
 
                 String remotePath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), resource);
-                this.removeFile(client, remotePath);
-                this.copyResource(client, resource, remotePath);
-                this.setPermissions(client, 660, remotePath);
+                removeFile(client, remotePath);
+                copyResource(client, resource, remotePath);
+                setPermissions(client, 660, remotePath);
             }
         }
 
@@ -74,9 +74,9 @@ public abstract class BaseDeployment {
             for (String deployScript : deployScripts) {
 
                 String remoteScriptPath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), deployScript);
-                this.copyScript(client, deployScript, remoteScriptPath);
-                this.runScript(client, remoteScriptPath);
-                this.removeFile(client, remoteScriptPath);
+                copyScript(client, deployScript, remoteScriptPath);
+                runScript(client, remoteScriptPath);
+                removeFile(client, remoteScriptPath);
             }
         }
 
@@ -85,8 +85,8 @@ public abstract class BaseDeployment {
         if (runScript != null) {
 
             String remoteScriptPath = String.format("%s/%s", deploymentConfig.getRemoteDirectory(), runScript);
-            this.removeFile(client, remoteScriptPath);
-            this.copyScript(client, runScript, remoteScriptPath);
+            removeFile(client, remoteScriptPath);
+            copyScript(client, runScript, remoteScriptPath);
         }
 
         // Copy over config.json

@@ -1,3 +1,3 @@
 #!/bin/bash
 cd TransactionDeploy
-java com/teamged/txserver/TxMain
+java -cp .:../gson-2.6.2.jar com/teamged/txserver/TxMain 0
