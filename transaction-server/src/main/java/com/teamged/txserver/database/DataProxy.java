@@ -1,20 +1,14 @@
 package com.teamged.txserver.database;
 
-import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.txserver.InternalLog;
+import com.teamged.txserver.TxMain;
 import com.teamged.txserver.transactions.TransactionObject;
 import com.teamged.txserver.transactions.UserCommand;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigInteger;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -39,7 +33,7 @@ public class DataProxy {
                 SystemEventType systemEvent = new SystemEventType();
 
                 systemEvent.setTimestamp(System.currentTimeMillis());
-                systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
+                systemEvent.setServer(TxMain.getServerName());
                 systemEvent.setTransactionNum(BigInteger.valueOf(tx.getWorkloadSeqNum()));
                 systemEvent.setUsername(tx.getUserName());
                 systemEvent.setCommand(CommandType.fromValue(tx.getUserCommand().name()));
@@ -123,26 +117,6 @@ public class DataProxy {
 
         // TODO: Some additional processing and parsing of the result will be needed.
         return "[DATA PROXY RESULT]" + opResult;
-    }
-
-    private static String buyOperation(String name, String stock, int dollars, int cents) {
-        String resp = "BUY was given for " + name + ", for $" + dollars + "." + cents + " of " + stock;
-        try (
-                Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
-                PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-        ) {
-            out.println(name + "," + stock);
-            resp += ": " + in.readLine();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            resp += ". But quote server was not found";
-        } catch (IOException e) {
-            e.printStackTrace();
-            resp += ". But quote server was uncommunicative";
-        }
-
-        return resp;
     }
 
     private static UserDatabaseObject getDBProxy(String name) {

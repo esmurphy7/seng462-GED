@@ -1,12 +1,12 @@
 package com.teamged.txserver.database;
 
-import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.AccountTransactionType;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.ErrorEventType;
 import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.txserver.InternalLog;
+import com.teamged.txserver.TxMain;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -47,7 +47,7 @@ public class UserDatabaseObject {
                 ErrorEventType eeType = new ErrorEventType();
                 eeType.setTimestamp(Calendar.getInstance().getTimeInMillis());
                 eeType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
-                eeType.setServer(ServerConstants.TX_SERVERS[0]);
+                eeType.setServer(TxMain.getServerName());
                 eeType.setTransactionNum(BigInteger.valueOf(tid));
                 eeType.setCommand(CommandType.ADD);
                 eeType.setUsername(userName);
@@ -608,7 +608,7 @@ public class UserDatabaseObject {
     private void logFundChange(String type, int dollars, int cents, int tid) {
         AccountTransactionType atType = new AccountTransactionType();
         atType.setTimestamp(Calendar.getInstance().getTimeInMillis());
-        atType.setServer(ServerConstants.TX_SERVERS[0]);
+        atType.setServer(TxMain.getServerName());
         atType.setTransactionNum(BigInteger.valueOf(tid));
         atType.setAction(type);
         atType.setUsername(userName);
@@ -698,7 +698,7 @@ public class UserDatabaseObject {
         SystemEventType set = new SystemEventType();
         set.setCommand(CommandType.BUY);
         set.setFunds(BigDecimal.valueOf(actualValue, 2));
-        set.setServer(ServerConstants.TX_SERVERS[0]);
+        set.setServer(TxMain.getServerName());
         set.setStockSymbol(stock);
         set.setTimestamp(Calendar.getInstance().getTimeInMillis());
         set.setTransactionNum(BigInteger.valueOf(tid));
@@ -706,7 +706,7 @@ public class UserDatabaseObject {
 
         SystemEventType setc = new SystemEventType();
         setc.setCommand(CommandType.COMMIT_BUY);
-        setc.setServer(ServerConstants.TX_SERVERS[0]);
+        setc.setServer(TxMain.getServerName());
         setc.setTransactionNum(BigInteger.valueOf(tid));
         setc.setUsername(userName);
         setc.setTimestamp(Calendar.getInstance().getTimeInMillis());
@@ -730,7 +730,7 @@ public class UserDatabaseObject {
         SystemEventType set = new SystemEventType();
         set.setCommand(CommandType.SELL);
         set.setFunds(BigDecimal.valueOf(actualValue, 2));
-        set.setServer(ServerConstants.TX_SERVERS[0]);
+        set.setServer(TxMain.getServerName());
         set.setStockSymbol(stock);
         set.setTimestamp(Calendar.getInstance().getTimeInMillis());
         set.setTransactionNum(BigInteger.valueOf(tid));
@@ -738,7 +738,7 @@ public class UserDatabaseObject {
 
         SystemEventType setc = new SystemEventType();
         setc.setCommand(CommandType.COMMIT_SELL);
-        setc.setServer(ServerConstants.TX_SERVERS[0]);
+        setc.setServer(TxMain.getServerName());
         setc.setTransactionNum(BigInteger.valueOf(tid));
         setc.setUsername(userName);
         setc.setTimestamp(Calendar.getInstance().getTimeInMillis());

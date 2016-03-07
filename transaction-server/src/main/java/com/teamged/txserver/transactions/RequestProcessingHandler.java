@@ -1,6 +1,5 @@
 package com.teamged.txserver.transactions;
 
-import com.teamged.ServerConstants;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TransactionMonitor;
 

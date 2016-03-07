@@ -1,6 +1,6 @@
 package com.teamged.logging;
 
-import com.teamged.ServerConstants;
+import com.teamged.txserver.TxMain;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -15,7 +15,7 @@ public class LogProcessingThread implements Runnable {
 
     public LogProcessingThread(BlockingQueue<Object> queue) {
         this.logs = queue;
-        pool = Executors.newFixedThreadPool(ServerConstants.COMM_THREAD_COUNT);
+        pool = Executors.newFixedThreadPool(TxMain.Deployment.getTransactionServers().getInternals().getCommunicationThreads());
     }
 
     @Override

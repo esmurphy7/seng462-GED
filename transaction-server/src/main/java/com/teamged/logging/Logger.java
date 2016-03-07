@@ -1,6 +1,7 @@
 package com.teamged.logging;
 
-import com.teamged.ServerConstants;
+import com.teamged.deployment.deployments.AuditServerDeployment;
+import com.teamged.txserver.TxMain;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,6 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 // Singleton class used to manage system logs
 public class Logger
 {
+    public static final AuditServerDeployment AUDIT_DEPLOY = TxMain.Deployment.getAuditServer();
     private static Logger instance = null;
     private final BlockingQueue<Object> logs;
 
@@ -41,8 +43,8 @@ public class Logger
     }
 
     public void SaveLog(int tid) {
-        System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
-        try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_DUMP_PORT)) {
+        System.out.println("Connecting: " + TxMain.Deployment.getAuditServer().getServer());
+        try (Socket s = new Socket(AUDIT_DEPLOY.getServer(), AUDIT_DEPLOY.getInternals().getDumpPort())) {
             PrintWriter out = new PrintWriter(s.getOutputStream(), true);
             out.println("DUMPLOG," + tid);
         } catch (IOException e) {

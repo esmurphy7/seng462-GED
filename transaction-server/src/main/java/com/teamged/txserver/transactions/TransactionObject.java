@@ -1,17 +1,17 @@
 package com.teamged.txserver.transactions;
 
-import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.SystemEventType;
 import com.teamged.txserver.InternalLog;
+import com.teamged.txserver.TxMain;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
  * Created by DanielF on 2016-01-31.
- *
+ * <p>
  * Class for parsing request arguments and providing convenient access to those values.
  */
 public class TransactionObject {
@@ -19,11 +19,11 @@ public class TransactionObject {
 
     /**
      * The minimum number of arguments that could show up in a transaction request. At minimum, there must be:
-     *  - A user command
-     *  - A parameter for the user command (many commands will contain more than one parameter)
-     *  - A timestamp
-     *  - A server name index
-     *  - A server port index
+     * - A user command
+     * - A parameter for the user command (many commands will contain more than one parameter)
+     * - A timestamp
+     * - A server name index
+     * - A server port index
      */
     private static final int MinimumArgs = 6;
 
@@ -48,7 +48,8 @@ public class TransactionObject {
      * Creates a new TransactionObject for managing requests for the transaction server to process. Call getErrorString
      * after instantiating this to see if the arguments could be parsed. Any value other than the empty string indicates
      * an error.
-     * @param args  The request to parse and process.
+     *
+     * @param args The request to parse and process.
      */
     public TransactionObject(String args) {
         originalArgs = args;
@@ -115,7 +116,7 @@ public class TransactionObject {
         //UserCommandType systemEvent = new UserCommandType(); // For testing an isolated tx server with audit log
         SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
-        systemEvent.setServer(ServerConstants.TX_SERVERS[0]);
+        systemEvent.setServer(TxMain.getServerName());
         systemEvent.setTransactionNum(BigInteger.valueOf(workloadSeqNum));
         systemEvent.setUsername(userName);
         systemEvent.setCommand(commandType);
@@ -129,7 +130,8 @@ public class TransactionObject {
     /**
      * Parses the request string, assigning parameters based on the results. If the parsing fails at any point, a value
      * will be written to the error string property.
-     * @param args  The request to parse.
+     *
+     * @param args The request to parse.
      */
     private void parseArgs(String args) {
         if (args == null) {
@@ -305,10 +307,10 @@ public class TransactionObject {
                         webServerNameIdx = Integer.parseInt(argsArray[idx++]);
                         webServerPortIdx = Integer.parseInt(argsArray[idx++]);
 
-                        if (webServerNameIdx < 0 || webServerNameIdx >= ServerConstants.WEB_SERVERS.length) {
+                        if (webServerNameIdx < 0 || webServerNameIdx >= TxMain.Deployment.getWebServers().getServers().size()) {
                             errorString = "Web server name index is invalid";
                             parsed = false;
-                        } else if (webServerPortIdx < 0 || webServerPortIdx >= ServerConstants.TX_PORT_RANGE.length) {
+                        } else if (webServerPortIdx < 0 || webServerPortIdx >= 1) {
                             errorString = "Web server port index is invalid";
                             parsed = false;
                         }
@@ -334,7 +336,8 @@ public class TransactionObject {
     /**
      * Getter for the user command property. Should never be the "NO_COMMAND" value, unless the error string has a
      * value.
-     * @return  The user command for the request.
+     *
+     * @return The user command for the request.
      */
     public UserCommand getUserCommand() {
         return userCommand;
@@ -343,7 +346,8 @@ public class TransactionObject {
     /**
      * Getter for the user name property. Should never be null. If the error string has a value, or if the user command
      * does not have a user name argument, this may be the empty string.
-     * @return  The user name property for the request.
+     *
+     * @return The user name property for the request.
      */
     public String getUserName() {
         return userName;
@@ -352,7 +356,8 @@ public class TransactionObject {
     /**
      * Getter for the stock symbol property. Should never be null. If the error string has a value, or if the user
      * command does not have a stock symbol argument, this may be the empty string.
-     * @return  The stock symbol property for the request.
+     *
+     * @return The stock symbol property for the request.
      */
     public String getStockSymbol() {
         return stockSymbol;
@@ -361,7 +366,8 @@ public class TransactionObject {
     /**
      * Getter for the dollar amount property. Should never be negative. If the error string has a value, the user
      * command does not have an amount argument, or the amount is actually $0.xx, this may be 0.
-     * @return  The dollar amount for the request.
+     *
+     * @return The dollar amount for the request.
      */
     public int getAmountDollars() {
         return amountDollars;
@@ -370,7 +376,8 @@ public class TransactionObject {
     /**
      * Getter for the cent amount property. Should never be negative. If the error string has a value, the user command
      * does not have an amount argument, or the amount is actually $x.00, this may be 0.
-     * @return  The cent amount for the request.
+     *
+     * @return The cent amount for the request.
      */
     public int getAmountCents() {
         return amountCents;
@@ -378,7 +385,8 @@ public class TransactionObject {
 
     /**
      * Getter for the timestamp property. Should never be null or empty unless the error string has a value.
-     * @return  The timestamp for when the user launched this command with the web server.
+     *
+     * @return The timestamp for when the user launched this command with the web server.
      */
     public long getTimeStamp() {
         return timeStamp;
@@ -387,7 +395,8 @@ public class TransactionObject {
     /**
      * Getter for the file name property. Should never be null. Unless this is a DUMPLOG user command and the error
      * string has no value, this will be the empty string.
-     * @return  The file name for this argument.
+     *
+     * @return The file name for this argument.
      */
     public String getFileName() {
         return fileName;
@@ -396,7 +405,8 @@ public class TransactionObject {
     /**
      * Getter for the web server name index. Should only be negative if the error string has a value. Should never be
      * greater than the number of entries in the ServerConstants.WEB_SERVERS.
-     * @return  The name index of the web server that made this request.
+     *
+     * @return The name index of the web server that made this request.
      */
     public int getWebServerNameIdx() {
         return webServerNameIdx;
@@ -405,23 +415,22 @@ public class TransactionObject {
     /**
      * Getter for the web server port index. Should only be negative if the error string has a value. Should never be
      * greater than the number of entries in the ServerConstants.TX_PORT_RANGE.
-     * @return  The port index of the web server that made this request.
+     *
+     * @return The port index of the web server that made this request.
      */
     public int getWebServerPortIdx() {
         return webServerPortIdx;
     }
 
     /**
-     *
-     * @return  The workload sequence identifier number of this request. Primarily for test logging purposes.
+     * @return The workload sequence identifier number of this request. Primarily for test logging purposes.
      */
     public int getWorkloadSeqNum() {
         return workloadSeqNum;
     }
 
     /**
-     *
-     * @return  The sequence number of this user request for transaction processing ordering.
+     * @return The sequence number of this user request for transaction processing ordering.
      */
     public int getUserSeqNum() {
         return userSeqNum;
@@ -431,7 +440,8 @@ public class TransactionObject {
      * Getter for the error string for this request object. If any value failed to parse, this will have a value other
      * than the empty string. Check this before calling any other property. If this is not an empty string, then the
      * values contained in the other getters are undefined. Should never be null.
-     * @return  The error string for the request. An empty string indicates no error.
+     *
+     * @return The error string for the request. An empty string indicates no error.
      */
     public String getErrorString() {
         return errorString;
@@ -439,7 +449,8 @@ public class TransactionObject {
 
     /**
      * Returns the original request string that this transaction object was built from.
-     * @return  The string representation of this object.
+     *
+     * @return The string representation of this object.
      */
     @Override
     public String toString() {
@@ -451,8 +462,9 @@ public class TransactionObject {
      * Assumes the dollar value is in a decimal format. If no decimal is present, it is assumed that the number is the
      * dollar amount and that cents are zero. Assigns these to transaction object dollars and cents properties if
      * successful. If not, writes an error string.
-     * @param amount    The string to parse into a dollar value.
-     * @return          Whether the string was successfully parsed.
+     *
+     * @param amount The string to parse into a dollar value.
+     * @return Whether the string was successfully parsed.
      */
     private boolean parseMoneyAmount(String amount) {
         boolean parsed = false;
@@ -488,8 +500,9 @@ public class TransactionObject {
     /**
      * Parses a string as a stock symbol. Checks that the stock symbol is not longer than allowed. Assigns the value
      * to the transaction object stock symbol property if successful. If not, writes an error string.
-     * @param symbol    The string to parse into a stock symbol.
-     * @return          Whether the string was successfully parsed.
+     *
+     * @param symbol The string to parse into a stock symbol.
+     * @return Whether the string was successfully parsed.
      */
     private boolean parseStockSymbol(String symbol) {
         boolean parsed = false;
@@ -508,8 +521,9 @@ public class TransactionObject {
      * Parses a string as a file name.
      * TODO: Actually parse it properly. Currently only checks for null/empty.
      * Assigns the value to the transaction object file name property if successful. If not, writes an error string.
-     * @param name  The string to parse into a file name.
-     * @return      Whether the string was successfully parsed.
+     *
+     * @param name The string to parse into a file name.
+     * @return Whether the string was successfully parsed.
      */
     private boolean parseFileName(String name) {
         boolean parsed = false;

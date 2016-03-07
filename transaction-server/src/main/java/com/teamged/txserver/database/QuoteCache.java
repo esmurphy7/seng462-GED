@@ -1,6 +1,5 @@
 package com.teamged.txserver.database;
 
-import com.teamged.ServerConstants;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.generated.CommandType;
 import com.teamged.logging.xmlelements.generated.ErrorEventType;
@@ -21,11 +20,9 @@ import java.util.concurrent.*;
  * Created by DanielF on 2016-02-27.
  */
 public class QuoteCache {
-    private static ExecutorService quotePool = Executors.newFixedThreadPool(ServerConstants.PROCESSING_THREAD_COUNT);
+    private static ExecutorService quotePool = Executors.newFixedThreadPool(TxMain.Deployment.getTransactionServers().getInternals().getProcedureThreads());
     private static final Object lock = new Object();
-    //private static final Map<String, Future<QuoteObject>> quoteMap = new HashMap<>();
-    private static final ConcurrentHashMap<String, Future<QuoteObject>> quoteMap =
-            new ConcurrentHashMap<>(/* TODO: args */);
+    private static final ConcurrentHashMap<String, Future<QuoteObject>> quoteMap = new ConcurrentHashMap<>(/* TODO: args */);
 
     // TODO: Add a cleanup service that occasionally traverses the quote map and removes anything expired
 
@@ -48,7 +45,7 @@ public class QuoteCache {
             e.printStackTrace();
             ErrorEventType eet = new ErrorEventType();
             eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            eet.setServer(ServerConstants.TX_SERVERS[0]);
+            eet.setServer(TxMain.getServerName());
             eet.setTransactionNum(BigInteger.valueOf(tid));
             eet.setCommand(CommandType.QUOTE);
             eet.setUsername(callingUser);
@@ -81,7 +78,7 @@ public class QuoteCache {
             e.printStackTrace();
             ErrorEventType eet = new ErrorEventType();
             eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            eet.setServer(ServerConstants.TX_SERVERS[0]);
+            eet.setServer(TxMain.getServerName());
             eet.setTransactionNum(BigInteger.valueOf(tid));
             eet.setCommand(CommandType.QUOTE);
             eet.setUsername(callingUser);
@@ -151,7 +148,7 @@ public class QuoteCache {
         long nowMillis = Calendar.getInstance().getTimeInMillis();
 
         try (
-                Socket quoteSocket = new Socket(ServerConstants.QUOTE_SERVER, ServerConstants.QUOTE_PORT);
+                Socket quoteSocket = new Socket(TxMain.Deployment.getQuoteServer().getServer(), TxMain.Deployment.getQuoteServer().getPort());
                 PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
         ) {
@@ -169,7 +166,7 @@ public class QuoteCache {
                     QuoteServerType qst = new QuoteServerType();
                     qst.setTimestamp(nowMillis);
                     qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteTime()));
-                    qst.setServer(ServerConstants.TX_SERVERS[0]);
+                    qst.setServer(TxMain.getServerName());
                     qst.setTransactionNum(BigInteger.valueOf(tid));
                     qst.setPrice(quote.getPrice());
                     qst.setStockSymbol(quote.getStockSymbol());
@@ -185,7 +182,7 @@ public class QuoteCache {
             e.printStackTrace();
             ErrorEventType eet = new ErrorEventType();
             eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            eet.setServer(ServerConstants.TX_SERVERS[0]);
+            eet.setServer(TxMain.getServerName());
             eet.setTransactionNum(BigInteger.valueOf(tid));
             eet.setCommand(CommandType.QUOTE);
             eet.setUsername(callingUser);

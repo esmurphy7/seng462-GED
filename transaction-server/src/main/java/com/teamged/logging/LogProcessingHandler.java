@@ -1,6 +1,5 @@
 package com.teamged.logging;
 
-import com.teamged.ServerConstants;
 import com.teamged.logging.xmlelements.generated.LogType;
 import com.teamged.logging.xmlelements.generated.ObjectFactory;
 import org.xml.sax.SAXException;
@@ -32,7 +31,7 @@ public class LogProcessingHandler implements Runnable {
     @Override
     public void run() {
         //System.out.println("Connecting: " + ServerConstants.AUDIT_SERVERS[0]);
-        try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT)) {
+        try (Socket s = new Socket(Logger.AUDIT_DEPLOY.getServer(), Logger.AUDIT_DEPLOY.getPort())) {
             // create a logtype to marshall
             LogType logType = new LogType();
             logType.getUserCommandOrQuoteServerOrAccountTransaction().add(logObj);

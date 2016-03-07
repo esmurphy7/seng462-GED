@@ -1,6 +1,6 @@
 package com.teamged.txserver;
 
-import com.teamged.ServerConstants;
+import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.txserver.transactions.*;
 
 import java.io.IOException;
@@ -19,6 +19,7 @@ public class TransactionMonitor {
      */
     //private static final ArrayList<TransactionServerThread> threadQueues = new ArrayList<>();
 
+    private static final TransactionServerDeployment TX_DEPLOY = TxMain.Deployment.getTransactionServers();
     private static final Object syncObject = new Object();
 
     private static final ArrayList<TransactionServerThread> reqProcThreads = new ArrayList<>();
@@ -26,9 +27,9 @@ public class TransactionMonitor {
     private static final ArrayList<TransactionServerThread> respProcThreads = new ArrayList<>();
 
     private static final BlockingQueue<String> requestTxQueue =
-            new LinkedBlockingQueue<>(ServerConstants.TRANSACTION_QUEUE_SIZE);
+            new LinkedBlockingQueue<>(TX_DEPLOY.getInternals().getQueueSize());
     private static final BlockingQueue<String> responseTxQueue =
-            new LinkedBlockingQueue<>(ServerConstants.TRANSACTION_QUEUE_SIZE);
+            new LinkedBlockingQueue<>(TX_DEPLOY.getInternals().getQueueSize());
 
     private static final ConcurrentHashMap<String, UserQueueObject> requestTxUserMap =
             new ConcurrentHashMap<>(/* TODO: args */);
@@ -39,22 +40,20 @@ public class TransactionMonitor {
      */
     public static void runServer() {
         InternalLog.Log("Launching transaction server socket listeners.");
-        for (int i = 0; i < ServerConstants.TX_PORT_RANGE.length; i++) {
-            int portNum = ServerConstants.TX_PORT_RANGE[i];
+            int portNum = TX_DEPLOY.getPort();
             TransactionServerThread rpThread;
             try {
-                rpThread = new RequestProcessingThread(portNum, ServerConstants.COMM_THREAD_COUNT, syncObject);
+                rpThread = new RequestProcessingThread(portNum, TX_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
                 reqProcThreads.add(rpThread);
                 new Thread(rpThread).start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
 
-        for (int i = 0; i < ServerConstants.PROCESSING_THREAD_COUNT; i++) {
+        for (int i = 0; i < TX_DEPLOY.getInternals().getProcedureThreads(); i++) {
             TransactionServerThread txpThread;
             try {
-                txpThread = new TransactionProcessingThread(ServerConstants.THREAD_POOL_SIZE, syncObject);
+                txpThread = new TransactionProcessingThread(TX_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
                 txProcThreads.add(txpThread);
                 new Thread(txpThread).start();
             } catch (IllegalThreadStateException e) {

@@ -1,0 +1,29 @@
+package com.teamged.deployment.base;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by DanielF on 2016-03-06.
+ */
+public class BaseDeployment {
+    protected Integer port;
+    protected List<String> resources;
+    protected Internals internal;
+
+    public BaseDeployment() {
+        this.resources = new ArrayList<>();
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public List<String> getResources() {
+        return resources;
+    }
+
+    public Internals getInternals() {
+        return internal;
+    }
+}
