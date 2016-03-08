@@ -1,0 +1,76 @@
+{
+    "remoteDirectory": "/seng/scratch/group4",
+    "deployments": {
+        "quoteServer": {
+            "server": "quoteserve.seng.uvic.ca",
+            "port": 4444
+        },
+        "workloadGenerator": {
+            "runScript": "run-wg.sh",
+            "server": "b145.seng.uvic.ca"
+        },
+        "webLoadBalancer": {
+            "deployScripts": [
+                "install-nginx.sh",
+                "config-nginx-loadbalancer.sh"
+            ],
+            "runScript": "run-nginx.sh",
+            "server": "b133.seng.uvic.ca"
+        },
+        "webServers": {
+            "resources": [
+                "build.properties",
+                "server.xml"
+            ],
+            "deployScripts": [
+                "install-tomcat.sh",
+                "config-tomcat.sh"
+            ],
+            "runScript": "run-web-server.sh",
+            "servers": [
+                "b130.seng.uvic.ca",
+                "b131.seng.uvic.ca",
+                "b132.seng.uvic.ca"
+            ],
+            "port": 44440,
+            "internal": {}
+        },
+        "transactionServers": {
+            "resources": [
+                "gson-2.6.2.jar"
+            ],
+            "runScript": "run-tx-server.sh",
+            "servers": [
+                "b135.seng.uvic.ca",
+                "b136.seng.uvic.ca",
+                "b137.seng.uvic.ca"
+            ],
+            "port": 44440,
+            "internal": {
+                "threadPool": 4,
+                "procThreads": 4,
+                "commThreads": 2,
+                "queueSize": 1000000
+            }
+        },
+        "auditServer": {
+            "runScript": "run-audit-server.sh",
+            "server": "b141.seng.uvic.ca",
+            "port": 44441,
+            "internal" : {
+                "dumpPort": 44440
+            }
+        },
+        "cacheServer": {
+            "resources": [
+                "redis.conf"
+            ],
+            "deployScripts": [
+                "install-redis.sh",
+                "config-redis.sh"
+            ],
+            "runScript": "run-redis.sh",
+            "server": "b144.seng.uvic.ca"
+        }
+    }
+}

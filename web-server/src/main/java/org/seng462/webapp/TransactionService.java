@@ -1,6 +1,7 @@
 package org.seng462.webapp;
 
 import jersey.repackaged.com.google.common.base.Joiner;
+import org.seng462.webapp.deployment.DeploymentConfig;
 import org.seng462.webapp.logging.Logger;
 import org.seng462.webapp.logging.xmlelements.generated.CommandType;
 import org.seng462.webapp.logging.xmlelements.generated.UserCommandType;
@@ -89,6 +90,7 @@ public class TransactionService
         int userNameSort = (userCommand.getArgs().get("userId") != null) ? userCommand.getArgs().get("userId").charAt(0) : 1;
         int serverIndex = userNameSort % 3;
         String targetServer = ServerConstants.TX_SERVERS[serverIndex];
+        String[] servers = DeploymentConfig.GetValue("deployments.transactionServers.servers", String[].class);
         int targetPort = ServerConstants.TX_PORT_RANGE[0];
 
         // open transaction socket
