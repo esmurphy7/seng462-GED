@@ -40,15 +40,15 @@ public class TransactionMonitor {
      */
     public static void runServer() {
         InternalLog.Log("Launching transaction server socket listeners.");
-            int portNum = TX_DEPLOY.getPort();
-            TransactionServerThread rpThread;
-            try {
-                rpThread = new RequestProcessingThread(portNum, TX_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
-                reqProcThreads.add(rpThread);
-                new Thread(rpThread).start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        int portNum = TX_DEPLOY.getPort();
+        TransactionServerThread rpThread;
+        try {
+            rpThread = new RequestProcessingThread(portNum, TX_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
+            reqProcThreads.add(rpThread);
+            new Thread(rpThread).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         for (int i = 0; i < TX_DEPLOY.getInternals().getProcedureThreads(); i++) {
             TransactionServerThread txpThread;
