@@ -4,12 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonReader;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * Created by Evan on 3/7/2016.
@@ -22,15 +24,15 @@ public class DeploymentConfig
     public static <T> T GetValue(String path, Class<T> classtype)
     {
         T value = null;
-
+        JsonElement jsonElement = null;
         try {
-            JsonElement jsonElement = PathToJsonObject(path);
-            Gson gson = new Gson();
-            value = gson.fromJson(jsonElement, classtype);
+            jsonElement = DeploymentConfig.PathToJsonObject(path);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(String.format("Could not convert %s to JsonElement",CONFIG_PATH));
         }
+        Gson gson = new Gson();
+        value = gson.fromJson(jsonElement, classtype);
 
         return value;
     }
@@ -41,11 +43,8 @@ public class DeploymentConfig
         if(CONFIG_JSON == null)
         {
             URL url = DeploymentConfig.class.getResource(CONFIG_PATH);
-            FileReader reader = new FileReader(url.getPath());
-            StringWriter sw = new StringWriter(reader.read());
-            CONFIG_JSON = sw.toString();
-            reader.close();
-            sw.close();
+            byte[] encoded = Files.readAllBytes(Paths.get(url.getPath()));
+            CONFIG_JSON = new String(encoded, Charset.defaultCharset());
         }
 
         // build and return a json object at the given path

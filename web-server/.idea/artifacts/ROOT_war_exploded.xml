@@ -37,6 +37,7 @@
           <element id="library" level="project" name="Maven: org.webjars:bootstrap:3.3.5" />
           <element id="library" level="project" name="Maven: org.webjars:jquery:1.11.1" />
           <element id="library" level="project" name="Maven: org.webjars.bower:jquery:2.2.0" />
+          <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.6.2" />
         </element>
       </element>
       <element id="directory" name="META-INF">
