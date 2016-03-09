@@ -10,7 +10,8 @@ public class DeploymentSettings {
     private TransactionServerDeployment transactionServers;
     private AuditServerDeployment auditServer;
     private CacheServerDeployment cacheServer;
-    private QuoteFetchServerDeployment fetchServer;
+    private QuoteFetchServerDeployment fetchServers;
+    private QuoteProxyServerDeployment proxyServer;
 
     public QuoteServer getQuoteServer() {
         return quoteServer;
@@ -40,7 +41,11 @@ public class DeploymentSettings {
         return cacheServer;
     }
 
-    public QuoteFetchServerDeployment getFetchServer() {
-        return fetchServer;
+    public QuoteFetchServerDeployment getFetchServers() {
+        return fetchServers;
+    }
+
+    public QuoteProxyServerDeployment getProxyServer() {
+        return proxyServer;
     }
 }

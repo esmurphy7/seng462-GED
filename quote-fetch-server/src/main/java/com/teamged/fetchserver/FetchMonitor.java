@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class FetchMonitor {
 
     private static final Object syncObject = new Object();
-    private static final QuoteFetchServerDeployment FETCH_DEPLOY = FetchMain.Deployment.getFetchServer();
+    private static final QuoteFetchServerDeployment FETCH_DEPLOY = FetchMain.Deployment.getFetchServers();
     private static final ArrayList<FetchServerThread> connThreads = new ArrayList<>();
 
     public static void runServer() {

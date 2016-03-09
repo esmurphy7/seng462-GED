@@ -74,7 +74,7 @@
             "runScript": "run-redis.sh",
             "server": "b144.seng.uvic.ca"
         },
-        "fetchServer": {
+        "fetchServers": {
             "resources": [
                 "gson-2.6.2.jar"
             ],
@@ -85,7 +85,18 @@
                 "b149.seng.uvic.ca"
             ],
             "port": 44449,
-            "internal" : {
+            "internal": {
+                "threadPool": 64
+            }
+        },
+        "proxyServer": {
+            "resources": [
+                "gson-2.6.2.jar"
+            ],
+            "runScript": "run-proxy-server.sh",
+            "server": "b150.seng.uvic.ca",
+            "port": 44444,
+            "internal": {
                 "threadPool": 64
             }
         }

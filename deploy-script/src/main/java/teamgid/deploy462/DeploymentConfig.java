@@ -33,7 +33,8 @@ public class DeploymentConfig {
         private TransactionServerDeployment transactionServers;
         private AuditServerDeployment auditServer;
         private CacheServerDeployment cacheServer;
-        private QuoteFetchServerDeployment fetchServer;
+        private QuoteFetchServerDeployment fetchServers;
+        private QuoteProxyServerDeployment proxyServer;
 
         public WorkloadGeneratorDeployment getWorkloadGenerator() {
             return workloadGenerator;
@@ -84,11 +85,19 @@ public class DeploymentConfig {
         }
 
         public QuoteFetchServerDeployment getFetchServer() {
-            return fetchServer;
+            return fetchServers;
         }
 
-        public void setFetchServer(QuoteFetchServerDeployment fetchServer) {
-            this.fetchServer = fetchServer;
+        public void setFetchServer(QuoteFetchServerDeployment fetchServers) {
+            this.fetchServers = fetchServers;
+        }
+
+        public QuoteProxyServerDeployment getProxyServer() {
+            return proxyServer;
+        }
+
+        public void setProxyServer(QuoteProxyServerDeployment proxyServer) {
+            this.proxyServer = proxyServer;
         }
     }
 }
