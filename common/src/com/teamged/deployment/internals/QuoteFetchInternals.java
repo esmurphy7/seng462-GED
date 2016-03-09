@@ -1,7 +1,7 @@
 package com.teamged.deployment.internals;
 
 /**
- * Created by DanielF on 2016-03-06.
+ * Created by DanielF on 2016-03-08.
  */
 public class QuoteFetchInternals {
 
