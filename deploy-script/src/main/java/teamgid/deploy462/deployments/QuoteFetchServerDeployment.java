@@ -16,29 +16,35 @@ public class QuoteFetchServerDeployment extends MultipleDeployment {
     public void deployHandler(SSHClient client, DeploymentConfig deploymentConfig) {
 
         try {
-
-            removeFile(client, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "QuoteFetchDeploy"));
+            String remoteDir = deploymentConfig.getRemoteDirectory();
+            String remoteDeploy = String.format("%s/%s", remoteDir, "QuoteFetchDeploy");
+            removeFile(client, remoteDeploy);
 
             System.out.println("Transferring files...");
-            Path txPath = Paths.get(System.getProperty("user.dir")).getParent()
+            Path qfPath = Paths.get(System.getProperty("user.dir")).getParent()
                     .resolve("quote-fetch-server")
                     .resolve("src")
                     .resolve("main")
                     .resolve("java");
-            client.newSCPFileTransfer().upload(txPath.toString(), "/seng/scratch/group4/QuoteFetchDeploy/");
+            client.newSCPFileTransfer().upload(qfPath.toString(), remoteDeploy + "/");
+            Path commonPath = Paths.get(System.getProperty("user.dir")).getParent()
+                    .resolve("common")
+                    .resolve("src")
+                    .resolve("com");
+            client.newSCPFileTransfer().upload(commonPath.toString(), remoteDeploy + "/");
             System.out.println("Finished transferring");
 
             System.out.println("Compiling quote fetch server");
             final Session javac_session = client.startSession();
-            final Session.Command javac_cmd = javac_session.exec("javac -cp .:" + deploymentConfig.getRemoteDirectory() + "/gson-2.6.2.jar " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/fetchserver/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/fetchserver/serverthreads/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/deployment/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/deployment/base/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/deployment/deployments/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/deployment/internals/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/logging/*.java " +
-                    "/seng/scratch/group4/QuoteFetchDeploy/com/teamged/logging/xmlelements/generated/*.java"
+            final Session.Command javac_cmd = javac_session.exec("javac -cp .:" + remoteDir + "/gson-2.6.2.jar " +
+                    remoteDeploy + "/com/teamged/fetchserver/*.java " +
+                    remoteDeploy + "/com/teamged/fetchserver/serverthreads/*.java " +
+                    remoteDeploy + "/com/teamged/deployment/*.java " +
+                    remoteDeploy + "/com/teamged/deployment/base/*.java " +
+                    remoteDeploy + "/com/teamged/deployment/deployments/*.java " +
+                    remoteDeploy + "/com/teamged/deployment/internals/*.java " +
+                    remoteDeploy + "/com/teamged/logging/*.java " +
+                    remoteDeploy + "/com/teamged/logging/xmlelements/generated/*.java"
             );
             String result = IOUtils.readFully(javac_cmd.getInputStream()).toString();
             if (!result.equals("")) {
@@ -48,7 +54,7 @@ public class QuoteFetchServerDeployment extends MultipleDeployment {
             javac_session.close();
             System.out.println("Finished compiling");
 
-            setPermissions(client, 770, String.format("%s/%s", deploymentConfig.getRemoteDirectory(), "QuoteFetchDeploy"));
+            setPermissions(client, 770, remoteDeploy);
 
         } catch (Exception e) {
             e.printStackTrace();
