@@ -2,6 +2,7 @@ package com.teamged.fetchserver;
 
 import com.teamged.deployment.DeployParser;
 import com.teamged.deployment.DeploymentSettings;
+import com.teamged.logging.Logger;
 
 /**
  * Created by DanielF on 2016-03-08.
@@ -17,6 +18,7 @@ public class FetchMain {
         parseArgs(args);
         Deployment = DeployParser.parseConfig();
         if (Deployment != null) {
+            Logger.SetLogDestination(Deployment.getAuditServer());
             FetchMonitor.runServer();
         }
 

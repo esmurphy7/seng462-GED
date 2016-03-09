@@ -44,7 +44,7 @@ public class LogProcessingHandler implements Runnable {
     @Override
     public void run() {
         if (logObj.getClass() == String.class) {
-            try (Socket s = new Socket(Logger.AUDIT_DEPLOY.getServer(), Logger.AUDIT_DEPLOY.getPort());
+            try (Socket s = new Socket(Logger.GetLogDestination().getServer(), Logger.GetLogDestination().getPort());
                  PrintWriter out = new PrintWriter(s.getOutputStream(), true)
             ) {
                 out.println(logObj);
@@ -70,7 +70,7 @@ public class LogProcessingHandler implements Runnable {
             try {
                 marshaller.marshal(jaxbElement, sw);
                 ser = sw.toString();
-                try (Socket s = new Socket(Logger.AUDIT_DEPLOY.getServer(), Logger.AUDIT_DEPLOY.getPort());
+                try (Socket s = new Socket(Logger.GetLogDestination().getServer(), Logger.GetLogDestination().getPort());
                      PrintWriter pw = new PrintWriter(s.getOutputStream(), true)) {
                     pw.println(ser);
                 } catch (IOException e) {

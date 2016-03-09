@@ -59,6 +59,7 @@
             "server": "b141.seng.uvic.ca",
             "port": 44441,
             "internal" : {
+                "commThreads": 2,
                 "dumpPort": 44440
             }
         },

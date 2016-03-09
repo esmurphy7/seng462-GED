@@ -1,7 +1,5 @@
 package com.teamged.logging;
 
-import com.teamged.fetchserver.FetchMain;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +13,7 @@ public class LogProcessingThread implements Runnable {
 
     public LogProcessingThread(BlockingQueue<Object> queue) {
         this.logs = queue;
-        pool = Executors.newFixedThreadPool(FetchMain.Deployment.getTransactionServers().getInternals().getCommunicationThreads());
+        pool = Executors.newFixedThreadPool(Logger.GetLogDestination().getInternals().getCommunicationThreads());
     }
 
     @Override
