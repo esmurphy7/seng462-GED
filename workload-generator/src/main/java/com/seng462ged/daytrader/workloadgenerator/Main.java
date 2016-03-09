@@ -1,5 +1,8 @@
 package com.seng462ged.daytrader.workloadgenerator;
 
+import com.teamged.deployment.DeployParser;
+import com.teamged.deployment.DeploymentSettings;
+import com.teamged.deployment.deployments.WebLoadBalancerDeployment;
 import org.jooq.lambda.Unchecked;
 
 import java.io.FileNotFoundException;
@@ -20,11 +23,33 @@ public class Main {
 
         String workloadFile = args[0];
 
-        // Default web server is localhost
-        String webServer = "localhost:8080";
+        // Default web server
+        String serverAddress = "localhost";
+        Integer serverPort = 8080;
 
+        // Get load balancer address and port from config file if they exists
+        DeploymentSettings deploymentSettings = DeployParser.parseConfig("config.json");
+        WebLoadBalancerDeployment loadBalancerDeployment = deploymentSettings.getWebLoadBalancer();
+
+        if (loadBalancerDeployment != null) {
+
+            if (loadBalancerDeployment.getServer() != null) {
+                serverAddress = loadBalancerDeployment.getServer();
+            }
+
+            if (loadBalancerDeployment.getPort() != null) {
+                serverPort = loadBalancerDeployment.getPort();
+            }
+        }
+
+        // If user manually entered a web server, use that
         if (args.length == 2) {
-            webServer = args[1];
+
+            String webServer = args[1];
+            String[] addressPortSplit = webServer.split(":");
+
+            serverAddress = addressPortSplit[0];
+            serverPort = Integer.valueOf(addressPortSplit[1]);
         }
 
         try {
@@ -47,18 +72,18 @@ public class Main {
             // Create thread pool
             ExecutorService taskExecutor = Executors.newFixedThreadPool(10);
 
-            final String tempWebServer = webServer;
+            String webServer = String.format("%s:%d", serverAddress, serverPort);
 
             // Concurrently send sets of transactions to the web server
             List<Future> results = transactionsByUser.stream()
-                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(tempWebServer, transactionSet)))
+                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(webServer, transactionSet)))
                     .collect(Collectors.toList());
 
             // Wait for all threads to finish
             results.forEach(Unchecked.consumer(future -> future.get()));
 
             // Manually run dumplog transaction at the end
-            Requester.SendTransactions(tempWebServer, dumplogTransactions);
+            Requester.SendTransactions(webServer, dumplogTransactions);
 
             taskExecutor.shutdown();
 
