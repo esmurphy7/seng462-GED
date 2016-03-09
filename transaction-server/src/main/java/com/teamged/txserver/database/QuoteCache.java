@@ -143,19 +143,10 @@ public class QuoteCache {
 
             if (!quote.getErrorString().isEmpty()) {
                 // Log error?
-                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
             } else {
-                InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
-                QuoteServerType qst = new QuoteServerType();
-                qst.setTimestamp(nowMillis);
-                qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteInternalTime()));
-                qst.setServer(TxMain.getServerName());
-                qst.setTransactionNum(BigInteger.valueOf(tid));
-                qst.setPrice(quote.getPrice());
-                qst.setStockSymbol(quote.getStockSymbol());
-                qst.setUsername(quote.getUserName());
-                qst.setCryptokey(quote.getCryptoKey());
-                Logger.getInstance().Log(qst);
+                InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                // No longer logs the quote here - the canonical quote log happens in the proxy server now.
             }
         } catch(IOException e) {
             e.printStackTrace();
