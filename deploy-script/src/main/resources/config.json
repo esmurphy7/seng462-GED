@@ -84,7 +84,7 @@
             ],
             "port": 44449,
             "internal" : {
-                "threadPool": 32
+                "threadPool": 64
             }
         }
     }

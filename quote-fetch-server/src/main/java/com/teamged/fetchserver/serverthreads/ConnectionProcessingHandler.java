@@ -23,54 +23,47 @@ public class ConnectionProcessingHandler implements Runnable {
 
     @Override
     public void run() {
-        String request = receiveRequest();
-        Calendar cal = Calendar.getInstance();
-        long quoteStartTime = cal.getTimeInMillis();
-        long quoteEndTime = 0;
-        boolean gotQuote = false;
-        String quoteString = null;
-
-        try (
-                Socket quoteSocket = new Socket(FetchMain.Deployment.getQuoteServer().getServer(), FetchMain.Deployment.getQuoteServer().getPort());
-                PrintWriter quoteOut = new PrintWriter(quoteSocket.getOutputStream());
-                BufferedReader quoteIn = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
+        String request;
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter out = new PrintWriter(socket.getOutputStream())
         ) {
-            quoteOut.println(request);
-            quoteString = quoteIn.readLine();
-
-            quoteEndTime = cal.getTimeInMillis();
-            quoteString += "," + quoteEndTime;
-            gotQuote = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (gotQuote) {
-            sendResponse(quoteString);
-            long quoteFetchTime = quoteEndTime - quoteStartTime;
-            // TODO: Record fetch time
-            // TODO: Log quote fetch event
-        } else {
-            sendResponse("ERROR");
-        }
-    }
-
-    private String receiveRequest() {
-        String request = "";
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             request = in.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        return request;
-    }
+            Calendar cal = Calendar.getInstance();
+            long quoteStartTime = cal.getTimeInMillis();
+            long quoteEndTime = 0;
+            boolean gotQuote = false;
+            String quoteString = null;
 
-    private void sendResponse(String resp) {
-        try (PrintWriter out = new PrintWriter(socket.getOutputStream())) {
-            out.println(resp);
-        } catch (IOException e) {
-            e.printStackTrace();
+            try (
+                    Socket quoteSocket = new Socket(FetchMain.Deployment.getQuoteServer().getServer(), FetchMain.Deployment.getQuoteServer().getPort());
+                    PrintWriter quoteOut = new PrintWriter(quoteSocket.getOutputStream(), true);
+                    BufferedReader quoteIn = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
+            ) {
+                InternalLog.Log("Fetching request: " + request + " from [" + FetchMain.Deployment.getQuoteServer().getServer() + ":" + FetchMain.Deployment.getQuoteServer().getPort() + "]");
+                quoteOut.println(request);
+                quoteString = quoteIn.readLine();
+
+                quoteEndTime = cal.getTimeInMillis();
+                //quoteString += "," + quoteEndTime;
+                gotQuote = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (gotQuote) {
+                InternalLog.Log("Returning response: " + quoteString);
+                out.println(quoteString);
+                //sendResponse(quoteString);
+                long quoteFetchTime = quoteEndTime - quoteStartTime;
+                // TODO: Record fetch time
+                // TODO: Log quote fetch event
+            } else {
+                out.println("ERROR");
+                //sendResponse("ERROR");
+            }
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
     }
 }
