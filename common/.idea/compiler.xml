@@ -23,12 +23,10 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="common" />
-        <module name="workload-generator" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="common" target="1.8" />
-      <module name="workload-generator" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
