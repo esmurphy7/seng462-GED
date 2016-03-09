@@ -1,12 +1,12 @@
-package com.teamged.txserver.database;
+package com.teamged.proxyserver.quotecache;
 
-import com.teamged.txserver.InternalLog;
+import com.teamged.proxyserver.InternalLog;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
 
 /**
- * Created by DanielF on 2016-02-16.
+ * Created by DanielF on 2016-03-09.
  */
 public class QuoteObject {
     // If a user just wants a regular quote, then we just want it to be valid when sent back
@@ -15,10 +15,8 @@ public class QuoteObject {
     // If a user wants to make a buy or sell, we want the system to have time to realize an update needs to be sent soon
     private static final long QUOTE_SHORT_LIFE_MILLIS = 55000;
 
-    private static final long MILLIS_PADDING = 15;
-
-    // Number of arguments the quote proxy server should return
-    private static final int QUOTE_STATEMENT_ARGS = 6;
+    // Number of arguments the quote server should return
+    private static final int QUOTE_STATEMENT_ARGS = 5;
 
     private int dollars;
     private int cents;
@@ -97,14 +95,19 @@ public class QuoteObject {
         return errorString;
     }
 
+    /**
+     * Returns the String representation of the quote with an additional age parameter.
+     * E.g.: [Value],[Stock Name],[Original Requesting User],[Quote Server Generation Time],[Quote Age]
+     * @return
+     */
     @Override
     public String toString() {
-        return quoteString;
+        return quoteString + "," + (Calendar.getInstance().getTimeInMillis() - quoteTime);
     }
 
     private void parseArgs(String args) {
         boolean parsed = true;
-        quoteString = args.substring(0, args.lastIndexOf(','));
+        quoteString = args;
 
         if (args == null) {
             errorString = "Null argument";
@@ -132,8 +135,7 @@ public class QuoteObject {
             if (parsed) {
                 try {
                     quoteInternalTime = Long.parseLong(argsArray[3]);
-                    long quoteAgeTime = Long.parseLong(argsArray[5]);
-                    quoteTime = Calendar.getInstance().getTimeInMillis() - quoteAgeTime - MILLIS_PADDING;
+                    quoteTime = Calendar.getInstance().getTimeInMillis();
                     quoteTimeout = quoteTime + QUOTE_LIFE_MILLIS;
                     quoteShortTimeout = quoteTime + QUOTE_SHORT_LIFE_MILLIS;
                 } catch (NumberFormatException e) {

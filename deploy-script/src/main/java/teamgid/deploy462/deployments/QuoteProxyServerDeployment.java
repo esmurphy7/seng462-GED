@@ -39,6 +39,7 @@ public class QuoteProxyServerDeployment extends SingleDeployment {
             final Session.Command javac_cmd = javac_session.exec("javac -cp .:" + remoteDir + "/gson-2.6.2.jar " +
                     remoteDeploy + "/com/teamged/proxyserver/*.java " +
                     remoteDeploy + "/com/teamged/proxyserver/serverthreads/*.java " +
+                    remoteDeploy + "/com/teamged/proxyserver/quotecache/*.java " +
                     remoteDeploy + "/com/teamged/deployment/*.java " +
                     remoteDeploy + "/com/teamged/deployment/base/*.java " +
                     remoteDeploy + "/com/teamged/deployment/deployments/*.java " +
