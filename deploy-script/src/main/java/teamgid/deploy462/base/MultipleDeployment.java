@@ -30,7 +30,7 @@ public abstract class MultipleDeployment extends BaseDeployment {
 
             try {
 
-                SSHClient client = this.getSSHClient(server, username, password);
+                SSHClient client = getSSHClient(server, username, password);
 
                 this.singleDeployment(client, deploymentConfig);
 
