@@ -130,7 +130,7 @@ public class QuoteCache {
         long nowMillis;
 
         try (
-                Socket quoteSocket = new Socket(TxMain.Deployment.getQuoteServer().getServer(), TxMain.Deployment.getQuoteServer().getPort());
+                Socket quoteSocket = new Socket(TxMain.Deployment.getProxyServer().getServer(), TxMain.Deployment.getProxyServer().getPort());
                 PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
         ) {

@@ -25,7 +25,7 @@ public class ConnectionProcessingHandler implements Runnable {
     public void run() {
         String request;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter out = new PrintWriter(socket.getOutputStream())
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
         ) {
             request = in.readLine();
 
