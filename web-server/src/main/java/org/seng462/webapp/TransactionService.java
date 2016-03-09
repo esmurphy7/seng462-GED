@@ -1,9 +1,8 @@
 package org.seng462.webapp;
 
+import com.teamged.deployment.deployments.TransactionServerDeployment;
+import com.teamged.deployment.deployments.WebServerDeployment;
 import jersey.repackaged.com.google.common.base.Joiner;
-import org.seng462.webapp.deployment.DeploymentManager;
-import org.seng462.webapp.deployment.deployments.TransactionServerDeployment;
-import org.seng462.webapp.deployment.deployments.WebServerDeployment;
 import org.seng462.webapp.logging.Logger;
 import org.seng462.webapp.logging.xmlelements.generated.CommandType;
 import org.seng462.webapp.logging.xmlelements.generated.UserCommandType;
@@ -88,7 +87,7 @@ public class TransactionService
         }
 
         // determine the target transaction server (equally distribute the workload to each server)
-        TransactionServerDeployment txDeployment = DeploymentManager.DeploymentSettings.getTransactionServers();
+        TransactionServerDeployment txDeployment = ConfigurationManager.DeploymentSettings.getTransactionServers();
         List<String> servers = txDeployment.getServers();
         int targetPort = txDeployment.getPort();
         int userNameSort = (userCommand.getArgs().get("userId") != null) ? userCommand.getArgs().get("userId").charAt(0) : 1;
@@ -184,7 +183,7 @@ public class TransactionService
         userCommandLog.setFilename(userCommand.getArgs().get("filename"));
         userCommandLog.setTransactionNum(new BigInteger(userCommand.getWorkloadSeqNo()));
         //TODO: log currently active web server instead of first index
-        WebServerDeployment webDeploy = DeploymentManager.DeploymentSettings.getWebServers();
+        WebServerDeployment webDeploy = ConfigurationManager.DeploymentSettings.getWebServers();
         userCommandLog.setServer(webDeploy.getServers().get(0));
         Logger.getInstance().Log(userCommandLog);
     }

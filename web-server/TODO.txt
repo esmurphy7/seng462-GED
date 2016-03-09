@@ -5,7 +5,9 @@ Configuration
       "procThreads": 4,
       "commThreads": 2,
 
-- let web-install.sh insert config.json into exploded WAR resources file
+- let web-install.sh insert config.json into project
+    - exploded WAR resources folder?
+    - whatever folder corresponds to "user.dir"?
 
 ====================================================================================================
 Commands

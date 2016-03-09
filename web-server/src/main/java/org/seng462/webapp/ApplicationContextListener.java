@@ -1,7 +1,5 @@
 package org.seng462.webapp;
 
-import org.seng462.webapp.deployment.DeploymentManager;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -14,7 +12,7 @@ public class ApplicationContextListener implements ServletContextListener
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         // load and deserialize the config.json file into the manager class
-        DeploymentManager.LoadConfig();
+        ConfigurationManager.LoadConfig();
     }
 
     @Override

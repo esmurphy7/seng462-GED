@@ -1,7 +1,7 @@
 package org.seng462.webapp.logging;
 
-import org.seng462.webapp.deployment.DeploymentManager;
-import org.seng462.webapp.deployment.deployments.AuditServerDeployment;
+import com.teamged.deployment.deployments.AuditServerDeployment;
+import org.seng462.webapp.ConfigurationManager;
 import org.seng462.webapp.logging.xmlelements.generated.LogType;
 import org.seng462.webapp.logging.xmlelements.generated.ObjectFactory;
 import org.xml.sax.SAXException;
@@ -57,7 +57,7 @@ public class LogProcessingHandler implements Runnable {
         try {
             marshaller.marshal(jaxbElement, sw);
             String xmlStr = sw.toString();
-            AuditServerDeployment auditDeploy = DeploymentManager.DeploymentSettings.getAuditServer();
+            AuditServerDeployment auditDeploy = ConfigurationManager.DeploymentSettings.getAuditServer();
             try (Socket s = new Socket(auditDeploy.getServer(), auditDeploy.getPort());
                  PrintWriter pw = new PrintWriter(s.getOutputStream(), true))
             {
