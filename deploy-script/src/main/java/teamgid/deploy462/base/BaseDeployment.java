@@ -18,6 +18,7 @@ public abstract class BaseDeployment {
     private List<String> resources;
     private List<String> deployScripts;
     private String runScript;
+    private Integer port;
 
     public abstract void deploy(String username, String password, DeploymentConfig deploymentConfig);
 
@@ -45,6 +46,14 @@ public abstract class BaseDeployment {
 
     public void setRunScript(String runScript) {
         this.runScript = runScript;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
     }
 
     protected void singleDeployment(SSHClient client, DeploymentConfig deploymentConfig) throws IOException {
