@@ -15,8 +15,10 @@ public class QuoteObject {
     // If a user wants to make a buy or sell, we want the system to have time to realize an update needs to be sent soon
     private static final long QUOTE_SHORT_LIFE_MILLIS = 55000;
 
-    // Number of arguments the quote server should return
-    private static final int QUOTE_STATEMENT_ARGS = 5;
+    private static final long MILLIS_PADDING = 15;
+
+    // Number of arguments the quote proxy server should return
+    private static final int QUOTE_STATEMENT_ARGS = 6;
 
     private int dollars;
     private int cents;
@@ -102,7 +104,7 @@ public class QuoteObject {
 
     private void parseArgs(String args) {
         boolean parsed = true;
-        quoteString = args;
+        quoteString = args.substring(0, args.lastIndexOf(','));
 
         if (args == null) {
             errorString = "Null argument";
@@ -130,7 +132,8 @@ public class QuoteObject {
             if (parsed) {
                 try {
                     quoteInternalTime = Long.parseLong(argsArray[3]);
-                    quoteTime = Calendar.getInstance().getTimeInMillis();
+                    long quoteAgeTime = Long.parseLong(argsArray[5]);
+                    quoteTime = Calendar.getInstance().getTimeInMillis() - quoteAgeTime - MILLIS_PADDING;
                     quoteTimeout = quoteTime + QUOTE_LIFE_MILLIS;
                     quoteShortTimeout = quoteTime + QUOTE_SHORT_LIFE_MILLIS;
                 } catch (NumberFormatException e) {

@@ -22,43 +22,13 @@ public class DeployLaunch {
     private static final String TX_TYPE = "tx";
     private static final String AUDIT_TYPE = "audit";
     private static final String CACHE_TYPE = "cache";
+    private static final String QUOTE_FETCH_TYPE = "fetch";
+    private static final String QUOTE_PROXY_TYPE = "proxy";
     private static final String ALL_TYPE = "all";
 
     private static String username;
     private static String password;
 
-    /**
-     * Deployment script for transaction server. Could easily be extended to deploy other servers.
-     * Requires user input - first for deployment type (currently only works with 'tx') and deployment server,
-     * and then username and password for logging on to the seng lab machine. To add more server options, edit
-     * the StaticConstants file in the deploy-script project.
-     * <p>
-     * Assumes that the transaction-server folder is in a directory level with deploy-script and that the program
-     * was launched from the deploy-script folder.
-     * <p>
-     * Copies the contents of the transaction-server project to the specified server. The contents will be placed in
-     * the /seng/scratch/group4 directory, under a new (or replaced) src directory. These files will be compiled (note
-     * that if new folders are added to the transaction-server project, those will need to be added to the compile
-     * definitions in the 'deployTxServer' method below.
-     * <p>
-     * A bash script will be copied to the target server, given execute permissions, and its line endings will be
-     * replaced with Unix LF instead of Windows CRLF. This way, the transaction server can be run by going to the
-     * /seng/scratch/group4 directory and typing:
-     * ./run-tx-server.sh
-     * <p>
-     * TODO:
-     * - Automatically build the list of directories to compile (could do a recursive traversal of the
-     * transaction-server folders to check for which ones have .java files, and then add those to a compile list)
-     * - Support command line args
-     * - Allow for ssh key usage to avoid having to pass a plaintext password in
-     * - Support test server deployments (maybe ... this will soon be deprecated)
-     * - Add other deployments
-     * - Generate a different target directory to avoid clobbering other 'src' folders, in case something else uses
-     * that name
-     * - Integrate with the other 'StaticConstants.java' currently in the transaction-server project
-     *
-     * @param args
-     */
     public static void main(String[] args) {
 
         Path configPath = Paths.get(System.getProperty("user.dir")).resolve("src").resolve("main").resolve("resources").resolve("config.json");
@@ -109,6 +79,8 @@ public class DeployLaunch {
                     "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
                     "\n    '" + AUDIT_TYPE + "' for Audit Server deployment" +
                     "\n    '" + CACHE_TYPE + "' for Cache Server deployment" +
+                    "\n    '" + QUOTE_FETCH_TYPE + "' for Quote Fetch Server deployment" +
+                    "\n    '" + QUOTE_PROXY_TYPE + "' for Quote Proxy Server deployment" +
                     "\n    '" + ALL_TYPE + "' for all deployments"
             );
 
@@ -116,7 +88,7 @@ public class DeployLaunch {
             System.out.println("The configuration for each deployment is in config.json");
             System.out.println();
             System.out.println("Enter deployment type: ");
-            System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, cache, all):");
+            System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, cache, fetch, proxy, all):");
             String input = userInput.nextLine();
 
             if (input.equals(ALL_TYPE)) {
@@ -127,6 +99,8 @@ public class DeployLaunch {
                 deployments.add(deploymentConfig.getDeployments().getTransactionServers());
                 deployments.add(deploymentConfig.getDeployments().getAuditServer());
                 deployments.add(deploymentConfig.getDeployments().getCacheServer());
+                deployments.add(deploymentConfig.getDeployments().getFetchServer());
+                deployments.add(deploymentConfig.getDeployments().getProxyServer());
                 hasDeploymentType = true;
 
             } else if (input.equals(WORKLOAD_GENERATOR_TYPE)) {
@@ -157,6 +131,16 @@ public class DeployLaunch {
             } else if (input.equals(CACHE_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getCacheServer());
+                hasDeploymentType = true;
+
+            } else if (input.equals(QUOTE_FETCH_TYPE)) {
+
+                deployments.add(deploymentConfig.getDeployments().getFetchServer());
+                hasDeploymentType = true;
+
+            } else if (input.equals(QUOTE_PROXY_TYPE)) {
+
+                deployments.add(deploymentConfig.getDeployments().getProxyServer());
                 hasDeploymentType = true;
 
             } else {

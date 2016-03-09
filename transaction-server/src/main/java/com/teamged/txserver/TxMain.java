@@ -2,6 +2,7 @@ package com.teamged.txserver;
 
 import com.teamged.deployment.DeployParser;
 import com.teamged.deployment.DeploymentSettings;
+import com.teamged.logging.Logger;
 
 public class TxMain {
     public static DeploymentSettings Deployment;
@@ -16,25 +17,7 @@ public class TxMain {
         parseArgs(args);
         Deployment = DeployParser.parseConfig();
         if (Deployment != null) {
-            System.out.println("CONFIG LOADED:");
-            System.out.println("\nQuote Server values");
-            System.out.println(Deployment.getQuoteServer().getServer() + ":" + Deployment.getQuoteServer().getPort());
-            System.out.println("\nWeb Server values");
-            for (String ws : Deployment.getWebServers().getServers()) {
-                System.out.println(ws + ":" + Deployment.getWebServers().getPort());
-            }
-            System.out.println("\nAudit Server values");
-            System.out.println(Deployment.getAuditServer().getServer() + ":" + Deployment.getAuditServer().getPort());
-            System.out.println(Deployment.getAuditServer().getServer() + ":" + Deployment.getAuditServer().getInternals().getDumpPort());
-            System.out.println("\nTransaction Server values");
-            for (String ts : Deployment.getTransactionServers().getServers()) {
-                System.out.println(ts + ":" + Deployment.getTransactionServers().getPort());
-            }
-            System.out.println(Deployment.getTransactionServers().getInternals().getThreadPoolSize());
-            System.out.println(Deployment.getTransactionServers().getInternals().getProcedureThreads());
-            System.out.println(Deployment.getTransactionServers().getInternals().getCommunicationThreads());
-            System.out.println(Deployment.getTransactionServers().getInternals().getQueueSize());
-            System.out.println("\nServer says: 'I am " + getServerName() + "'");
+            Logger.SetLogDestination(Deployment.getAuditServer());
             TransactionMonitor.runServer();
         }
         System.out.println("Exiting server");
@@ -62,11 +45,7 @@ public class TxMain {
 
     private static void parseArgs(String... args) {
         if (args != null && args.length != 0) {
-            try {
-                hostname = args[0];
-            } catch (NumberFormatException e) {
-                System.out.println("Could not determine server index number. Defaulting to 0");
-            }
+            hostname = args[0];
 
             for (String arg : args) {
                 if (arg.equals("-L1")) {

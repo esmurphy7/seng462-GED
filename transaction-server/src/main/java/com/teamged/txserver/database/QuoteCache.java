@@ -43,16 +43,7 @@ public class QuoteCache {
             q = fetchQuoteObject(stock, callingUser, tid, false);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            ErrorEventType eet = new ErrorEventType();
-            eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            eet.setServer(TxMain.getServerName());
-            eet.setTransactionNum(BigInteger.valueOf(tid));
-            eet.setCommand(CommandType.QUOTE);
-            eet.setUsername(callingUser);
-            eet.setStockSymbol(stock);
-            eet.setErrorMessage(e.getMessage());
-            Logger.getInstance().Log(eet);
-
+            logErrorEvent(stock, callingUser, tid, e.getMessage());
             q = QuoteObject.fromQuote("QUOTE ERROR");
         }
 
@@ -76,16 +67,7 @@ public class QuoteCache {
             q = fetchQuoteObject(stock, callingUser, tid, true);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            ErrorEventType eet = new ErrorEventType();
-            eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            eet.setServer(TxMain.getServerName());
-            eet.setTransactionNum(BigInteger.valueOf(tid));
-            eet.setCommand(CommandType.QUOTE);
-            eet.setUsername(callingUser);
-            eet.setStockSymbol(stock);
-            eet.setErrorMessage(e.getMessage());
-            Logger.getInstance().Log(eet);
-
+            logErrorEvent(stock, callingUser, tid, e.getMessage());
             q = QuoteObject.fromQuote("QUOTE ERROR");
         }
 
@@ -122,7 +104,7 @@ public class QuoteCache {
             {
                 // TODO: Take out some sort of write lock here? Could have unnecessary QUOTE requests here.
                 InternalLog.CacheDebug("[QUOTE C2] Cache Level II miss for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
-                fq = quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid));
+                fq = quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid, useShortTimeout));
                 quoteMap.put(stock, fq);
             } else {
                 InternalLog.CacheDebug("[QUOTE C2] Cache Level II hit for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
@@ -130,7 +112,7 @@ public class QuoteCache {
 
             q = fq.get();
         } else {
-            q = fetchQuoteFromServer(stock, callingUser, tid);
+            q = fetchQuoteFromServer(stock, callingUser, tid, useShortTimeout);
         }
 
         return q;
@@ -143,56 +125,47 @@ public class QuoteCache {
      * @param tid The transaction identifier for this operation.
      * @return The quote.
      */
-    private static QuoteObject fetchQuoteFromServer(String stock, String callingUser, int tid) {
+    private static QuoteObject fetchQuoteFromServer(String stock, String callingUser, int tid, boolean userShortTimeout) {
         QuoteObject quote;
-        long nowMillis = Calendar.getInstance().getTimeInMillis();
+        long nowMillis;
 
         try (
-                Socket quoteSocket = new Socket(TxMain.Deployment.getQuoteServer().getServer(), TxMain.Deployment.getQuoteServer().getPort());
+                Socket quoteSocket = new Socket(TxMain.Deployment.getProxyServer().getServer(), TxMain.Deployment.getProxyServer().getPort());
                 PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
         ) {
             String quoteString;
-            out.println(stock + "," + callingUser);
+            int shortTimeout = userShortTimeout ? 1 : 0;
+            out.println(stock + "," + callingUser + "," + tid + "," + shortTimeout);
             quoteString = in.readLine();
             quote = QuoteObject.fromQuote(quoteString);
+            nowMillis = Calendar.getInstance().getTimeInMillis();
 
             if (!quote.getErrorString().isEmpty()) {
-                // Log error
-                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
+                // Log error?
+                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
             } else {
-                try {
-                    InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
-                    QuoteServerType qst = new QuoteServerType();
-                    qst.setTimestamp(nowMillis);
-                    qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteInternalTime()));
-                    qst.setServer(TxMain.getServerName());
-                    qst.setTransactionNum(BigInteger.valueOf(tid));
-                    qst.setPrice(quote.getPrice());
-                    qst.setStockSymbol(quote.getStockSymbol());
-                    qst.setUsername(quote.getUserName());
-                    qst.setCryptokey(quote.getCryptoKey());
-                    Logger.getInstance().Log(qst);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    InternalLog.Log("Logging error");
-                }
+                InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                // No longer logs the quote here - the canonical quote log happens in the proxy server now.
             }
         } catch(IOException e) {
             e.printStackTrace();
-            ErrorEventType eet = new ErrorEventType();
-            eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            eet.setServer(TxMain.getServerName());
-            eet.setTransactionNum(BigInteger.valueOf(tid));
-            eet.setCommand(CommandType.QUOTE);
-            eet.setUsername(callingUser);
-            eet.setStockSymbol(stock);
-            eet.setErrorMessage(e.getMessage());
-            Logger.getInstance().Log(eet);
-
+            logErrorEvent(stock, callingUser, tid, e.getMessage());
             quote = QuoteObject.fromQuote("QUOTE ERROR");
         }
 
         return quote;
+    }
+
+    private static void logErrorEvent(String stock, String callingUser, int tid, String errMessage) {
+        ErrorEventType eet = new ErrorEventType();
+        eet.setTimestamp(Calendar.getInstance().getTimeInMillis());
+        eet.setServer(TxMain.getServerName());
+        eet.setTransactionNum(BigInteger.valueOf(tid));
+        eet.setCommand(CommandType.QUOTE);
+        eet.setUsername(callingUser);
+        eet.setStockSymbol(stock);
+        eet.setErrorMessage(errMessage);
+        Logger.getInstance().Log(eet);
     }
 }
