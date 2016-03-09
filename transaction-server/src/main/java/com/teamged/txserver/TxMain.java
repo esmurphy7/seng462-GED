@@ -2,6 +2,7 @@ package com.teamged.txserver;
 
 import com.teamged.deployment.DeployParser;
 import com.teamged.deployment.DeploymentSettings;
+import com.teamged.logging.Logger;
 
 public class TxMain {
     public static DeploymentSettings Deployment;
@@ -16,6 +17,7 @@ public class TxMain {
         parseArgs(args);
         Deployment = DeployParser.parseConfig();
         if (Deployment != null) {
+            Logger.SetLogDestination(Deployment.getAuditServer());
             TransactionMonitor.runServer();
         }
         System.out.println("Exiting server");
