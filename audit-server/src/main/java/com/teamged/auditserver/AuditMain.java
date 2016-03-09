@@ -4,7 +4,7 @@ import com.teamged.ServerConstants;
 import com.teamged.auditserver.threads.AuditDumpThread;
 import com.teamged.auditserver.threads.AuditServerThread;
 import com.teamged.auditserver.threads.LogConnectionThread;
-import com.teamged.logging.Logger;
+import com.teamged.logging.LogManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -104,7 +104,7 @@ public class AuditMain {
                     expectedSequenceTotal = 0;
                     userSequenceTotal.reset();
                     InternalLog.Log("Beginning log dump!");
-                    Logger.SaveLog();
+                    LogManager.SaveLog();
                     InternalLog.Log("Log dump ended!");
                 }
             }
