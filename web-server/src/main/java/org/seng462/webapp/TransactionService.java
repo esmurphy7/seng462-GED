@@ -1,19 +1,20 @@
 package org.seng462.webapp;
 
 import jersey.repackaged.com.google.common.base.Joiner;
-import org.seng462.webapp.deployment.DeploymentConfig;
+import org.seng462.webapp.deployment.DeploymentManager;
+import org.seng462.webapp.deployment.deployments.TransactionServerDeployment;
+import org.seng462.webapp.deployment.deployments.WebServerDeployment;
 import org.seng462.webapp.logging.Logger;
 import org.seng462.webapp.logging.xmlelements.generated.CommandType;
 import org.seng462.webapp.logging.xmlelements.generated.UserCommandType;
 
 import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,12 +87,13 @@ public class TransactionService
             return response;
         }
 
-        // determine the target transaction server
+        // determine the target transaction server (equally distribute the workload to each server)
+        TransactionServerDeployment txDeployment = DeploymentManager.DeploymentSettings.getTransactionServers();
+        List<String> servers = txDeployment.getServers();
+        int targetPort = txDeployment.getPort();
         int userNameSort = (userCommand.getArgs().get("userId") != null) ? userCommand.getArgs().get("userId").charAt(0) : 1;
-        int serverIndex = userNameSort % 3;
-        String targetServer = ServerConstants.TX_SERVERS[serverIndex];
-        String[] servers = DeploymentConfig.GetValue("deployments.transactionServers.servers", String[].class);
-        int targetPort = ServerConstants.TX_PORT_RANGE[0];
+        int serverIndex = userNameSort % servers.size();
+        String targetServer = servers.get(serverIndex);
 
         // open transaction socket
         try (Socket socket = new Socket(targetServer, targetPort);
@@ -182,7 +184,8 @@ public class TransactionService
         userCommandLog.setFilename(userCommand.getArgs().get("filename"));
         userCommandLog.setTransactionNum(new BigInteger(userCommand.getWorkloadSeqNo()));
         //TODO: log currently active web server instead of first index
-        userCommandLog.setServer(ServerConstants.WEB_SERVERS[0]);
+        WebServerDeployment webDeploy = DeploymentManager.DeploymentSettings.getWebServers();
+        userCommandLog.setServer(webDeploy.getServers().get(0));
         Logger.getInstance().Log(userCommandLog);
     }
 }

@@ -1,7 +1,6 @@
 package org.seng462.webapp.logging;
 
 
-import org.seng462.webapp.ServerConstants;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +14,7 @@ public class LogProcessingThread implements Runnable {
 
     public LogProcessingThread(BlockingQueue<Object> queue) {
         this.logs = queue;
-        pool = Executors.newFixedThreadPool(ServerConstants.COMM_THREAD_COUNT);
+        pool = Executors.newFixedThreadPool(2);
     }
 
     @Override
