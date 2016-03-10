@@ -1,6 +1,7 @@
 package org.seng462.webapp.logging;
 
-import org.seng462.webapp.ServerConstants;
+import com.teamged.deployment.deployments.AuditServerDeployment;
+import org.seng462.webapp.ConfigurationManager;
 import org.seng462.webapp.logging.xmlelements.generated.LogType;
 import org.seng462.webapp.logging.xmlelements.generated.ObjectFactory;
 import org.xml.sax.SAXException;
@@ -14,9 +15,7 @@ import javax.xml.bind.helpers.DefaultValidationEventHandler;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.*;
-import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * Created by DanielF on 2016-03-03.
@@ -58,7 +57,8 @@ public class LogProcessingHandler implements Runnable {
         try {
             marshaller.marshal(jaxbElement, sw);
             String xmlStr = sw.toString();
-            try (Socket s = new Socket(ServerConstants.AUDIT_SERVERS[0], ServerConstants.AUDIT_LOG_PORT);
+            AuditServerDeployment auditDeploy = ConfigurationManager.DeploymentSettings.getAuditServer();
+            try (Socket s = new Socket(auditDeploy.getServer(), auditDeploy.getPort());
                  PrintWriter pw = new PrintWriter(s.getOutputStream(), true))
             {
                 pw.println(xmlStr);
@@ -80,8 +80,8 @@ public class LogProcessingHandler implements Runnable {
         {
             // define schema
             SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            URL url = Logger.class.getResource(LOGFILE_SCHEMA);
-            File schemaFile = new File(url.getPath());
+            URI uri = Logger.class.getResource(LOGFILE_SCHEMA).toURI();
+            File schemaFile = new File(uri.getPath());
             Schema schema = sf.newSchema(schemaFile);
 
             // build jaxb context
@@ -96,6 +96,8 @@ public class LogProcessingHandler implements Runnable {
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
