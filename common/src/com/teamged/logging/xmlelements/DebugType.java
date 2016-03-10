@@ -200,7 +200,8 @@ public class DebugType extends LogType {
 
     @Override
     public String simpleSerialize() {
-        StringBuilder sb = new StringBuilder(getXmlElementType().ordinal());
+        StringBuilder sb = new StringBuilder();
+        sb.append(getXmlElementType().ordinal());
         sb.append(",");
         sb.append(this.getTimestamp());
         sb.append(",");
@@ -225,7 +226,6 @@ public class DebugType extends LogType {
         if (this.getDebugMessage() != null) {
             sb.append(this.getDebugMessage());
         }
-        sb.append(";");
 
         return sb.toString();
     }

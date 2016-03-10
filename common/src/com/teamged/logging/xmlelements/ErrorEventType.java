@@ -200,7 +200,8 @@ public class ErrorEventType extends LogType {
 
     @Override
     public String simpleSerialize() {
-        StringBuilder sb = new StringBuilder(getXmlElementType().ordinal());
+        StringBuilder sb = new StringBuilder();
+        sb.append(getXmlElementType().ordinal());
         sb.append(",");
         sb.append(this.getTimestamp());
         sb.append(",");
@@ -229,7 +230,6 @@ public class ErrorEventType extends LogType {
         if (this.getErrorMessage() != null) {
             sb.append(this.getErrorMessage());
         }
-        sb.append(";");
 
         return sb.toString();
     }

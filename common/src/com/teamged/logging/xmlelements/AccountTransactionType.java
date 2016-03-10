@@ -138,7 +138,8 @@ public class AccountTransactionType extends LogType {
 
     @Override
     public String simpleSerialize() {
-        StringBuilder sb = new StringBuilder(getXmlElementType().ordinal());
+        StringBuilder sb = new StringBuilder();
+        sb.append(getXmlElementType().ordinal());
         sb.append(",");
         sb.append(this.getTimestamp());
         sb.append(",");
@@ -151,7 +152,6 @@ public class AccountTransactionType extends LogType {
         sb.append(this.getUsername());
         sb.append(",");
         sb.append(this.getFunds().toPlainString());
-        sb.append(";");
 
         return sb.toString();
     }

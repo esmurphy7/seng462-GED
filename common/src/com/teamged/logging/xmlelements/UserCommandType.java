@@ -180,7 +180,8 @@ public class UserCommandType extends LogType {
     @SuppressWarnings("Duplicates")
     @Override
     public String simpleSerialize() {
-        StringBuilder sb = new StringBuilder(getXmlElementType().ordinal());
+        StringBuilder sb = new StringBuilder();
+        sb.append(getXmlElementType().ordinal());
         sb.append(",");
         sb.append(this.getTimestamp());
         sb.append(",");
@@ -205,7 +206,6 @@ public class UserCommandType extends LogType {
         if (this.getFunds() != null) {
             sb.append(this.getFunds().toPlainString());
         }
-        sb.append(";");
 
         return sb.toString();
     }

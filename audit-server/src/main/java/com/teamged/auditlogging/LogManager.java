@@ -2,7 +2,6 @@ package com.teamged.auditlogging;
 
 import com.teamged.auditlogging.generated.LogType;
 import com.teamged.auditlogging.generated.ObjectFactory;
-import com.teamged.auditserver.AuditMain;
 import com.teamged.auditserver.InternalLog;
 import org.xml.sax.SAXException;
 
@@ -13,13 +12,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Evan on 2/3/2016.
@@ -29,9 +30,12 @@ public class LogManager {
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
     private static final String OUTPUT_LOGFILE = "outputLog.xml";
     private static final Object queueLock = new Object();
+    private static final int QUEUE_SIZE = 100000;
 
-    private static Queue<Object> logQueue = new LinkedBlockingQueue<>();
+    private static List<Queue<Object>> logQueueStorage = new ArrayList<>();
+    private static Queue<Object> logQueue = new ArrayDeque<>(QUEUE_SIZE);
     private static JAXBContext jc;
+
     static {
         try {
             jc = JAXBContext.newInstance(LogType.class);
@@ -50,6 +54,11 @@ public class LogManager {
         synchronized (queueLock) {
             try {
                 logQueue.add(log);
+                if (logQueue.size() == QUEUE_SIZE) {
+                    logQueueStorage.add(logQueue);
+                    logQueue = new ArrayDeque<>(QUEUE_SIZE);
+                    InternalLog.Log((QUEUE_SIZE * logQueueStorage.size()) + " logs are now stored in the audit server");
+                }
             } catch (IllegalStateException e) {
                 e.printStackTrace();
                 InternalLog.Log("Log was not added to log queue - capacity exceeded.");
@@ -61,17 +70,22 @@ public class LogManager {
      * Dumps the current contents of the log to disk. Empties the current log queue.
      */
     public static void DumpLog() {
-        Queue<Object> dumpQueue;
+        List<Queue<Object>> dumpQueueList;
 
         synchronized (queueLock) {
-            dumpQueue = logQueue;
-            logQueue = new LinkedList<>();
+            dumpQueueList = logQueueStorage;
+            logQueueStorage = new ArrayList<>();
+
+            dumpQueueList.add(logQueue);
+            logQueue = new ArrayDeque<>(QUEUE_SIZE);
         }
 
         LogType logType = new LogType();
         Object nextLog;
-        while ((nextLog = dumpQueue.poll()) != null) {
-            logType.getUserCommandOrQuoteServerOrAccountTransaction().add(nextLog);
+        for (Queue<Object> q : dumpQueueList) {
+            while ((nextLog = q.poll()) != null) {
+                logType.getUserCommandOrQuoteServerOrAccountTransaction().add(nextLog);
+            }
         }
 
         URL url = LogManager.class.getResource("");

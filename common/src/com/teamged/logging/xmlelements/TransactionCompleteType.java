@@ -37,10 +37,10 @@ public class TransactionCompleteType extends LogType {
 
     @Override
     public String simpleSerialize() {
-        StringBuilder sb = new StringBuilder(getXmlElementType().ordinal());
+        StringBuilder sb = new StringBuilder();
+        sb.append(getXmlElementType().ordinal());
         sb.append(",");
         sb.append(this.getTransactionNum().toString());
-        sb.append(";");
 
         return sb.toString();
     }

@@ -38,7 +38,8 @@ public class LogConnectionHandler implements Runnable {
         }
 
         if (message != null) {
-            String[] args = message.split(",");
+            // This splits the message into an array, leaving all trailing empty string args intact
+            String[] args = message.split(",", -1);
             if (args.length > 0) {
                 try {
                     int i = 0;
@@ -187,10 +188,6 @@ public class LogConnectionHandler implements Runnable {
                         case TransactionCompleteType:
                             AuditMain.updateSequenceId(Integer.parseInt(args[i++]));
                             break;
-                    }
-
-                    if (!args[i].equals(";")) {
-                        System.out.println("ERROR PARSING MESSAGE: Unexpected end symbol found! Log message: " + message);
                     }
 
                     // This is the sequence with the least lock contention - dumpIsQueued is a simple boolean

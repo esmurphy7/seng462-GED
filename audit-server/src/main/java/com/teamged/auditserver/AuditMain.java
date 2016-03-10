@@ -1,6 +1,5 @@
 package com.teamged.auditserver;
 
-import com.teamged.ServerConstants;
 import com.teamged.auditlogging.LogManager;
 import com.teamged.auditserver.threads.AuditDumpThread;
 import com.teamged.auditserver.threads.AuditServerThread;
@@ -123,21 +122,19 @@ public class AuditMain {
 
     private static void runServer() {
         InternalLog.Log("Launching audit server socket listeners.");
-        for (int i = 0; i < ServerConstants.AUDIT_LOG_PORT_RANGE.length; i++) {
-            AuditServerThread connThread = null;
-            try {
-                connThread = new LogConnectionThread(ServerConstants.AUDIT_LOG_PORT_RANGE[i], ServerConstants.THREAD_POOL_SIZE, syncObject);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            auditConnThreads.add(connThread);
-            new Thread(connThread).start();
+        AuditServerThread connThread = null;
+        try {
+            connThread = new LogConnectionThread(Deployment.getAuditServer().getPort(), Deployment.getAuditServer().getInternals().getThreadPoolSize(), syncObject);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        auditConnThreads.add(connThread);
+        new Thread(connThread).start();
 
         InternalLog.Log("Launching audit server dump thread.");
         AuditServerThread audThread = null;
         try {
-            audThread = new AuditDumpThread(ServerConstants.AUDIT_DUMP_PORT, 1, syncObject);
+            audThread = new AuditDumpThread(Deployment.getAuditServer().getInternals().getDumpPort(), 1, syncObject);
         } catch (IOException e) {
             e.printStackTrace();
         }

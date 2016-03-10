@@ -55,11 +55,15 @@
             }
         },
         "auditServer": {
+            "resources": [
+                "gson-2.6.2.jar"
+            ],
             "runScript": "run-audit-server.sh",
             "server": "b141.seng.uvic.ca",
             "port": 44441,
             "internal" : {
-                "commThreads": 2,
+                "threadPool": 64,
+                "commThreads": 4,
                 "dumpPort": 44440
             }
         },

@@ -180,7 +180,8 @@ public class QuoteServerType extends LogType {
 
     @Override
     public String simpleSerialize() {
-        StringBuilder sb = new StringBuilder(getXmlElementType().ordinal());
+        StringBuilder sb = new StringBuilder();
+        sb.append(getXmlElementType().ordinal());
         sb.append(",");
         sb.append(this.getTimestamp());
         sb.append(",");
@@ -197,7 +198,6 @@ public class QuoteServerType extends LogType {
         sb.append(this.getQuoteServerTime().toString());
         sb.append(",");
         sb.append(this.getCryptokey());
-        sb.append(";");
 
         return sb.toString();
     }
