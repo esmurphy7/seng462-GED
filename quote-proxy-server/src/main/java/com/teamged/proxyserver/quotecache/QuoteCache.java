@@ -1,9 +1,9 @@
 package com.teamged.proxyserver.quotecache;
 
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.CommandType;
-import com.teamged.logging.xmlelements.generated.ErrorEventType;
-import com.teamged.logging.xmlelements.generated.QuoteServerType;
+import com.teamged.logging.xmlelements.CommandType;
+import com.teamged.logging.xmlelements.ErrorEventType;
+import com.teamged.logging.xmlelements.QuoteServerType;
 import com.teamged.proxyserver.InternalLog;
 import com.teamged.proxyserver.ProxyMain;
 

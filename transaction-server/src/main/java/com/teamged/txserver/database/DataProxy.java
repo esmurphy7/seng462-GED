@@ -1,8 +1,9 @@
 package com.teamged.txserver.database;
 
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.CommandType;
-import com.teamged.logging.xmlelements.generated.SystemEventType;
+import com.teamged.logging.xmlelements.CommandType;
+import com.teamged.logging.xmlelements.SystemEventType;
+import com.teamged.logging.xmlelements.TransactionCompleteType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 import com.teamged.txserver.transactions.TransactionObject;
@@ -32,7 +33,6 @@ public class DataProxy {
 
                     // Log the database connection as a system event
                     SystemEventType systemEvent = new SystemEventType();
-
                     systemEvent.setTimestamp(System.currentTimeMillis());
                     systemEvent.setServer(TxMain.getServerName());
                     systemEvent.setTransactionNum(BigInteger.valueOf(tx.getWorkloadSeqNum()));
@@ -40,7 +40,6 @@ public class DataProxy {
                     systemEvent.setCommand(CommandType.fromValue(tx.getUserCommand().name()));
                     systemEvent.setStockSymbol(tx.getStockSymbol());
                     systemEvent.setFilename(tx.getFileName());
-
                     Logger.getInstance().Log(systemEvent);
 
                     switch (tx.getUserCommand()) {
@@ -109,7 +108,9 @@ public class DataProxy {
             System.out.println("[ERROR CAUGHT IN DATA PROXY] " + e.getMessage());
         }
 
-        Logger.getInstance().Log("IDX," + tx.getWorkloadSeqNum());
+        TransactionCompleteType tcType = new TransactionCompleteType();
+        tcType.setTransactionNum(BigInteger.valueOf(tx.getWorkloadSeqNum()));
+        Logger.getInstance().Log(tcType);
 
         // TODO: Some additional processing and parsing of the result will be needed.
         return "[DATA PROXY RESULT]" + opResult;

@@ -1,9 +1,8 @@
 package com.teamged.txserver.transactions;
 
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.CommandType;
-import com.teamged.logging.xmlelements.generated.SystemEventType;
-import com.teamged.logging.xmlelements.generated.UserCommandType;
+import com.teamged.logging.xmlelements.CommandType;
+import com.teamged.logging.xmlelements.UserCommandType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 
