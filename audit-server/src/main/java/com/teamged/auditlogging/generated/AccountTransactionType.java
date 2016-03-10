@@ -6,8 +6,7 @@
 //
 
 
-package com.teamged.logging.xmlelements.generated;
-
+package com.teamged.auditlogging.generated;
 
 import javax.xml.bind.annotation.*;
 import java.math.BigDecimal;
@@ -15,23 +14,21 @@ import java.math.BigInteger;
 
 
 /**
- * <p>Java class for SystemEventType complex type.
+ * <p>Java class for AccountTransactionType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="SystemEventType">
+ * &lt;complexType name="AccountTransactionType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;all>
  *         &lt;element name="timestamp" type="{}unixTimeLimits"/>
  *         &lt;element name="server" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="transactionNum" type="{http://www.w3.org/2001/XMLSchema}positiveInteger"/>
- *         &lt;element name="command" type="{}commandType"/>
- *         &lt;element name="username" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="stockSymbol" type="{}stockSymbolType" minOccurs="0"/>
- *         &lt;element name="filename" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="funds" type="{http://www.w3.org/2001/XMLSchema}decimal" minOccurs="0"/>
+ *         &lt;element name="action" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="username" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="funds" type="{http://www.w3.org/2001/XMLSchema}decimal"/>
  *       &lt;/all>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -41,10 +38,10 @@ import java.math.BigInteger;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "SystemEventType", propOrder = {
+@XmlType(name = "AccountTransactionType", propOrder = {
 
 })
-public class SystemEventType {
+public class AccountTransactionType {
 
     @XmlSchemaType(name = "integer")
     protected long timestamp;
@@ -54,11 +51,10 @@ public class SystemEventType {
     @XmlSchemaType(name = "positiveInteger")
     protected BigInteger transactionNum;
     @XmlElement(required = true)
-    @XmlSchemaType(name = "string")
-    protected CommandType command;
+    protected String action;
+    @XmlElement(required = true)
     protected String username;
-    protected String stockSymbol;
-    protected String filename;
+    @XmlElement(required = true)
     protected BigDecimal funds;
 
     /**
@@ -126,27 +122,27 @@ public class SystemEventType {
     }
 
     /**
-     * Gets the value of the command property.
+     * Gets the value of the action property.
      * 
      * @return
      *     possible object is
-     *     {@link CommandType }
+     *     {@link String }
      *     
      */
-    public CommandType getCommand() {
-        return command;
+    public String getAction() {
+        return action;
     }
 
     /**
-     * Sets the value of the command property.
+     * Sets the value of the action property.
      * 
      * @param value
      *     allowed object is
-     *     {@link CommandType }
+     *     {@link String }
      *     
      */
-    public void setCommand(CommandType value) {
-        this.command = value;
+    public void setAction(String value) {
+        this.action = value;
     }
 
     /**
@@ -171,54 +167,6 @@ public class SystemEventType {
      */
     public void setUsername(String value) {
         this.username = value;
-    }
-
-    /**
-     * Gets the value of the stockSymbol property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getStockSymbol() {
-        return stockSymbol;
-    }
-
-    /**
-     * Sets the value of the stockSymbol property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setStockSymbol(String value) {
-        this.stockSymbol = value;
-    }
-
-    /**
-     * Gets the value of the filename property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFilename() {
-        return filename;
-    }
-
-    /**
-     * Sets the value of the filename property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFilename(String value) {
-        this.filename = value;
     }
 
     /**

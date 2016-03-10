@@ -6,7 +6,7 @@
 //
 
 
-package com.teamged.logging.xmlelements.generated;
+package com.teamged.auditlogging.generated;
 
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;

@@ -6,7 +6,8 @@
 //
 
 
-package com.teamged.logging.xmlelements.generated;
+package com.teamged.auditlogging.generated;
+
 
 import javax.xml.bind.annotation.*;
 import java.math.BigDecimal;
@@ -14,12 +15,12 @@ import java.math.BigInteger;
 
 
 /**
- * <p>Java class for ErrorEventType complex type.
+ * <p>Java class for SystemEventType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ErrorEventType">
+ * &lt;complexType name="SystemEventType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;all>
@@ -31,7 +32,6 @@ import java.math.BigInteger;
  *         &lt;element name="stockSymbol" type="{}stockSymbolType" minOccurs="0"/>
  *         &lt;element name="filename" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="funds" type="{http://www.w3.org/2001/XMLSchema}decimal" minOccurs="0"/>
- *         &lt;element name="errorMessage" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/all>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -41,10 +41,10 @@ import java.math.BigInteger;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ErrorEventType", propOrder = {
+@XmlType(name = "SystemEventType", propOrder = {
 
 })
-public class ErrorEventType {
+public class SystemEventType {
 
     @XmlSchemaType(name = "integer")
     protected long timestamp;
@@ -60,7 +60,6 @@ public class ErrorEventType {
     protected String stockSymbol;
     protected String filename;
     protected BigDecimal funds;
-    protected String errorMessage;
 
     /**
      * Gets the value of the timestamp property.
@@ -244,30 +243,6 @@ public class ErrorEventType {
      */
     public void setFunds(BigDecimal value) {
         this.funds = value;
-    }
-
-    /**
-     * Gets the value of the errorMessage property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    /**
-     * Sets the value of the errorMessage property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setErrorMessage(String value) {
-        this.errorMessage = value;
     }
 
 }

@@ -6,7 +6,7 @@
 //
 
 
-package com.teamged.logging.xmlelements.generated;
+package com.teamged.auditlogging.generated;
 
 import javax.xml.bind.annotation.*;
 import java.math.BigDecimal;
@@ -14,21 +14,24 @@ import java.math.BigInteger;
 
 
 /**
- * <p>Java class for AccountTransactionType complex type.
+ * <p>Java class for DebugType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="AccountTransactionType">
+ * &lt;complexType name="DebugType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;all>
  *         &lt;element name="timestamp" type="{}unixTimeLimits"/>
  *         &lt;element name="server" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="transactionNum" type="{http://www.w3.org/2001/XMLSchema}positiveInteger"/>
- *         &lt;element name="action" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="username" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="funds" type="{http://www.w3.org/2001/XMLSchema}decimal"/>
+ *         &lt;element name="command" type="{}commandType"/>
+ *         &lt;element name="username" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="stockSymbol" type="{}stockSymbolType" minOccurs="0"/>
+ *         &lt;element name="filename" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="funds" type="{http://www.w3.org/2001/XMLSchema}decimal" minOccurs="0"/>
+ *         &lt;element name="debugMessage" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/all>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -38,10 +41,10 @@ import java.math.BigInteger;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "AccountTransactionType", propOrder = {
+@XmlType(name = "DebugType", propOrder = {
 
 })
-public class AccountTransactionType {
+public class DebugType {
 
     @XmlSchemaType(name = "integer")
     protected long timestamp;
@@ -51,11 +54,13 @@ public class AccountTransactionType {
     @XmlSchemaType(name = "positiveInteger")
     protected BigInteger transactionNum;
     @XmlElement(required = true)
-    protected String action;
-    @XmlElement(required = true)
+    @XmlSchemaType(name = "string")
+    protected CommandType command;
     protected String username;
-    @XmlElement(required = true)
+    protected String stockSymbol;
+    protected String filename;
     protected BigDecimal funds;
+    protected String debugMessage;
 
     /**
      * Gets the value of the timestamp property.
@@ -122,27 +127,27 @@ public class AccountTransactionType {
     }
 
     /**
-     * Gets the value of the action property.
+     * Gets the value of the command property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link CommandType }
      *     
      */
-    public String getAction() {
-        return action;
+    public CommandType getCommand() {
+        return command;
     }
 
     /**
-     * Sets the value of the action property.
+     * Sets the value of the command property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link CommandType }
      *     
      */
-    public void setAction(String value) {
-        this.action = value;
+    public void setCommand(CommandType value) {
+        this.command = value;
     }
 
     /**
@@ -170,6 +175,54 @@ public class AccountTransactionType {
     }
 
     /**
+     * Gets the value of the stockSymbol property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getStockSymbol() {
+        return stockSymbol;
+    }
+
+    /**
+     * Sets the value of the stockSymbol property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setStockSymbol(String value) {
+        this.stockSymbol = value;
+    }
+
+    /**
+     * Gets the value of the filename property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
+     * Sets the value of the filename property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setFilename(String value) {
+        this.filename = value;
+    }
+
+    /**
      * Gets the value of the funds property.
      * 
      * @return
@@ -191,6 +244,30 @@ public class AccountTransactionType {
      */
     public void setFunds(BigDecimal value) {
         this.funds = value;
+    }
+
+    /**
+     * Gets the value of the debugMessage property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getDebugMessage() {
+        return debugMessage;
+    }
+
+    /**
+     * Sets the value of the debugMessage property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setDebugMessage(String value) {
+        this.debugMessage = value;
     }
 
 }

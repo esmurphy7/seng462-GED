@@ -4,7 +4,9 @@ import com.teamged.ServerConstants;
 import com.teamged.auditserver.threads.AuditDumpThread;
 import com.teamged.auditserver.threads.AuditServerThread;
 import com.teamged.auditserver.threads.LogConnectionThread;
-import com.teamged.logging.LogManager;
+import com.teamged.auditlogging.LogManager;
+import com.teamged.deployment.DeployParser;
+import com.teamged.deployment.DeploymentSettings;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,12 +18,15 @@ import java.util.concurrent.atomic.LongAdder;
  * Created by DanielF on 2016-02-23.
  */
 public class AuditMain {
+    public static DeploymentSettings Deployment;
+
+    private static String hostname;
     private static LongAdder userSequenceTotal = new LongAdder();
     private static boolean dumpReady = false;
     private static long expectedSequenceTotal = 0;
-    private static Object dumpLockObject = new Object();
+    private static final Object dumpLockObject = new Object();
 
-    private static Object syncObject = new Object();
+    private static final Object syncObject = new Object();
 
     private static final ArrayList<AuditServerThread> auditConnThreads = new ArrayList<>();
     private static final ArrayList<AuditServerThread> auditDumpThreads = new ArrayList<>();
@@ -29,9 +34,16 @@ public class AuditMain {
     private static final Queue<String> auditQueue = new ConcurrentLinkedQueue<>();
 
     public static void main(String[] args) {
-        defineServerTopology(args);
-        runServer();
+        parseArgs(args);
+        Deployment = DeployParser.parseConfig();
+        if (Deployment != null) {
+            runServer();
+        }
         InternalLog.Log("Exiting audit server");
+    }
+
+    public static String getServerName() {
+        return hostname;
     }
 
     /**
@@ -143,14 +155,9 @@ public class AuditMain {
         return log;
     }
 
-    private static void defineServerTopology(String[] args) {
-        // TODO: Define server connections from config file or command line args
-        if (args == null) {
-            // Use default config file
-        } else if (args.length == 1) {
-            // Use arg as path to config file
-        } else {
-            // Use default config file (or resort to default values if it's unfindable
+    private static void parseArgs(String[] args) {
+        if (args != null && args.length != 0) {
+            hostname = args[0];
         }
     }
 

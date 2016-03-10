@@ -1,3 +1,3 @@
 #!/bin/bash
 cd AuditDeploy
-java com/teamged/auditserver/AuditMain
+java com/teamged/auditserver/AuditMain $HOSTNAME
