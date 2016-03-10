@@ -1,4 +1,15 @@
 ====================================================================================================
+Configuration
+- add web servers internals section to config.json
+    - "threadPool": 4,
+      "procThreads": 4,
+      "commThreads": 2,
+
+- let web-install.sh insert config.json into project
+    - exploded WAR resources folder?
+    - whatever folder corresponds to "user.dir"?
+
+====================================================================================================
 Commands
 x create single UserCommand class
     x has field for command type
@@ -23,10 +34,16 @@ x create resource classes for remaining commands
 TransactionService
 x update service to take generic UserCommand class as arguement when sending commands
 - change service to send a formatted message over a socket
-    - format the message properly
-    - use the transaction server's ServerConstants class to configure target host of transaction server
-    - use ServerConstants to configure and use currently active web server host/port when sending commands
+    x format the message properly
+    x use config.json to configure target host of transaction server
+    - use currently active web server host/port when sending commands
+        - look at incoming requests to see current hostname
+        - read from resource file that run-webserver.sh edits for hostname value
     - receive and interpret response from tx server
+
+====================================================================================================
+Logging
+- use thread pool size for LogProcessingThread retrieved from config.json web server internals
 
 ====================================================================================================
 Template System

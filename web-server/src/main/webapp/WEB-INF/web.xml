@@ -5,6 +5,10 @@
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
 
+  <listener>
+    <listener-class>org.seng462.webapp.ApplicationContextListener</listener-class>
+  </listener>
+
   <servlet>
     <servlet-name>jersey-servlet</servlet-name>
     <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
