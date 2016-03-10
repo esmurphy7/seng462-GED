@@ -2,10 +2,10 @@ package org.seng462.webapp;
 
 import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.deployment.deployments.WebServerDeployment;
+import com.teamged.logging.Logger;
+import com.teamged.logging.xmlelements.generated.CommandType;
+import com.teamged.logging.xmlelements.generated.UserCommandType;
 import jersey.repackaged.com.google.common.base.Joiner;
-import org.seng462.webapp.logging.Logger;
-import org.seng462.webapp.logging.xmlelements.generated.CommandType;
-import org.seng462.webapp.logging.xmlelements.generated.UserCommandType;
 
 import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
