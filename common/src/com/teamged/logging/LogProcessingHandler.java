@@ -16,9 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * Created by DanielF on 2016-03-03.
@@ -88,8 +86,8 @@ public class LogProcessingHandler implements Runnable {
         try {
             // define schema
             SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            URL url = Logger.class.getResource(LOGFILE_SCHEMA);
-            File schemaFile = new File(url.getPath());
+            URI uri = Logger.class.getResource(LOGFILE_SCHEMA).toURI();
+            File schemaFile = new File(uri.getPath());
             Schema schema = sf.newSchema(schemaFile);
 
             // build marshaller
@@ -101,6 +99,8 @@ public class LogProcessingHandler implements Runnable {
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
