@@ -116,7 +116,7 @@ public class AuditMain {
                     expectedSequenceTotal = 0;
                     userSequenceTotal.reset();
                     InternalLog.Log("Beginning log dump!");
-                    LogManager.SaveLog();
+                    LogManager.DumpLog();
                     InternalLog.Log("Log dump ended!");
                 }
             }

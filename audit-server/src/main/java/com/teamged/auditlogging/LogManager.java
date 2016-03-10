@@ -27,45 +27,16 @@ import java.util.regex.Pattern;
  */
 public class LogManager {
     private static final String LOGFILE_SCHEMA = "logfile.xsd";
-    private static Queue<Object> logQueue = new LinkedBlockingQueue<>();
+    private static final String OUTPUT_LOGFILE = "outputLog.xml";
     private static final Object queueLock = new Object();
 
-    private static final String OUTPUT_LOGFILE = "outputLog.xml";
-    private static final String XML_OPEN = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<log>";
-    private static final String XML_CLOSE = "</log>\n";
+    private static Queue<Object> logQueue = new LinkedBlockingQueue<>();
     private static JAXBContext jc;
-
     static {
         try {
             jc = JAXBContext.newInstance(LogType.class);
         } catch (JAXBException e) {
             jc = null;
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Save the current log queue to a file on disk.
-     */
-    public static void SaveLog() {
-        URL url = LogManager.class.getResource("");
-        File outfile = new File(url.getPath() + OUTPUT_LOGFILE);
-        try {
-            outfile.createNewFile();
-            PrintWriter writer = new PrintWriter(outfile);
-
-            Pattern re = Pattern.compile("^<log>(.*)</log>$");
-            writer.append(XML_OPEN + "\n");
-            String nextLog;
-            while ((nextLog = AuditMain.takeLogQueue()) != null) {
-                Matcher m = re.matcher(nextLog);
-                if (m.matches()) {
-                    writer.append(m.group(1) + "\n");
-                }
-            }
-            writer.append(XML_CLOSE + "\n");
-            writer.close();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
