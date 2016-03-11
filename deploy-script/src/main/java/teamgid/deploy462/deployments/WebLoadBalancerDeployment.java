@@ -26,7 +26,9 @@ public class WebLoadBalancerDeployment extends SingleDeployment {
         }
 
         Map<String, Object> scopes = new HashMap<String, Object>();
-        scopes.put("webServers", webServerDeployment.getServers());
+        scopes.put("loadBalancerPort", deploymentConfig.getDeployments().getWebLoadBalancer().getPort());
+        scopes.put("webServerAddresses", webServerDeployment.getServers());
+        scopes.put("webServerPort", webServerDeployment.getPort());
 
         String file = "nginx.conf.loadbalancer";
 
