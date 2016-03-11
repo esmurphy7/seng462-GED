@@ -12,15 +12,13 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Evan on 2/3/2016.
@@ -44,6 +42,8 @@ public class LogManager {
             e.printStackTrace();
         }
     }
+
+    public static Queue<String> timestamps = new ConcurrentLinkedQueue<>();
 
     /**
      * Adds a log to the log queue.
@@ -101,6 +101,18 @@ public class LogManager {
             marshaller.marshal(jaxbLogType, outStream);
             outStream.close();
         } catch (IOException | JAXBException e) {
+            e.printStackTrace();
+        }
+
+        File statsOut = new File(url.getPath() + "timings");
+        try (FileWriter write = new FileWriter(url.getPath() + "timings");
+            PrintWriter outWriter = new PrintWriter(write)
+        ){
+            String s;
+            while ((s = timestamps.poll()) != null) {
+                outWriter.write(s);
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

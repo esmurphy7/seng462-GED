@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.Socket;
+import java.util.Calendar;
 
 /**
  * Created by DanielF on 2016-02-23.
@@ -30,12 +31,18 @@ public class LogConnectionHandler implements Runnable {
      */
     @Override
     public void run() {
+        Calendar c = Calendar.getInstance();
+        long startTime = c.getTimeInMillis();
         String message = null;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             message = in.readLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        long tick1 = c.getTimeInMillis();
+        long tick2 = 0;
+        long tick3 = 0;
+        long tick4 = 0;
 
         if (message != null) {
             // This splits the message into an array, leaving all trailing empty string args intact
@@ -54,7 +61,9 @@ public class LogConnectionHandler implements Runnable {
                             atType.setAction(args[i++]);
                             atType.setUsername(args[i++]);
                             atType.setFunds(new BigDecimal(args[i++]));
+                            tick2 = c.getTimeInMillis();
                             LogManager.AddLog(atType);
+                            tick3 = c.getTimeInMillis();
                             break;
                         case DebugType:
                             DebugType dbType = new DebugType();
@@ -82,7 +91,9 @@ public class LogConnectionHandler implements Runnable {
                             } else {
                                 i++;
                             }
+                            tick2 = c.getTimeInMillis();
                             LogManager.AddLog(dbType);
+                            tick3 = c.getTimeInMillis();
                             break;
                         case ErrorEventType:
                             ErrorEventType eeType = new ErrorEventType();
@@ -115,7 +126,9 @@ public class LogConnectionHandler implements Runnable {
                             } else {
                                 i++;
                             }
+                            tick2 = c.getTimeInMillis();
                             LogManager.AddLog(eeType);
+                            tick3 = c.getTimeInMillis();
                             break;
                         case QuoteServerType:
                             QuoteServerType qsType = new QuoteServerType();
@@ -127,7 +140,9 @@ public class LogConnectionHandler implements Runnable {
                             qsType.setUsername(args[i++]);
                             qsType.setQuoteServerTime(new BigInteger(args[i++]));
                             qsType.setCryptokey(args[i++]);
+                            tick2 = c.getTimeInMillis();
                             LogManager.AddLog(qsType);
+                            tick3 = c.getTimeInMillis();
                             break;
                         case SystemEventType:
                             SystemEventType seType = new SystemEventType();
@@ -155,7 +170,9 @@ public class LogConnectionHandler implements Runnable {
                             } else {
                                 i++;
                             }
+                            tick2 = c.getTimeInMillis();
                             LogManager.AddLog(seType);
+                            tick3 = c.getTimeInMillis();
                             break;
                         case UserCommandType:
                             UserCommandType ucType = new UserCommandType();
@@ -183,7 +200,9 @@ public class LogConnectionHandler implements Runnable {
                             } else {
                                 i++;
                             }
+                            tick2 = c.getTimeInMillis();
                             LogManager.AddLog(ucType);
+                            tick3 = c.getTimeInMillis();
                             break;
                         case TransactionCompleteType:
                             AuditMain.updateSequenceId(Integer.parseInt(args[i++]));
@@ -200,6 +219,23 @@ public class LogConnectionHandler implements Runnable {
                     InternalLog.Log("Error parsing log: " + message);
                 }
             }
+            tick4 = c.getTimeInMillis();
         }
+        long endTime = c.getTimeInMillis();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(tick1-startTime); // Socket read time
+        sb.append(",");
+        if (tick2 != 0 && tick3 != 0) {
+            sb.append(tick3-tick2); // Queue storage time
+        }
+        sb.append(",");
+        if (tick4 != 0) {
+            sb.append((tick4-tick1)-(tick3-tick2)); // Log parse time
+        }
+        sb.append(",");
+        sb.append(endTime-startTime); // Full run time of log handling
+        sb.append("\n");
+        LogManager.timestamps.add(sb.toString());
     }
 }
