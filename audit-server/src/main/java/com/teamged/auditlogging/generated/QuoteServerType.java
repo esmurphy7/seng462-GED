@@ -6,7 +6,7 @@
 //
 
 
-package com.teamged.logging.xmlelements.generated;
+package com.teamged.auditlogging.generated;
 
 import javax.xml.bind.annotation.*;
 import java.math.BigDecimal;
@@ -14,24 +14,23 @@ import java.math.BigInteger;
 
 
 /**
- * <p>Java class for DebugType complex type.
+ * <p>Java class for QuoteServerType complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="DebugType">
+ * &lt;complexType name="QuoteServerType">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;all>
  *         &lt;element name="timestamp" type="{}unixTimeLimits"/>
  *         &lt;element name="server" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="transactionNum" type="{http://www.w3.org/2001/XMLSchema}positiveInteger"/>
- *         &lt;element name="command" type="{}commandType"/>
- *         &lt;element name="username" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="stockSymbol" type="{}stockSymbolType" minOccurs="0"/>
- *         &lt;element name="filename" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="funds" type="{http://www.w3.org/2001/XMLSchema}decimal" minOccurs="0"/>
- *         &lt;element name="debugMessage" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="price" type="{http://www.w3.org/2001/XMLSchema}decimal"/>
+ *         &lt;element name="stockSymbol" type="{}stockSymbolType"/>
+ *         &lt;element name="username" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="quoteServerTime" type="{http://www.w3.org/2001/XMLSchema}integer"/>
+ *         &lt;element name="cryptokey" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/all>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -41,10 +40,10 @@ import java.math.BigInteger;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "DebugType", propOrder = {
+@XmlType(name = "QuoteServerType", propOrder = {
 
 })
-public class DebugType {
+public class QuoteServerType {
 
     @XmlSchemaType(name = "integer")
     protected long timestamp;
@@ -54,13 +53,15 @@ public class DebugType {
     @XmlSchemaType(name = "positiveInteger")
     protected BigInteger transactionNum;
     @XmlElement(required = true)
-    @XmlSchemaType(name = "string")
-    protected CommandType command;
-    protected String username;
+    protected BigDecimal price;
+    @XmlElement(required = true)
     protected String stockSymbol;
-    protected String filename;
-    protected BigDecimal funds;
-    protected String debugMessage;
+    @XmlElement(required = true)
+    protected String username;
+    @XmlElement(required = true)
+    protected BigInteger quoteServerTime;
+    @XmlElement(required = true)
+    protected String cryptokey;
 
     /**
      * Gets the value of the timestamp property.
@@ -127,51 +128,27 @@ public class DebugType {
     }
 
     /**
-     * Gets the value of the command property.
+     * Gets the value of the price property.
      * 
      * @return
      *     possible object is
-     *     {@link CommandType }
+     *     {@link BigDecimal }
      *     
      */
-    public CommandType getCommand() {
-        return command;
+    public BigDecimal getPrice() {
+        return price;
     }
 
     /**
-     * Sets the value of the command property.
+     * Sets the value of the price property.
      * 
      * @param value
      *     allowed object is
-     *     {@link CommandType }
+     *     {@link BigDecimal }
      *     
      */
-    public void setCommand(CommandType value) {
-        this.command = value;
-    }
-
-    /**
-     * Gets the value of the username property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * Sets the value of the username property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setUsername(String value) {
-        this.username = value;
+    public void setPrice(BigDecimal value) {
+        this.price = value;
     }
 
     /**
@@ -199,75 +176,75 @@ public class DebugType {
     }
 
     /**
-     * Gets the value of the filename property.
+     * Gets the value of the username property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getFilename() {
-        return filename;
+    public String getUsername() {
+        return username;
     }
 
     /**
-     * Sets the value of the filename property.
+     * Sets the value of the username property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setFilename(String value) {
-        this.filename = value;
+    public void setUsername(String value) {
+        this.username = value;
     }
 
     /**
-     * Gets the value of the funds property.
+     * Gets the value of the quoteServerTime property.
      * 
      * @return
      *     possible object is
-     *     {@link BigDecimal }
+     *     {@link BigInteger }
      *     
      */
-    public BigDecimal getFunds() {
-        return funds;
+    public BigInteger getQuoteServerTime() {
+        return quoteServerTime;
     }
 
     /**
-     * Sets the value of the funds property.
+     * Sets the value of the quoteServerTime property.
      * 
      * @param value
      *     allowed object is
-     *     {@link BigDecimal }
+     *     {@link BigInteger }
      *     
      */
-    public void setFunds(BigDecimal value) {
-        this.funds = value;
+    public void setQuoteServerTime(BigInteger value) {
+        this.quoteServerTime = value;
     }
 
     /**
-     * Gets the value of the debugMessage property.
+     * Gets the value of the cryptokey property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDebugMessage() {
-        return debugMessage;
+    public String getCryptokey() {
+        return cryptokey;
     }
 
     /**
-     * Sets the value of the debugMessage property.
+     * Sets the value of the cryptokey property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDebugMessage(String value) {
-        this.debugMessage = value;
+    public void setCryptokey(String value) {
+        this.cryptokey = value;
     }
 
 }

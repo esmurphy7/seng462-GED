@@ -45,7 +45,7 @@ public class QuoteProxyServerDeployment extends SingleDeployment {
                     remoteDeploy + "/com/teamged/deployment/deployments/*.java " +
                     remoteDeploy + "/com/teamged/deployment/internals/*.java " +
                     remoteDeploy + "/com/teamged/logging/*.java " +
-                    remoteDeploy + "/com/teamged/logging/xmlelements/generated/*.java"
+                    remoteDeploy + "/com/teamged/logging/xmlelements/*.java"
             );
             String result = IOUtils.readFully(javac_cmd.getInputStream()).toString();
             if (!result.equals("")) {

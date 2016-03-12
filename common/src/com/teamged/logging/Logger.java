@@ -1,6 +1,7 @@
 package com.teamged.logging;
 
 import com.teamged.deployment.deployments.AuditServerDeployment;
+import com.teamged.logging.xmlelements.LogType;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,7 +18,7 @@ public class Logger
 {
     private static AuditServerDeployment AUDIT_DEPLOY = null;
     private static Logger instance = null;
-    private final BlockingQueue<Object> logs;
+    private final BlockingQueue<LogType> logs;
 
     /**
      * Private constructor for the Logger singleton.
@@ -66,7 +67,7 @@ public class Logger
      *
      * @param logInstance The log object.
      */
-    public void Log(Object logInstance) {
+    public void Log(LogType logInstance) {
         try {
             logs.add(logInstance);
         } catch (Exception e) {

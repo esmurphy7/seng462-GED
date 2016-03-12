@@ -172,6 +172,7 @@ public class TransactionService
                 break;
         }
 
+        /*
         UserCommandType userCommandLog = new UserCommandType();
         userCommandLog.setCommand(commandType);
         userCommandLog.setUsername(userCommand.getArgs().get("userId"));
@@ -186,5 +187,6 @@ public class TransactionService
         WebServerDeployment webDeploy = ConfigurationManager.DeploymentSettings.getWebServers();
         userCommandLog.setServer(webDeploy.getServers().get(0));
         Logger.getInstance().Log(userCommandLog);
+        */
     }
 }

@@ -1,9 +1,8 @@
 package com.teamged.txserver.database;
 
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.CommandType;
-import com.teamged.logging.xmlelements.generated.ErrorEventType;
-import com.teamged.logging.xmlelements.generated.QuoteServerType;
+import com.teamged.logging.xmlelements.CommandType;
+import com.teamged.logging.xmlelements.ErrorEventType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 

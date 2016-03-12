@@ -1,4 +1,4 @@
-package com.teamged.logging;
+package com.teamged.auditlogging;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
