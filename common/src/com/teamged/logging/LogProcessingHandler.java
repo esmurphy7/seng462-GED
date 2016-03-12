@@ -10,20 +10,18 @@ import java.net.Socket;
  * Created by DanielF on 2016-03-03.
  */
 public class LogProcessingHandler implements Runnable {
-    private final LogType logObj;
+    private final String logStr;
 
-    public LogProcessingHandler(LogType log) {
-        logObj = log;
+    public LogProcessingHandler(String log) {
+        logStr = log;
     }
 
     @Override
     public void run() {
-        String logString = logObj.simpleSerialize();
-
         try (Socket s = new Socket(Logger.GetLogDestination().getServer(), Logger.GetLogDestination().getPort());
              PrintWriter out = new PrintWriter(s.getOutputStream(), true)
         ) {
-            out.println(logString);
+            out.println(logStr);
         } catch (IOException e) {
             e.printStackTrace();
         }

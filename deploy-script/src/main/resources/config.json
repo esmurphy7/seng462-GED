@@ -50,7 +50,7 @@
             "internal": {
                 "threadPool": 4,
                 "procThreads": 4,
-                "commThreads": 2,
+                "commThreads": 8,
                 "queueSize": 1000000
             }
         },

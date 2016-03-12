@@ -25,7 +25,7 @@ public class AuditDumpThread extends AuditServerThread
 
     @Override
     public boolean isRunning() {
-        return false;
+        return this.running;
     }
 
     @Override
