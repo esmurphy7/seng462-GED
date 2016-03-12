@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+    private static int MAX_THREAD_COUNT = 200;
+
     public static void main(String[] args) {
 
         if (args.length == 0) {
@@ -70,7 +72,7 @@ public class Main {
                     .collect(Collectors.toList());
 
             // Create thread pool
-            ExecutorService taskExecutor = Executors.newFixedThreadPool(10);
+            ExecutorService taskExecutor = Executors.newFixedThreadPool(Math.min(transactionsByUser.size(), MAX_THREAD_COUNT));
 
             String webServer = String.format("%s:%d", serverAddress, serverPort);
 

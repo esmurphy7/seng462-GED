@@ -33,13 +33,13 @@ http {
     #gzip  on;
 
     upstream gedwebserver {
-        {{#webServers}}
-        server {{.}}:44440;
-        {{/webServers}}
+        {{#webServerAddresses}}
+        server {{.}}:{{webServerPort}};
+        {{/webServerAddresses}}
     }
 
     server {
-        listen       44440;
+        listen       {{loadBalancerPort}};
         server_name  localhost;
 
         #charset koi8-r;

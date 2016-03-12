@@ -1,5 +1,7 @@
 package org.seng462.webapp;
 
+import com.teamged.logging.Logger;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -11,8 +13,11 @@ public class ApplicationContextListener implements ServletContextListener
 {
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
-        // load and deserialize the config.json file into the manager class
+        // load and deserialize the config file file into the manager class
         ConfigurationManager.LoadConfig();
+
+        // Initialize the Logger to send its logs to the audit server
+        Logger.SetLogDestination(ConfigurationManager.DeploymentSettings.getAuditServer());
     }
 
     @Override
