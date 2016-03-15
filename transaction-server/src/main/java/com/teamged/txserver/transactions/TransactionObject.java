@@ -113,6 +113,7 @@ public class TransactionObject {
                 break;
         }
 
+        /*
         UserCommandType systemEvent = new UserCommandType(); // For testing an isolated tx server with audit log
         //SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
@@ -125,6 +126,7 @@ public class TransactionObject {
         systemEvent.setFunds(new BigDecimal(amountDollars + "." + amountCents));
 
         Logger.getInstance().Log(systemEvent);
+        */
     }
 
     /**
