@@ -40,6 +40,8 @@ public class RequestProcessingHandler implements Runnable {
             // TODO: This does not properly deal with transactions that have no user name (DUMPLOG_ROOT)
             TransactionMonitor.AddTransactionObject(to);
             TransactionMonitor.PutRequestQueue(to.getUserName());
+
+            if ()
         }
     }
 

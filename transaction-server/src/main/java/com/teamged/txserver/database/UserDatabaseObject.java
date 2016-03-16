@@ -650,7 +650,7 @@ public class UserDatabaseObject {
                 InternalLog.CacheDebug("[QUOTE C1] Cache Level I miss for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
                 InternalLog.Log("[DEBUG PRINT] FETCHING QUOTE");
                 if (useShortTimeout) {
-                    quote = QuoteCache.fetchNewQuote(stock, userName, tid);
+                    quote = QuoteCache.fetchShortQuote(stock, userName, tid);
                 } else {
                     quote = QuoteCache.fetchQuote(stock, userName, tid);
                 }

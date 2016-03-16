@@ -92,11 +92,12 @@ public class QuoteCache {
             if (fq == null ||
                     fq.isCancelled() ||
                     (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) ||
-                    (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) {
-                InternalLog.Log("Cache miss for prefetch quote. Stock: " + stock + "; User: " +
+                    (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis)))
+            {
+                InternalLog.Log("Cache miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " +
                         callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
             } else {
-                InternalLog.Log("Cache hit for prefetch quote. Stock: " + stock + "; User: " +
+                InternalLog.Log("Cache hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " +
                         callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
                 doPrefetch = false;
             }
