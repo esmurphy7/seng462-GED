@@ -39,6 +39,8 @@ http {
         {{#webServerAddresses}}
         server {{.}}:{{webServerPort}};
         {{/webServerAddresses}}
+
+        keepalive 64;
     }
 
     server {
@@ -55,8 +57,8 @@ http {
 
             add_header "X-Upstream-Addr" $upstream_addr;
 
-            #root   html;
-            #index  index.html index.htm;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
         }
 
         #error_page  404              /404.html;
