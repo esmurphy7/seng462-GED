@@ -1,11 +1,10 @@
 package com.seng462ged.daytrader.workloadgenerator;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 public class Importer {
 
@@ -31,11 +30,23 @@ public class Importer {
 
         List<Transaction> transactions = new ArrayList<Transaction>();
 
-        BufferedReader br = new BufferedReader(new FileReader(filename));
+        InputStream inputStream = new FileInputStream(filename);
+
+        // Put into buffered stream so that we can test if the file is gzipped
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+
+        // Check if the file is gzipped
+        if (isCompressed(bufferedInputStream)) {
+
+            GZIPInputStream gzipInputStream = new GZIPInputStream(bufferedInputStream);
+            bufferedInputStream = new BufferedInputStream(gzipInputStream);
+        }
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(bufferedInputStream));
 
         try {
 
-            String line = br.readLine();
+            String line = bufferedReader.readLine();
 
             while (line != null) {
 
@@ -85,13 +96,32 @@ public class Importer {
                     }
                 }
 
-                line = br.readLine();
+                line = bufferedReader.readLine();
             }
 
             return transactions;
 
         } finally {
-            br.close();
+            bufferedReader.close();
         }
+    }
+
+    public static boolean isCompressed(BufferedInputStream bufferedInputStream) throws IOException {
+
+        byte[] header = new byte[2];
+
+        // Read the first two bytes
+        bufferedInputStream.mark(2);
+        bufferedInputStream.read(header, 0, 2);
+
+        // Reset BufferedInputStream
+        bufferedInputStream.reset();
+
+        // Make sure the first two bytes exist
+        if ((header == null) || (header.length < 2))
+            return false;
+
+        // Check if the first two bytes match the gzip header
+        return ((header[0] == (byte)(GZIPInputStream.GZIP_MAGIC)) && (header[1] == (byte)(GZIPInputStream.GZIP_MAGIC >> 8)));
     }
 }

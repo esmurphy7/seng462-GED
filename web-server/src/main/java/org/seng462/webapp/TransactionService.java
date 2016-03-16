@@ -3,15 +3,16 @@ package org.seng462.webapp;
 import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.deployment.deployments.WebServerDeployment;
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.generated.CommandType;
-import com.teamged.logging.xmlelements.generated.UserCommandType;
+import com.teamged.logging.xmlelements.CommandType;
+import com.teamged.logging.xmlelements.UserCommandType;
 import jersey.repackaged.com.google.common.base.Joiner;
 
 import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +73,7 @@ public class TransactionService
     public static Response sendCommand(UserCommand userCommand)
     {
         // log a user command to the audit server
-        System.out.println("Logging transaction "+userCommand.getWorkloadSeqNo()+": "+userCommand.getCmdCode());
+
         TransactionService.LogUserCommand(userCommand);
 
         // format the message
@@ -107,7 +108,7 @@ public class TransactionService
 
         }catch (Exception e) {
             String errorMsg = "Could not connect to transaction server: "+  targetServer + ":" + targetPort + "\n" + e.getMessage();
-            e.printStackTrace();
+            System.out.println(errorMsg);
             Response response = Response.serverError().entity(errorMsg).build();
             return response;
         }
@@ -172,7 +173,8 @@ public class TransactionService
                 break;
         }
 
-        /*
+        System.out.println("Logging transaction "+userCommand.getWorkloadSeqNo()+": "+userCommand.getCmdCode());
+
         UserCommandType userCommandLog = new UserCommandType();
         userCommandLog.setCommand(commandType);
         userCommandLog.setUsername(userCommand.getArgs().get("userId"));
@@ -187,6 +189,7 @@ public class TransactionService
         WebServerDeployment webDeploy = ConfigurationManager.DeploymentSettings.getWebServers();
         userCommandLog.setServer(webDeploy.getServers().get(0));
         Logger.getInstance().Log(userCommandLog);
-        */
+
+
     }
 }

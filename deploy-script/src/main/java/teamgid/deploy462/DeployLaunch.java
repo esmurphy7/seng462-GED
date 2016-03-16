@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -91,7 +92,10 @@ public class DeployLaunch {
             System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, cache, fetch, proxy, all):");
             String input = userInput.nextLine();
 
-            if (input.equals(ALL_TYPE)) {
+            // the user can specify a common-separated subset of deployments
+            List<String> inputs = Arrays.asList(input.split("\\s*,\\s*"));
+
+            if (inputs.contains(ALL_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getWorkloadGenerator());
                 deployments.add(deploymentConfig.getDeployments().getWebLoadBalancer());
@@ -103,49 +107,53 @@ public class DeployLaunch {
                 deployments.add(deploymentConfig.getDeployments().getProxyServer());
                 hasDeploymentType = true;
 
-            } else if (input.equals(WORKLOAD_GENERATOR_TYPE)) {
+            }
+            if (inputs.contains(WORKLOAD_GENERATOR_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getWorkloadGenerator());
                 hasDeploymentType = true;
 
-            } else if (input.equals(WEB_LB_TYPE)) {
+            }
+            if (inputs.contains(WEB_LB_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getWebLoadBalancer());
                 hasDeploymentType = true;
 
-            } else if (input.equals(WEB_TYPE)) {
+            }
+            if (input.contains(WEB_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getWebServers());
                 hasDeploymentType = true;
 
-            } else if (input.equals(TX_TYPE)) {
+            }
+            if (inputs.contains(TX_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getTransactionServers());
                 hasDeploymentType = true;
 
-            } else if (input.equals(AUDIT_TYPE)) {
+            }
+            if (inputs.contains(AUDIT_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getAuditServer());
                 hasDeploymentType = true;
 
-            } else if (input.equals(CACHE_TYPE)) {
+            }
+            if (inputs.contains(CACHE_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getCacheServer());
                 hasDeploymentType = true;
 
-            } else if (input.equals(QUOTE_FETCH_TYPE)) {
+            }
+            if (inputs.contains(QUOTE_FETCH_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getFetchServer());
                 hasDeploymentType = true;
 
-            } else if (input.equals(QUOTE_PROXY_TYPE)) {
+            }
+            if (inputs.contains(QUOTE_PROXY_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getProxyServer());
                 hasDeploymentType = true;
-
-            } else {
-
-                System.out.println("Not a valid server option");
             }
         }
 

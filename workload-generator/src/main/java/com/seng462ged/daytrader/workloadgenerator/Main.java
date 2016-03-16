@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    private static int MAX_THREAD_COUNT = 200;
+    private static int MAX_THREAD_COUNT = 100;
 
     public static void main(String[] args) {
 
@@ -31,16 +31,20 @@ public class Main {
 
         // Get load balancer address and port from config file if they exists
         DeploymentSettings deploymentSettings = DeployParser.parseConfig("config.json");
-        WebLoadBalancerDeployment loadBalancerDeployment = deploymentSettings.getWebLoadBalancer();
 
-        if (loadBalancerDeployment != null) {
+        if (deploymentSettings != null) {
 
-            if (loadBalancerDeployment.getServer() != null) {
-                serverAddress = loadBalancerDeployment.getServer();
-            }
+            WebLoadBalancerDeployment loadBalancerDeployment = deploymentSettings.getWebLoadBalancer();
 
-            if (loadBalancerDeployment.getPort() != null) {
-                serverPort = loadBalancerDeployment.getPort();
+            if (loadBalancerDeployment != null) {
+
+                if (loadBalancerDeployment.getServer() != null) {
+                    serverAddress = loadBalancerDeployment.getServer();
+                }
+
+                if (loadBalancerDeployment.getPort() != null) {
+                    serverPort = loadBalancerDeployment.getPort();
+                }
             }
         }
 
@@ -59,11 +63,15 @@ public class Main {
             // Import transactions from file
             List<Transaction> transactions = Importer.ImportTransactions(workloadFile);
 
+            System.out.println(String.format("Number transactions: %d", transactions.size()));
+
             // Group transactions by users
             Collection<List<Transaction>> transactionsByUser = transactions.stream()
                     .filter(transaction -> transaction.getUserId() != null)
                     .collect(Collectors.groupingBy(transaction -> transaction.getUserId()))
                     .values();
+
+            System.out.println(String.format("Number users: %d", transactionsByUser.size()));
 
             // Find dumplog transactions with no user id (normally only 1 at the end)
             List<Transaction> dumplogTransactions = transactions.stream()

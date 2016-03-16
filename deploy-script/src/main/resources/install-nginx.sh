@@ -2,7 +2,7 @@
 
 installDirectory=/seng/scratch/group4
 programName=nginx
-nginxVersion="1.5.5"
+nginxVersion="1.9.12"
 numberCores=$(nproc)
 
 if [ ! -d "$installDirectory/$programName" ]; then
@@ -25,7 +25,9 @@ if [ ! -d "$installDirectory/$programName" ]; then
     # Configure nginx to install at our install directory
     ./configure \
     --prefix=$installDirectory/$programName \
-    --with-http_ssl_module
+    --with-http_ssl_module \
+    --with-file-aio \
+    --with-threads
 
     # Compile and install
     make -j $numberCores

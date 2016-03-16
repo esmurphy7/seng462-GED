@@ -1,16 +1,24 @@
 package com.seng462ged.daytrader.workloadgenerator;
 
+import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Requester {
 
     public static void SendTransactions(String webServer, List<Transaction> transactions) {
 
+        final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .readTimeout(200, TimeUnit.SECONDS)
+                .connectTimeout(200, TimeUnit.SECONDS)
+                .build();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(String.format("http://%s/api/", webServer))
+                .client(okHttpClient)
                 .build();
 
         TransactionService transactionService = retrofit.create(TransactionService.class);
@@ -95,6 +103,12 @@ public class Requester {
 
             } catch (IOException e) {
 
+                e.printStackTrace();
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
