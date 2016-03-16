@@ -4,6 +4,7 @@ import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.TransactionCompleteType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TransactionMonitor;
+import com.teamged.txserver.database.QuoteCache;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +42,21 @@ public class RequestProcessingHandler implements Runnable {
             TransactionMonitor.AddTransactionObject(to);
             TransactionMonitor.PutRequestQueue(to.getUserName());
 
-            if ()
+            // Prefetch the quote if the prepared command will result in one when it is run
+            switch (to.getUserCommand()) {
+                case QUOTE:
+                case SET_BUY_TRIGGER:
+                case SET_SELL_TRIGGER:
+                    QuoteCache.prefetchQuote(to.getStockSymbol(), to.getUserName(), to.getWorkloadSeqNum());
+                    break;
+                case BUY:
+                case SELL:
+                    QuoteCache.prefetchShortQuote(to.getStockSymbol(), to.getUserName(), to.getWorkloadSeqNum());
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
         }
     }
 
