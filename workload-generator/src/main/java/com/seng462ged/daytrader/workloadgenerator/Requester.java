@@ -107,7 +107,7 @@ public class Requester {
             }
 
             try {
-                Thread.sleep(150);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
