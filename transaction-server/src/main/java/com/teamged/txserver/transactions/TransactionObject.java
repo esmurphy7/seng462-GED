@@ -2,7 +2,7 @@ package com.teamged.txserver.transactions;
 
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
-import com.teamged.logging.xmlelements.UserCommandType;
+import com.teamged.logging.xmlelements.SystemEventType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 
@@ -113,12 +113,14 @@ public class TransactionObject {
                 break;
         }
 
-        UserCommandType systemEvent = new UserCommandType(); // For testing an isolated tx server with audit log
-        //SystemEventType systemEvent = new SystemEventType();
+        //UserCommandType systemEvent = new UserCommandType(); // For testing an isolated tx server with audit log
+        SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
         systemEvent.setServer(TxMain.getServerName());
         systemEvent.setTransactionNum(BigInteger.valueOf(workloadSeqNum));
-        systemEvent.setUsername(userName);
+        if (!userName.equals(ROOT_USER)) {
+            systemEvent.setUsername(userName);
+        }
         systemEvent.setCommand(commandType);
         systemEvent.setStockSymbol(stockSymbol);
         systemEvent.setFilename(fileName);
