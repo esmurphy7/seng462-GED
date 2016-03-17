@@ -42,6 +42,7 @@
             ],
             "runScript": "run-tx-server.sh",
             "servers": [
+                "b134.seng.uvic.ca",
                 "b135.seng.uvic.ca",
                 "b136.seng.uvic.ca",
                 "b137.seng.uvic.ca"
@@ -84,7 +85,9 @@
             ],
             "runScript": "run-fetch-server.sh",
             "servers": [
-                "b147.seng.uvic.ca",
+                "b138.seng.uvic.ca",
+                "b139.seng.uvic.ca",
+                "b153.seng.uvic.ca",
                 "b148.seng.uvic.ca",
                 "b149.seng.uvic.ca"
             ],
@@ -101,6 +104,8 @@
             "server": "b150.seng.uvic.ca",
             "port": 44444,
             "internal": {
+                "prefetchPort": 44445,
+                "smallPool": 8,
                 "threadPool": 64
             }
         }

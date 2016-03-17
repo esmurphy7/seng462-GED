@@ -11,6 +11,7 @@ public class TxMain {
     private static boolean verbose = false;
     private static boolean l2 = true;
     private static boolean rt = true;
+    private static boolean prefetch = true;
     private static String hostname;
 
     public static void main(String... args) {
@@ -39,6 +40,10 @@ public class TxMain {
         return rt;
     }
 
+    public static boolean prefetchEnabled() {
+        return prefetch;
+    }
+
     public static String getServerName() {
         return hostname;
     }
@@ -51,17 +56,18 @@ public class TxMain {
                 if (arg.equals("-L1")) {
                     l2 = false;
                     rt = false;
-                    cache_debug = true;
-                    InternalLog.CacheDebug("L2 and real time caches disabled");
+                    InternalLog.Critical("L2 and real time caches disabled");
                     break;
                 } else if (arg.equals("-L2")) {
                     rt = false;
-                    cache_debug = true;
-                    InternalLog.CacheDebug("Real time cache disabled");
+                    InternalLog.Critical("Real time cache disabled");
                     break;
+                } else if (arg.equals("-PF")) {
+                    prefetch = false;
+                    InternalLog.Critical("Prefetch cache disabled");
                 } else if (arg.equals("-LL")) {
                     cache_debug = true;
-                    InternalLog.CacheDebug("Cache debug enabled");
+                    InternalLog.Critical("Cache debug enabled");
                 } else if (arg.equals("-V")) {
                     verbose = true;
                     InternalLog.Log("Verbose mode");
@@ -71,8 +77,8 @@ public class TxMain {
             System.out.println("Could not determine server index number. Defaulting to 0");
         }
 
-        if (l2 && rt) {
-            System.out.println("Vanilla server config running");
+        if (l2 && rt && prefetch) {
+            System.out.println("Regular server config running (all cache levels enabled)");
         }
     }
 }

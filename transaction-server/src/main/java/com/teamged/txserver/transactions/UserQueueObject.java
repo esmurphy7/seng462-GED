@@ -3,6 +3,7 @@ package com.teamged.txserver.transactions;
 import com.teamged.txserver.InternalLog;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -62,12 +63,18 @@ public class UserQueueObject {
      */
     public boolean tryClaimProcessingFlag() {
         boolean claimed = false;
-        lock.lock();
-        if (!processingFlag) {
-            processingFlag = true;
-            claimed = true;
+        try {
+            if (lock.tryLock(0, TimeUnit.SECONDS)) {
+                if (!processingFlag) {
+                    processingFlag = true;
+                    claimed = true;
+                }
+
+                lock.unlock();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        lock.unlock();
 
         return claimed;
     }

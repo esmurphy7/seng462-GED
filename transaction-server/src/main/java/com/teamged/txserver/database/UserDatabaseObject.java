@@ -74,7 +74,7 @@ public class UserDatabaseObject {
         return performQuote(stock, tid, false);
     }
 
-    public QuoteObject realtimeQuote(String stock, int tid) {
+    public QuoteObject shortQuote(String stock, int tid) {
         InternalLog.CacheDebug("[QUOTE B] Fetching regular quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
         return performQuote(stock, tid, true);
     }
@@ -83,7 +83,7 @@ public class UserDatabaseObject {
         String buyRes;
         synchronized (lock) {
             if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
-                QuoteObject quote = realtimeQuote(stock, tid);
+                QuoteObject quote = shortQuote(stock, tid);
 
                 try {
                     if (quote.getErrorString().isEmpty()) {
@@ -182,7 +182,7 @@ public class UserDatabaseObject {
     public String sell(String stock, int dollars, int cents, int tid) {
         String sellRes;
         synchronized (lock) {
-            QuoteObject quote = realtimeQuote(stock, tid);
+            QuoteObject quote = shortQuote(stock, tid);
 
             if (quote.getErrorString().isEmpty()) {
                 long sellMoney = (long) dollars * CENT_CAP + cents;
@@ -650,7 +650,7 @@ public class UserDatabaseObject {
                 InternalLog.CacheDebug("[QUOTE C1] Cache Level I miss for quote. Stock: " + stock + "; User: " + userName + "; ID: " + tid + "; Timestamp: " + Calendar.getInstance().getTimeInMillis());
                 InternalLog.Log("[DEBUG PRINT] FETCHING QUOTE");
                 if (useShortTimeout) {
-                    quote = QuoteCache.fetchNewQuote(stock, userName, tid);
+                    quote = QuoteCache.fetchShortQuote(stock, userName, tid);
                 } else {
                     quote = QuoteCache.fetchQuote(stock, userName, tid);
                 }
