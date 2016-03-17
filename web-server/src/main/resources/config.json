@@ -42,6 +42,7 @@
             ],
             "runScript": "run-tx-server.sh",
             "servers": [
+                "b134.seng.uvic.ca",
                 "b135.seng.uvic.ca",
                 "b136.seng.uvic.ca",
                 "b137.seng.uvic.ca"
@@ -50,16 +51,20 @@
             "internal": {
                 "threadPool": 4,
                 "procThreads": 4,
-                "commThreads": 2,
+                "commThreads": 8,
                 "queueSize": 1000000
             }
         },
         "auditServer": {
+            "resources": [
+                "gson-2.6.2.jar"
+            ],
             "runScript": "run-audit-server.sh",
             "server": "b141.seng.uvic.ca",
             "port": 44441,
             "internal" : {
-                "commThreads": 2,
+                "threadPool": 64,
+                "commThreads": 4,
                 "dumpPort": 44440
             }
         },
@@ -80,7 +85,9 @@
             ],
             "runScript": "run-fetch-server.sh",
             "servers": [
-                "b147.seng.uvic.ca",
+                "b138.seng.uvic.ca",
+                "b139.seng.uvic.ca",
+                "b153.seng.uvic.ca",
                 "b148.seng.uvic.ca",
                 "b149.seng.uvic.ca"
             ],
@@ -97,6 +104,8 @@
             "server": "b150.seng.uvic.ca",
             "port": 44444,
             "internal": {
+                "prefetchPort": 44445,
+                "smallPool": 8,
                 "threadPool": 64
             }
         }

@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -56,12 +57,17 @@ public class TransactionService
         // include timestamp
         message.add(Long.toString(System.currentTimeMillis()));
 
-        //TODO: send currently active web server host index and port index in the message
-        //InetAddress ip = InetAddress.getLocalHost();
-        String hostname = "0";
-        //String hostname = ip.getHostName();
-        message.add(hostname);
-        message.add("0");
+        // include currently running web server hostname and port
+        InetAddress ip = InetAddress.getLocalHost();
+        String hostname = ip.getHostName();
+        WebServerDeployment webDeployment = ConfigurationManager.DeploymentSettings.getWebServers();
+
+        int hostnameIndex = webDeployment.getServers().indexOf(hostname);
+        String hostnameI = (hostnameIndex < 0) ? "0" : Integer.toString(hostnameIndex);
+        String port = Integer.toString(webDeployment.getPort());
+
+        message.add(hostnameI);
+        message.add(port);
 
         // format the message with separator
         String separator = ",";
