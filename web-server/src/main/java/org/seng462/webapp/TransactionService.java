@@ -185,17 +185,26 @@ public class TransactionService
         userCommandLog.setCommand(commandType);
         userCommandLog.setUsername(userCommand.getArgs().get("userId"));
         userCommandLog.setStockSymbol(userCommand.getArgs().get("stockSymbol"));
+
         String amount = userCommand.getArgs().get("amount");
         BigDecimal amountVal = (amount != null) ? new BigDecimal(amount) : null;
         userCommandLog.setFunds(amountVal);
+
         userCommandLog.setTimestamp(System.currentTimeMillis());
         userCommandLog.setFilename(userCommand.getArgs().get("filename"));
         userCommandLog.setTransactionNum(new BigInteger(userCommand.getWorkloadSeqNo()));
-        //TODO: log currently active web server instead of first index
+
+        // include the current server name in the log (default to server at index 0)
         WebServerDeployment webDeploy = ConfigurationManager.DeploymentSettings.getWebServers();
-        userCommandLog.setServer(webDeploy.getServers().get(0));
+        String hostname = webDeploy.getServers().get(0);
+        try {
+            InetAddress ip = InetAddress.getLocalHost();
+            hostname = ip.getHostName();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        userCommandLog.setServer(hostname);
+
         Logger.getInstance().Log(userCommandLog);
-
-
     }
 }
