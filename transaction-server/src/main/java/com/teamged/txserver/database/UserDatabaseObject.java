@@ -580,19 +580,24 @@ public class UserDatabaseObject {
     }
 
     public String dumplog(String filename, int tid) {
-        // TODO: May have to eventually handle this (or just handle elsewhere)
-        history.add("DUMPLOG," + userName + "," + filename);
+        // TODO: Will have to eventually handle this (or just handle elsewhere)
+        synchronized (lock) {
+            history.add("DUMPLOG," + userName + "," + filename);
+        }
+
         return "";
     }
 
     public String displaySummary(int tid) {
         StringBuilder summary = new StringBuilder();
-        for (String event : history) {
-            summary.append(event);
-            summary.append(";");
-        }
+        synchronized (lock) {
+            for (String event : history) {
+                summary.append(event);
+                summary.append(";");
+            }
 
-        history.add("DISPLAY_SUMMARY," + userName);
+            history.add("DISPLAY_SUMMARY," + userName);
+        }
 
         return summary.toString();
     }
