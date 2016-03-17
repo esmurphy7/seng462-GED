@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,6 +26,9 @@ public class QuoteCache {
     private static final AtomicInteger roundRobinCounter = new AtomicInteger(0);
     private static final int fetchServerCount = ProxyMain.Deployment.getFetchServers().getServers().size();
     private static ExecutorService quotePool = Executors.newFixedThreadPool(ProxyMain.Deployment.getProxyServer().getInternals().getThreadPoolSize());
+
+    private static final Object prefetchLock = new Object();
+    private static final HashSet<String> prefetchQueue = new HashSet<>();
 
     public static QuoteObject fetchQuote(String stock, String callingUser, int tid) {
         QuoteObject q;
@@ -83,30 +87,44 @@ public class QuoteCache {
     }
 
     private static void prefetchQuoteObject(String stock, String callingUser, int tid, boolean useShortTimeout) {
-        Future<QuoteObject> fq;
         long nowMillis = Calendar.getInstance().getTimeInMillis();
-        boolean doPrefetch = true;
+        Future<QuoteObject> fq;
+        boolean doPrefetch;
 
-        try {
-            fq = quoteMap.get(stock);
-            if (fq == null ||
-                    fq.isCancelled() ||
-                    (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) ||
-                    (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis)))
-            {
-                InternalLog.Log("Cache miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " +
-                        callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-            } else {
-                InternalLog.Log("Cache hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " +
-                        callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                doPrefetch = false;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+        synchronized (prefetchLock) {
+            // This will succeed and evaluate to true only if the prefetch queue did not already contain the stock.
+            doPrefetch = prefetchQueue.add(stock);
         }
 
         if (doPrefetch) {
-            quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid));
+            try {
+                try {
+                    fq = quoteMap.get(stock);
+                    if (fq == null ||
+                            fq.isCancelled() ||
+                            (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) ||
+                            (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) {
+                        InternalLog.Log("Cache miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " +
+                                callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                    } else {
+                        InternalLog.Log("Cache hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " +
+                                callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                        doPrefetch = false;
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+
+                if (doPrefetch) {
+                    fq = quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid));
+                    quoteMap.put(stock, fq);
+                }
+            } finally {
+                // The stock must be removed from this list.
+                synchronized (prefetchLock) {
+                    prefetchQueue.remove(stock);
+                }
+            }
         }
     }
 

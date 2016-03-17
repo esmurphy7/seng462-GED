@@ -54,7 +54,7 @@ public class RequestProcessingHandler implements Runnable {
                     QuoteCache.prefetchShortQuote(to.getStockSymbol(), to.getUserName(), to.getWorkloadSeqNum());
                     break;
                 default:
-                    // do nothing
+                    // do nothing - this transaction will not produce a quote
                     break;
             }
         }
