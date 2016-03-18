@@ -15,7 +15,7 @@
                 "config-nginx-loadbalancer.sh"
             ],
             "runScript": "run-nginx.sh",
-            "server": "b133.seng.uvic.ca",
+            "server": "b147.seng.uvic.ca",
             "port": 44440
         },
         "webServers": {

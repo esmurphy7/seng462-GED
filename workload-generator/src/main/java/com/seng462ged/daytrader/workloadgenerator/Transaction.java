@@ -3,6 +3,7 @@ package com.seng462ged.daytrader.workloadgenerator;
 public class Transaction {
 
     private int id;
+    private int userSequenceNumber;
     private String command;
     private String userId;
     private String stockSymbol;
@@ -15,6 +16,14 @@ public class Transaction {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getUserSequenceNumber() {
+        return userSequenceNumber;
+    }
+
+    public void setUserSequenceNumber(int userSequenceNumber) {
+        this.userSequenceNumber = userSequenceNumber;
     }
 
     public String getCommand() {

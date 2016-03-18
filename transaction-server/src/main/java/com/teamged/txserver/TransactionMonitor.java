@@ -115,7 +115,7 @@ public class TransactionMonitor {
      * @param txObject  The transaction object to prep for processing.
      */
     public static void AddTransactionObject(TransactionObject txObject) {
-        if (txObject != null && txObject.getErrorString().isEmpty()) {
+        if (txObject != null) {
             String user = txObject.getUserName();
             UserQueueObject userObj;
             if (!requestTxUserMap.containsKey(user)) {
