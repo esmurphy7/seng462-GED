@@ -75,6 +75,10 @@ public class Importer {
 
                             String parameter = parameters.get(i).trim();
 
+                            // If we're trying to get a non-existent parameter mapping, break
+                            if (i > parameterMappings.length - 1)
+                                break;
+
                             // Check the parameter mapping at the same index as our parameter
                             // Hack for DUMPLOG:
                             //   DUMPLOG can take either 1 or 2 parameters
