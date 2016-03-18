@@ -77,8 +77,8 @@ public class Main {
 
             System.out.println(String.format("Number users: %d", transactionsByUser.size()));
 
-            // Allocate multiple users to the same queue if there are more users than threads
-            Collection<List<Transaction>> transactionQueues = allocateUserTransactions(transactionsByUser, MAX_THREAD_COUNT);
+            // Combine multiple users to the same queue if there are more users than threads
+            Collection<List<Transaction>> transactionQueues = combineUserTransactions(transactionsByUser, MAX_THREAD_COUNT);
 
             // Find dumplog transactions with no user id (normally only 1 at the end)
             List<Transaction> dumplogTransactions = transactions.stream()
@@ -114,7 +114,7 @@ public class Main {
         }
     }
 
-    private static Collection<List<Transaction>> allocateUserTransactions(Collection<List<Transaction>> transactionsByUser, int numberQueues) {
+    private static Collection<List<Transaction>> combineUserTransactions(Collection<List<Transaction>> transactionsByUser, int numberQueues) {
 
         List<List<Transaction>> transactionQueues = new ArrayList<>();
 
