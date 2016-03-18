@@ -187,7 +187,12 @@ public class TransactionService
         userCommandLog.setStockSymbol(userCommand.getArgs().get("stockSymbol"));
 
         String amount = userCommand.getArgs().get("amount");
-        BigDecimal amountVal = (amount != null) ? new BigDecimal(amount) : null;
+        BigDecimal amountVal;
+        try {
+           amountVal = (amount != null) ? new BigDecimal(amount) : null;
+        } catch (NumberFormatException nfe) {
+            amountVal = null;
+        }
         userCommandLog.setFunds(amountVal);
 
         userCommandLog.setTimestamp(System.currentTimeMillis());
