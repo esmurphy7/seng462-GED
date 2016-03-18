@@ -311,10 +311,10 @@ public class TransactionObject {
                         if (webServerNameIdx < 0 || webServerNameIdx >= TxMain.Deployment.getWebServers().getServers().size()) {
                             errorString = "Web server name index is invalid";
                             parsed = false;
-                        } else if (webServerPortIdx < 0 || webServerPortIdx >= 1) {
+                        } /*else if (webServerPortIdx < 0 || webServerPortIdx >= 1) {
                             errorString = "Web server port index is invalid";
                             parsed = false;
-                        }
+                        }*/
                     } catch (NumberFormatException e) {
                         errorString = "Unable to parse a timestamp or web server address";
                         parsed = false;
