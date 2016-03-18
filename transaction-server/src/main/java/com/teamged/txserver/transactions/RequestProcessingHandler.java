@@ -29,12 +29,15 @@ public class RequestProcessingHandler implements Runnable {
         TransactionObject to = new TransactionObject(request);
         if (!to.getErrorString().isEmpty()) {
             InternalLog.Critical("Error processing request: " + to.toString() + "; Error msg: " + to.getErrorString());
-
+            if (to.getUserName() != null) {
+                TransactionMonitor.AddTransactionObject(to);
+                TransactionMonitor.PutRequestQueue(to.getUserName());
+            }
             // When the transaction request is in error, then that transaction is by definition complete (cannot
             // be processed any further). We log the completion.
-            TransactionCompleteType tcType = new TransactionCompleteType();
-            tcType.setTransactionNum(BigInteger.valueOf(to.getWorkloadSeqNum()));
-            Logger.getInstance().Log(tcType);
+            //TransactionCompleteType tcType = new TransactionCompleteType();
+            //tcType.setTransactionNum(BigInteger.valueOf(to.getWorkloadSeqNum()));
+            //Logger.getInstance().Log(tcType);
         } else {
             InternalLog.Log("[REQUEST] " + request);
             // This has the potential to block for a while (if the request queue is full)
