@@ -7,9 +7,13 @@ import org.jooq.lambda.Unchecked;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -73,6 +77,9 @@ public class Main {
 
             System.out.println(String.format("Number users: %d", transactionsByUser.size()));
 
+            // Allocate multiple users to the same queue if there are more users than threads
+            Collection<List<Transaction>> transactionQueues = allocateUserTransactions(transactionsByUser, MAX_THREAD_COUNT);
+
             // Find dumplog transactions with no user id (normally only 1 at the end)
             List<Transaction> dumplogTransactions = transactions.stream()
                     .filter(transaction -> transaction.getUserId() == null)
@@ -80,12 +87,12 @@ public class Main {
                     .collect(Collectors.toList());
 
             // Create thread pool
-            ExecutorService taskExecutor = Executors.newFixedThreadPool(Math.min(transactionsByUser.size(), MAX_THREAD_COUNT));
+            ExecutorService taskExecutor = Executors.newFixedThreadPool(Math.min(transactionQueues.size(), MAX_THREAD_COUNT));
 
             String webServer = String.format("%s:%d", serverAddress, serverPort);
 
             // Concurrently send sets of transactions to the web server
-            List<Future> results = transactionsByUser.stream()
+            List<Future> results = transactionQueues.stream()
                     .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(webServer, transactionSet)))
                     .collect(Collectors.toList());
 
@@ -105,5 +112,37 @@ public class Main {
 
             System.out.println(String.format("There were problems reading file '%s'", workloadFile));
         }
+    }
+
+    private static Collection<List<Transaction>> allocateUserTransactions(Collection<List<Transaction>> transactionsByUser, int numberQueues) {
+
+        List<List<Transaction>> transactionQueues = new ArrayList<>();
+
+        int usersPerQueue = (int) Math.ceil(transactionsByUser.size() / numberQueues);
+
+        Iterator<List<Transaction>> iterator = transactionsByUser.iterator();
+
+        // Iterate over number of transaction queues
+        for (int i = 0; i < numberQueues; i++) {
+
+            List<Transaction> transactions = new ArrayList<>();
+
+            // Iterate over number users for that queue
+            for (int j = 0; j < usersPerQueue; j++) {
+
+                if (!iterator.hasNext())
+                    break;
+
+                List<Transaction> userTransactions = iterator.next();
+                transactions.addAll(userTransactions);
+            }
+
+            // Sort all transactions by id
+            transactions.sort((transaction1, transaction2) -> transaction1.getId() - transaction2.getId());
+
+            transactionQueues.add(transactions);
+        }
+
+        return transactionQueues;
     }
 }
