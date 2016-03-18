@@ -77,6 +77,9 @@ public class Main {
 
             System.out.println(String.format("Number users: %d", transactionsByUser.size()));
 
+            // Assign user sequence numbers to each user's queue
+            transactionsByUser.forEach(queue -> assignUserSequenceNumbers(queue));
+
             // Combine multiple users to the same queue if there are more users than threads
             Collection<List<Transaction>> transactionQueues = combineUserTransactions(transactionsByUser, MAX_THREAD_COUNT);
 
@@ -118,7 +121,7 @@ public class Main {
 
         List<List<Transaction>> transactionQueues = new ArrayList<>();
 
-        int usersPerQueue = (int) Math.ceil(transactionsByUser.size() / numberQueues);
+        int usersPerQueue = (int) Math.ceil((double) transactionsByUser.size() / (double) numberQueues);
 
         Iterator<List<Transaction>> iterator = transactionsByUser.iterator();
 
@@ -144,5 +147,14 @@ public class Main {
         }
 
         return transactionQueues;
+    }
+
+    private static void assignUserSequenceNumbers(List<Transaction> transactions) {
+
+        for (int i = 0; i < transactions.size(); i++) {
+
+            Transaction transaction = transactions.get(i);
+            transaction.setUserSequenceNumber(i + 1);
+        }
     }
 }
