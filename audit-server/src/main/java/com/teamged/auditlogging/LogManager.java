@@ -143,8 +143,9 @@ public class LogManager {
                 marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
                 marshaller.marshal(jaxbLogType, sw);
 
-                // remove leading "<log>" tag if it's not the first log
                 String logStr = sw.toString();
+
+                // remove leading "<log>" tag if it's not the first log
                 if(!isFirstLog)
                 {
                     logStr = sw.toString().replaceAll("^<log>+", "");
@@ -163,6 +164,13 @@ public class LogManager {
                 if(trimTrailingTag)
                 {
                     logStr = logStr.replaceAll("</log>+$", "");
+                }
+
+                // if the log set is empty, the marshaller has written a self-closing "<log/>" tag which breaks our xml
+                // replace "<log/>" with "</log>"
+                if(logType.getUserCommandOrQuoteServerOrAccountTransaction() == null || logType.getUserCommandOrQuoteServerOrAccountTransaction().size() == 0)
+                {
+                    logStr = logStr.replaceAll("<log/>+$","</log>");
                 }
 
                 // write the edited xml to the file
