@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -110,17 +111,6 @@ public class LogManager {
                 logType.getUserCommandOrQuoteServerOrAccountTransaction().add(nextLog);
             }
             appendLogFile(logType, false);
-
-            // add xml declaration
-            URL outUrl = LogManager.class.getResource("");
-            File outfile = new File(outUrl.getPath() + OUTPUT_LOGFILE);
-            FileWriter fw = new FileWriter(outfile, true);
-
-            XMLStreamWriter writer = XMLOutputFactory.newInstance().createXMLStreamWriter(fw);
-            writer.writeStartDocument();
-
-            writer.close();
-            fw.close();
         }
         catch(Exception e)
         {
@@ -159,6 +149,15 @@ public class LogManager {
                 {
                     logStr = sw.toString().replaceAll("^<log>+", "");
                 }
+                else
+                {
+                    // add xml declaration
+                    XMLStreamWriter writer = XMLOutputFactory.newInstance().createXMLStreamWriter(fw);
+                    writer.writeStartDocument();
+
+                    writer.close();
+                    isFirstLog = false;
+                }
 
                 // remove trailing "</log>" tag unless specified not to
                 if(trimTrailingTag)
@@ -172,8 +171,7 @@ public class LogManager {
                 fw.close();
                 sw.close();
 
-                isFirstLog = false;
-            } catch (IOException | JAXBException e) {
+            } catch (IOException | JAXBException | XMLStreamException e) {
                 e.printStackTrace();
             }
         }
