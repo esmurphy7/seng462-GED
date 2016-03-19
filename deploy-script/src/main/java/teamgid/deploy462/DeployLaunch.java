@@ -120,7 +120,7 @@ public class DeployLaunch {
                 hasDeploymentType = true;
 
             }
-            if (input.contains(WEB_TYPE)) {
+            if (inputs.contains(WEB_TYPE)) {
 
                 deployments.add(deploymentConfig.getDeployments().getWebServers());
                 hasDeploymentType = true;
