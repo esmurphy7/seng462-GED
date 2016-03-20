@@ -15,7 +15,7 @@ public class ServerCommsRespHandler implements Runnable {
 
     public ServerCommsRespHandler(Socket socket) {
         this.socket = socket;
-        System.out.println("Communication listener has connected a responder to client on port " + socket.getLocalPort());
+        CommsManager.CommsLogInfo("Communication listener has connected a responder to client on port " + socket.getLocalPort());
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -24,7 +24,7 @@ public class ServerCommsRespHandler implements Runnable {
         try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)){
             while (true) {
                 Message msg = CommsManager.takeNextServerResponse();
-                System.out.println("Server communication response handler sending message: " + msg.toString()); // TODO: Debugging line
+                CommsManager.CommsLogVerbose("Server communication response handler sending message: " + msg.toString()); // TODO: Debugging line
                 out.println(msg.toString());
             }
         } catch (IOException e) {

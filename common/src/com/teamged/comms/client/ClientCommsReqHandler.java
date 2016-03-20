@@ -20,7 +20,7 @@ public class ClientCommsReqHandler implements Callable<String> {
     private final int port;
 
     public ClientCommsReqHandler(String server, int port) {
-        System.out.println("Created client communication request handler"); // TODO: Debugging line
+        CommsManager.CommsLogVerbose("Created client communication request handler"); // TODO: Debugging line
         this.server = server;
         this.port = port;
     }
@@ -37,7 +37,7 @@ public class ClientCommsReqHandler implements Callable<String> {
      */
     @Override
     public String call() throws Exception {
-        System.out.println("Running client communication request handler"); // TODO: Debugging line
+        CommsManager.CommsLogVerbose("Running client communication request handler"); // TODO: Debugging line
         Socket socket = null;
         ClientCommsRespHandler respHandler = null;
         boolean connected = false;
@@ -46,28 +46,31 @@ public class ClientCommsReqHandler implements Callable<String> {
 
         while (!connected) {
             try {
+                CommsManager.CommsLogInfo("Client communication request handler attempting connection with " + server + ":" + port);
                 socket = new Socket(server, port);
                 respHandler = new ClientCommsRespHandler(socket);
                 connected = true;
-                System.out.println("Client communication initialized with " + server + ":" + port);
+                CommsManager.CommsLogInfo("Client communication initialized with " + server + ":" + port);
             } catch (IOException ignored) {
                 retries++;
                 if (retries > RETRY_COUNT) {
                     pauseTime = retries > (RETRY_COUNT * 2) ? SLOW_RETRY : MIDDLE_RETRY;
                 }
-                System.out.println("Could not connect to server at " + server + ":" + port +
+                CommsManager.CommsLogInfo("Could not connect to server at " + server + ":" + port +
                         "; retrying in " + pauseTime/1000 + " seconds");
                 Thread.sleep(pauseTime);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
-        System.out.println("Client communication request handler is connected to remote server on port " + socket.getLocalPort()); // TODO: Debugging line
+        CommsManager.CommsLogVerbose("Client communication request handler is connected to remote server on port " + socket.getLocalPort()); // TODO: Debugging line
 
         String retVal = "";
         try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
             ClientMessage msg;
             while (true) {
-                System.out.println("Client communication request handler is waiting on the next available client request"); // TODO: Debugging line
+                CommsManager.CommsLogVerbose("Client communication request handler is waiting on the next available client request"); // TODO: Debugging line
                 msg = CommsManager.takeNextClientRequest();
 
                 // Exits the request handler if the response handler died.
@@ -80,12 +83,13 @@ public class ClientCommsReqHandler implements Callable<String> {
                 if (msg.isResponseExpected()) {
                     boolean error = CommsManager.storeClientMessage(msg);
                     if (error) {
+                        CommsManager.CommsLogInfo("Client communication request handler experienced error adding client request for response. Returning null."); // TODO: Debugging line
                         msg.setResponse(null);
                         continue;
                     }
                 }
 
-                System.out.println("Client communication request handler sending message: " + msg.toString()); // TODO: Debugging line
+                CommsManager.CommsLogVerbose("Client communication request handler sending message: " + msg.toString()); // TODO: Debugging line
                 out.println(msg.toString());
             }
         } catch (Exception e) {
@@ -93,7 +97,7 @@ public class ClientCommsReqHandler implements Callable<String> {
             respHandler.shutdown();
         } finally {
             try {
-                System.out.println("Client communication request handler closing socket"); // TODO: Debugging line
+                CommsManager.CommsLogInfo("Client communication request handler closing socket"); // TODO: Debugging line
                 socket.close();
             } catch (IOException ignored) {}
         }

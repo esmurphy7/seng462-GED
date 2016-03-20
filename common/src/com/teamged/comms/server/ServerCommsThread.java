@@ -1,5 +1,7 @@
 package com.teamged.comms.server;
 
+import com.teamged.comms.internal.CommsManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -17,23 +19,23 @@ public class ServerCommsThread implements Runnable {
     public ServerCommsThread(int port, int poolSize) throws IOException {
         this.serverSocket = new ServerSocket(port);
         this.pool = Executors.newFixedThreadPool(poolSize);
-        System.out.println("Opened communication listener on port " + port);
+        CommsManager.CommsLogInfo("Opened communication listener on port " + port);
     }
 
     public void shutdown() {
-        System.out.println("Shutting down communication listener on port " + serverSocket.getLocalPort());
+        CommsManager.CommsLogInfo("Shutting down communication listener on port " + serverSocket.getLocalPort());
         shutdown = true;
         pool.shutdownNow();
         try {
             serverSocket.close();
         } catch (IOException e) {
-            System.out.println("Error encountered when closing socket: " + e.getMessage());
+            CommsManager.CommsLogInfo("Error encountered when closing socket: " + e.getMessage());
         }
     }
 
     @Override
     public void run() {
-        System.out.println("Communication listener on port " + serverSocket.getLocalPort() + " is running");
+        CommsManager.CommsLogInfo("Communication listener on port " + serverSocket.getLocalPort() + " is running");
         while (!shutdown && !pool.isShutdown()) {
             try {
                 Socket s = serverSocket.accept();

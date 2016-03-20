@@ -25,6 +25,14 @@ public class CommsManager {
     private static final ConcurrentHashMap<Long, ClientMessage> clientMessageMap = new ConcurrentHashMap<>();
     private static final List<ClientCommsThread> clientThreads = new ArrayList<>();
 
+    public static void CommsLogInfo(String log) {
+        System.out.println(log);
+    }
+
+    public static void CommsLogVerbose(String log) {
+        //System.out.println(log);
+    }
+
     /**********************************************************************************************
      ** Server communications
      *********************************************************************************************/
@@ -42,7 +50,7 @@ public class CommsManager {
             new Thread(sct).start();
             started = true;
         } catch (IOException e) {
-            System.out.println("Failed to start server socket on port " + commsPort + "; error: " + e.getMessage());
+            CommsManager.CommsLogInfo("Failed to start server socket on port " + commsPort + "; error: " + e.getMessage());
         }
 
         return started;
@@ -117,7 +125,7 @@ public class CommsManager {
         ClientMessage cMsg = null;
         try {
             cMsg = clientSendRequest.take();
-            System.out.println(cMsg);
+            CommsManager.CommsLogInfo(cMsg.toString());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -128,7 +136,7 @@ public class CommsManager {
     public static boolean storeClientMessage(ClientMessage cm) {
         boolean messageStored = false;
         if (cm != null && cm.isResponseExpected()) {
-            messageStored = (clientMessageMap.putIfAbsent(cm.getIdentifier(), cm) == null);
+            messageStored = (clientMessageMap.putIfAbsent(cm.getIdentifier(), cm) == cm);
         }
 
         return messageStored;

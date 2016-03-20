@@ -27,20 +27,22 @@ public class Message {
      */
     public static Message fromCommunication(String commText) {
         Message msg = null;
-        Matcher matcher = msgPattern.matcher(commText);
-        if (matcher.matches()) {
-            long id;
-            int fl;
-            String dt;
+        try {
+            Matcher matcher = msgPattern.matcher(commText);
+            if (matcher.matches()) {
+                long id;
+                int fl;
+                String dt;
 
-            try {
                 id = Long.parseLong(matcher.group(1));
                 fl = Integer.parseInt(matcher.group(2));
                 dt = matcher.group(3);
                 msg = new Message(id, fl, dt);
-            } catch (NumberFormatException nfe) {
-                // Couldn't parse the message - null will be returned.
             }
+        } catch (NumberFormatException | NullPointerException ignored) {
+            String txt = commText == null ? "NULL" : commText;
+            CommsManager.CommsLogVerbose("Message received from communication could not be parsed: " + txt); // TODO: Debugging line
+            // Couldn't parse the message - null will be returned.
         }
 
         return msg;
@@ -83,6 +85,7 @@ public class Message {
         } else {
             this.identifier = identifier;
         }
+
         this.flags = flags;
         this.data = data;
     }
@@ -138,9 +141,12 @@ public class Message {
      */
     public synchronized void setClientResponse(String response) {
         if (!hasResponse) {
+            CommsManager.CommsLogVerbose("Setting client response \"" + response + "\" to message \"" + getData() + "\""); // TODO: Debugging line
             this.response = response;
             hasResponse = true;
             notifyAll();
+        } else {
+            CommsManager.CommsLogVerbose("Attempted to add extraneous client response \"" + response + "\" to message \"" + getData() + "\""); // TODO: Debugging line
         }
     }
 
@@ -151,6 +157,7 @@ public class Message {
      * @param data The data of the response for this Message.
      */
     public void setServerResponse(String data) {
+        CommsManager.CommsLogVerbose("Setting server response \"" + data + "\" to message \"" + getData() + "\""); // TODO: Debugging line
         Message resp = new Message(this.identifier, this.flags, data);
         CommsManager.putNextServerResponse(resp);
     }

@@ -28,6 +28,7 @@ public class QuoteMessageProcessingThread extends ProxyServerThread {
     }
 
     private static void proxyProcess(ServerMessage serverMessage) {
+        System.out.println("Proxy process servicing quote request: " + serverMessage.getData()); // TODO: Debugging line
         String serverResp;
         try {
             Matcher m = quoteReqPattern.matcher(serverMessage.getData());
@@ -60,6 +61,7 @@ public class QuoteMessageProcessingThread extends ProxyServerThread {
     }
 
     private static void prefetchProcess(String quoteRequest) {
+        System.out.println("Prefetch process servicing quote request: " + quoteRequest); // TODO: Debugging line
         Matcher m = quoteReqPattern.matcher(quoteRequest);
         try {
             if (m.matches()) {

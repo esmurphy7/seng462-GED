@@ -17,20 +17,26 @@ public class ServerCommsReqHandler implements Runnable {
 
     public ServerCommsReqHandler(Socket socket) {
         this.socket = socket;
-        System.out.println("Communication listener has connected a receiver to client on port " + socket.getLocalPort());
+        CommsManager.CommsLogInfo("Communication listener has connected a receiver to client on port " + socket.getLocalPort());
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
     @Override
     public void run() {
         String request;
+        int nullRetries = 10;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             while (true) {
                 request = in.readLine();
-                System.out.println("Server communication request handler got message: " + request); // TODO: Debugging line
+                CommsManager.CommsLogVerbose("Server communication request handler got message: " + request); // TODO: Debugging line
                 Message msg = Message.fromCommunication(request);
                 if (msg != null) {
                     CommsManager.putNextServerRequest(new ServerMessage(msg));
+                } else {
+                    if (nullRetries-- <= 0) {
+                        CommsManager.CommsLogInfo("Server communication request handler has found that the socket appears to be closed"); // TODO: Debugging line
+                        break;
+                    }
                 }
             }
         } catch (IOException e) {

@@ -29,38 +29,20 @@ public class ClientMessage {
      * @return                  A ClientMessage containing communication meta-information.
      */
     public static ClientMessage buildMessage(String data, boolean responseExpected) {
-        return buildMessage(0, 0, data, responseExpected);
+        return buildMessage(0, data, responseExpected);
     }
 
     /**
-     * Builds a ClientMessage from the provided information. The message will have an empty
-     * flag. If the identifier's value is 0, a randomly generated identifier will be used.
-     * The identifying number is assumed to be unique. Non-unique values will cause responses
-     * to not be correctly assigned to the requester.
+     * Builds a ClientMessage from the provided information. The message will have a
+     * randomly generated identifier.
      *
-     * @param identifier        The message's unique identifying number.
-     * @param data              The message's data.
-     * @param responseExpected  Whether this client message expects a response or not.
-     * @return                  A ClientMessage containing communication meta-information.
-     */
-    public static ClientMessage buildMessage(long identifier, String data, boolean responseExpected) {
-        return buildMessage(identifier, 0, data, responseExpected);
-    }
-
-    /**
-     * Builds a ClientMessage from the provided information. If the identifier's value
-     * is 0, a randomly generated identifier will be used. The identifying number is
-     * assumed to be unique. Non-unique values will cause responses to not be correctly
-     * assigned to the requester.
-     *
-     * @param identifier        The message's unique identifying number.
      * @param flags             The message's flags.
      * @param data              The message's data.
      * @param responseExpected  Whether this client message expects a response or not.
      * @return                  A ClientMessage containing communication meta-information.
      */
-    public static ClientMessage buildMessage(long identifier, int flags, String data, boolean responseExpected) {
-        Message msg = new Message(identifier, flags, data);
+    public static ClientMessage buildMessage(int flags, String data, boolean responseExpected) {
+        Message msg = new Message(0, flags, data);
         return new ClientMessage(msg, responseExpected);
     }
 

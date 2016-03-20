@@ -8,6 +8,15 @@ import com.teamged.comms.internal.CommsManager;
 public class CommsInterface {
 
     /**
+     * KNOWN ISSUES
+     * ------------
+     *
+     * TODO: Server side does not re-enable response handling properly after a connection is dropped and re-established
+     * TODO: Client side does not return to polling the server after it disconnects
+     * TODO: Server and client do not check for (sufficient) errors when writing to each other
+     */
+
+    /**
      *
      * @param port
      * @return
