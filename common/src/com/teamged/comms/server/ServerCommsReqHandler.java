@@ -12,14 +12,15 @@ import java.net.Socket;
 /**
  * Created by DanielF on 2016-03-18.
  */
-public class ServerCommsRecvHandler implements Runnable {
+public class ServerCommsReqHandler implements Runnable {
     private final Socket socket;
 
-    public ServerCommsRecvHandler(Socket socket) {
+    public ServerCommsReqHandler(Socket socket) {
         this.socket = socket;
         System.out.println("Communication listener has connected a receiver to client on port " + socket.getLocalPort());
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     @Override
     public void run() {
         String request;

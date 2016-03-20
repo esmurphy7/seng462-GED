@@ -8,6 +8,11 @@ import com.teamged.comms.internal.Message;
 public class ServerMessage {
     private final Message internalMessage;
 
+    /**
+     * Creates a new ServerMessage, assigning the underlying Message.
+     *
+     * @param msg   The underlying Message, containing communication meta-information.
+     */
     public ServerMessage(Message msg) {
         internalMessage = msg;
     }
@@ -47,5 +52,10 @@ public class ServerMessage {
      */
     public void setResponse(String data) {
         internalMessage.setServerResponse(data);
+    }
+
+    @Override
+    public String toString() {
+        return internalMessage.toString();
     }
 }

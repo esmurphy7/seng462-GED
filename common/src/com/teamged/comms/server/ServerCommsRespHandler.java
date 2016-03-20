@@ -18,6 +18,7 @@ public class ServerCommsRespHandler implements Runnable {
         System.out.println("Communication listener has connected a responder to client on port " + socket.getLocalPort());
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     @Override
     public void run() {
         try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)){

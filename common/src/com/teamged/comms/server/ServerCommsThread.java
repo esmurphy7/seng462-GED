@@ -37,7 +37,7 @@ public class ServerCommsThread implements Runnable {
         while (!shutdown && !pool.isShutdown()) {
             try {
                 Socket s = serverSocket.accept();
-                pool.execute(new ServerCommsRecvHandler(s));
+                pool.execute(new ServerCommsReqHandler(s));
                 pool.execute(new ServerCommsRespHandler(s));
             } catch (IOException e) {
                 e.printStackTrace();

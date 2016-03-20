@@ -19,10 +19,10 @@ public class Message {
     private String response;
 
     /**
-     * Builds a Message from communication text received by a ServerCommsRecvHandler.
+     * Builds a Message from communication text received by a ServerCommsReqHandler.
      * If the message cannot be parsed, null will be returned.
      *
-     * @param commText  The communication text received by a ServerCommsRecvHandler.
+     * @param commText  The communication text received by a ServerCommsReqHandler.
      * @return          The parsed message.
      */
     public static Message fromCommunication(String commText) {
@@ -132,14 +132,16 @@ public class Message {
 
     /**
      * Sets the client response, notifying all client response listeners. This will
-     * not work for a server side response.
+     * not work for a server side response. A response can only be set once.
      *
      * @param response The response to set for this Message.
      */
     public synchronized void setClientResponse(String response) {
-        this.response = response;
-        hasResponse = true;
-        notifyAll();
+        if (!hasResponse) {
+            response = response;
+            hasResponse = true;
+            notifyAll();
+        }
     }
 
     /**
