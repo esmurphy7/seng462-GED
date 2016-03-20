@@ -10,13 +10,19 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -30,8 +36,10 @@ public class LogManager {
     private static final Object queueLock = new Object();
     private static final int QUEUE_SIZE = 100000;
 
-    private static List<Queue<Object>> logQueueStorage = new ArrayList<>();
     private static Queue<Object> logQueue = new ArrayDeque<>(QUEUE_SIZE);
+    private static final Object outfileLock = new Object();
+    private static boolean isFirstLog = true;
+
     private static JAXBContext jc;
 
     static {
@@ -51,69 +59,129 @@ public class LogManager {
      * @param log The log to add to the queue.
      */
     public static void AddLog(Object log) {
+        boolean writeLogQueue = false;
+        Queue<Object> tempLogQueue = new ArrayDeque<>();
+
         synchronized (queueLock) {
             try {
                 logQueue.add(log);
                 if (logQueue.size() == QUEUE_SIZE) {
-                    logQueueStorage.add(logQueue);
+                    tempLogQueue = logQueue;
                     logQueue = new ArrayDeque<>(QUEUE_SIZE);
-                    InternalLog.Log((QUEUE_SIZE * logQueueStorage.size()) + " logs are now stored in the audit server");
+                    writeLogQueue = true;
                 }
             } catch (IllegalStateException e) {
                 e.printStackTrace();
                 InternalLog.Log("Log was not added to log queue - capacity exceeded.");
             }
         }
+
+        // write a queue of logs to the logfile if there's one ready
+        if(writeLogQueue)
+        {
+            LogType logType = new LogType();
+            for (Object nextLog : tempLogQueue)
+            {
+                logType.getUserCommandOrQuoteServerOrAccountTransaction().add(nextLog);
+            }
+
+            appendLogFile(logType, true);
+        }
     }
 
     /**
      * Dumps the current contents of the log to disk. Empties the current log queue.
      */
-    public static void DumpLog() {
-        List<Queue<Object>> dumpQueueList;
-
-        synchronized (queueLock) {
-            dumpQueueList = logQueueStorage;
-            logQueueStorage = new ArrayList<>();
-
-            dumpQueueList.add(logQueue);
+    public static void DumpLog()
+    {
+        Queue<Object> tempLogQueue = new ArrayDeque<>();
+        synchronized (queueLock)
+        {
+            // copy then clear remaining logs
+            tempLogQueue = logQueue;
             logQueue = new ArrayDeque<>(QUEUE_SIZE);
         }
 
-        LogType logType = new LogType();
-        Object nextLog;
-        for (Queue<Object> q : dumpQueueList) {
-            while ((nextLog = q.poll()) != null) {
+        try
+        {
+            // append remaining logs to file
+            LogType logType = new LogType();
+            for (Object nextLog : tempLogQueue)
+            {
                 logType.getUserCommandOrQuoteServerOrAccountTransaction().add(nextLog);
             }
+            appendLogFile(logType, false);
         }
-
-        URL url = LogManager.class.getResource("");
-        File outfile = new File(url.getPath() + OUTPUT_LOGFILE);
-        try {
-            outfile.createNewFile();
-            OutputStream outStream = new FileOutputStream(outfile);
-
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<LogType> jaxbLogType = objectFactory.createLog(logType);
-
-            Marshaller marshaller = buildMarshaller();
-            marshaller.marshal(jaxbLogType, outStream);
-            outStream.close();
-        } catch (IOException | JAXBException e) {
+        catch(Exception e)
+        {
             e.printStackTrace();
         }
+    }
 
-        File statsOut = new File(url.getPath() + "timings");
-        try (FileWriter write = new FileWriter(url.getPath() + "timings");
-            PrintWriter outWriter = new PrintWriter(write)
-        ){
-            String s;
-            while ((s = timestamps.poll()) != null) {
-                outWriter.write(s);
+    /**
+     * Append set of logs to a file on disk.
+     * @param logType
+     * @param trimTrailingTag Choose to trim the "</log>" tag from the log's resulting xml
+     */
+    private static void appendLogFile(LogType logType, boolean trimTrailingTag)
+    {
+        synchronized (outfileLock)
+        {
+            URL url = LogManager.class.getResource("");
+            File outfile = new File(url.getPath() + OUTPUT_LOGFILE);
+            try
+            {
+                StringWriter sw = new StringWriter();
+                FileWriter fw = new FileWriter(outfile, true);
+
+                ObjectFactory objectFactory = new ObjectFactory();
+                JAXBElement<LogType> jaxbLogType = objectFactory.createLog(logType);
+
+                // marshal log set into stream
+                Marshaller marshaller = buildMarshaller();
+                // omit xml declaration
+                marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+                marshaller.marshal(jaxbLogType, sw);
+
+                String logStr = sw.toString();
+
+                // remove leading "<log>" tag if it's not the first log
+                if(!isFirstLog)
+                {
+                    logStr = sw.toString().replaceAll("^<log>+", "");
+                }
+                else
+                {
+                    // add xml declaration
+                    XMLStreamWriter writer = XMLOutputFactory.newInstance().createXMLStreamWriter(fw);
+                    writer.writeStartDocument();
+
+                    writer.close();
+                    isFirstLog = false;
+                }
+
+                // remove trailing "</log>" tag unless specified not to
+                if(trimTrailingTag)
+                {
+                    logStr = logStr.replaceAll("</log>+$", "");
+                }
+
+                // if the log set is empty, the marshaller has written a self-closing "<log/>" tag which breaks our xml
+                // replace "<log/>" with "</log>"
+                if(logType.getUserCommandOrQuoteServerOrAccountTransaction() == null || logType.getUserCommandOrQuoteServerOrAccountTransaction().size() == 0)
+                {
+                    logStr = logStr.replaceAll("<log/>+$","</log>");
+                }
+
+                // write the edited xml to the file
+                fw.write(logStr);
+
+                fw.close();
+                sw.close();
+
+            } catch (IOException | JAXBException | XMLStreamException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
