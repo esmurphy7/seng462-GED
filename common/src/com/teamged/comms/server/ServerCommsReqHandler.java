@@ -27,6 +27,7 @@ public class ServerCommsReqHandler implements Runnable {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             while (true) {
                 request = in.readLine();
+                System.out.println("Server communication request handler got message: " + request); // TODO: Debugging line
                 Message msg = Message.fromCommunication(request);
                 if (msg != null) {
                     CommsManager.putNextServerRequest(new ServerMessage(msg));

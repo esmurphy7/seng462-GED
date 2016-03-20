@@ -24,6 +24,7 @@ public class ServerCommsRespHandler implements Runnable {
         try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)){
             while (true) {
                 Message msg = CommsManager.takeNextServerResponse();
+                System.out.println("Server communication response handler sending message: " + msg.toString()); // TODO: Debugging line
                 out.println(msg.toString());
             }
         } catch (IOException e) {

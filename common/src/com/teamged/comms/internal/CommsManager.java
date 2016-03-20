@@ -37,7 +37,9 @@ public class CommsManager {
     public static boolean addServerComms(int commsPort) {
         boolean started = false;
         try {
-            serverThreads.add(new ServerCommsThread(commsPort, SERVER_THREAD_POOL_MAX));
+            ServerCommsThread sct = new ServerCommsThread(commsPort, SERVER_THREAD_POOL_MAX);
+            serverThreads.add(sct);
+            new Thread(sct).start();
             started = true;
         } catch (IOException e) {
             System.out.println("Failed to start server socket on port " + commsPort + "; error: " + e.getMessage());
@@ -95,7 +97,9 @@ public class CommsManager {
      *********************************************************************************************/
 
     public static boolean addClientComms(String server, int commsPort, int connections) {
-        clientThreads.add(new ClientCommsThread(server, commsPort, connections));
+        ClientCommsThread cct = new ClientCommsThread(server, commsPort, connections);
+        clientThreads.add(cct);
+        new Thread(cct).start();
         return true;
     }
 

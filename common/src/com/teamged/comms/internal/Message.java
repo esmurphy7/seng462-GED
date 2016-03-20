@@ -138,7 +138,7 @@ public class Message {
      */
     public synchronized void setClientResponse(String response) {
         if (!hasResponse) {
-            response = response;
+            this.response = response;
             hasResponse = true;
             notifyAll();
         }

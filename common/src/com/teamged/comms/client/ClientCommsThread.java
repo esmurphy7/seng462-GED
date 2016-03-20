@@ -34,13 +34,16 @@ public class ClientCommsThread implements Runnable {
         System.out.println("Initializing client communications with " + serverString + ":" + serverPort);
         while (!shutdown && !threadPool.isShutdown()) {
             while (currentPoolSize < poolSize) {
+                System.out.println("Creating client communication request handler"); // TODO: Debugging line
                 pool.submit(new ClientCommsReqHandler(serverString, serverPort));
                 currentPoolSize++;
             }
 
             try {
+                System.out.println("Waiting for client communication request handler to exit"); // TODO: Debugging line
                 String retVal = pool.take().get();
                 currentPoolSize--;
+                System.out.println("Client communication request handler exited with message: " + retVal); // TODO: Debugging line
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }

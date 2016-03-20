@@ -108,7 +108,7 @@
                 "prefetchPort": 44445,
                 "smallPool": 8,
                 "threadPool": 64,
-                "commThreads": 4
+                "commThreads": 8
             }
         }
     }

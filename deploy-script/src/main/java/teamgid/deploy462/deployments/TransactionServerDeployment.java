@@ -40,6 +40,10 @@ public class TransactionServerDeployment extends MultipleDeployment {
                     remoteDeploy + "/com/teamged/txserver/*.java " +
                     remoteDeploy + "/com/teamged/txserver/transactions/*.java " +
                     remoteDeploy + "/com/teamged/txserver/database/*.java " +
+                    remoteDeploy + "/com/teamged/comms/*.java " +
+                    remoteDeploy + "/com/teamged/comms/client/*.java " +
+                    remoteDeploy + "/com/teamged/comms/internal/*.java " +
+                    remoteDeploy + "/com/teamged/comms/server/*.java " +
                     remoteDeploy + "/com/teamged/deployment/*.java " +
                     remoteDeploy + "/com/teamged/deployment/base/*.java " +
                     remoteDeploy + "/com/teamged/deployment/deployments/*.java " +

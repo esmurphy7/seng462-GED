@@ -1,10 +1,8 @@
 package com.teamged.proxyserver;
 
+import com.teamged.comms.CommsInterface;
 import com.teamged.deployment.deployments.QuoteProxyServerDeployment;
-import com.teamged.proxyserver.serverthreads.ProxyServerThread;
-import com.teamged.proxyserver.serverthreads.QuotePrefetchProcessingHandler;
-import com.teamged.proxyserver.serverthreads.QuotePrefetchProcessingThread;
-import com.teamged.proxyserver.serverthreads.QuoteProxyProcessingThread;
+import com.teamged.proxyserver.serverthreads.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,6 +19,7 @@ public class ProxyMonitor {
     // TODO: Pre-fetch threads
 
     public static void runServer() {
+        /*
         InternalLog.Log("Launching quote proxy server socket listeners");
         QuoteProxyProcessingThread qppThread;
         QuotePrefetchProcessingThread qpfpThread;
@@ -35,6 +34,12 @@ public class ProxyMonitor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
+        CommsInterface.startServerCommunications(PROXY_DEPLOY.getPort());
+
+        QuoteMessageProcessingThread qmpt = new QuoteMessageProcessingThread(PROXY_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
+        proxyThreads.add(qmpt);
+        new Thread(qmpt).start();
 
         do {
             synchronized (syncObject) {

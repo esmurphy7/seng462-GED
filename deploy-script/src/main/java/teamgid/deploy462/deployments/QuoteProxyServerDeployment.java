@@ -40,6 +40,10 @@ public class QuoteProxyServerDeployment extends SingleDeployment {
                     remoteDeploy + "/com/teamged/proxyserver/*.java " +
                     remoteDeploy + "/com/teamged/proxyserver/serverthreads/*.java " +
                     remoteDeploy + "/com/teamged/proxyserver/quotecache/*.java " +
+                    remoteDeploy + "/com/teamged/comms/*.java " +
+                    remoteDeploy + "/com/teamged/comms/client/*.java " +
+                    remoteDeploy + "/com/teamged/comms/internal/*.java " +
+                    remoteDeploy + "/com/teamged/comms/server/*.java " +
                     remoteDeploy + "/com/teamged/deployment/*.java " +
                     remoteDeploy + "/com/teamged/deployment/base/*.java " +
                     remoteDeploy + "/com/teamged/deployment/deployments/*.java " +

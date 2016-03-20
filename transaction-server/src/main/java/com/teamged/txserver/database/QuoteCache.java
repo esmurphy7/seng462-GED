@@ -1,5 +1,7 @@
 package com.teamged.txserver.database;
 
+import com.teamged.comms.ClientMessage;
+import com.teamged.comms.CommsInterface;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.ErrorEventType;
@@ -192,8 +194,10 @@ public class QuoteCache {
      * @return The quote.
      */
     private static QuoteObject fetchQuoteFromServer(String stock, String callingUser, int tid, boolean userShortTimeout, boolean isPrefetch) {
-        QuoteObject quote;
+        QuoteObject quote = null;
         long nowMillis;
+
+        /*
         int port = isPrefetch ? prefetchPort : quotePort;
 
         try (
@@ -219,6 +223,19 @@ public class QuoteCache {
             e.printStackTrace();
             logErrorEvent(stock, callingUser, tid, e.getMessage());
             quote = QuoteObject.fromQuote("QUOTE ERROR");
+        }
+        */
+
+        int flag = isPrefetch ? 1 : 0;
+        int shortTimeout = userShortTimeout ? 1 : 0;
+        String data = stock + "," + callingUser + "," + tid + "," + shortTimeout;
+        ClientMessage clientMessage = ClientMessage.buildMessage(tid, flag, data, !isPrefetch);
+        System.out.println("Fetching quote from server: " + data);
+        CommsInterface.addClientRequest(clientMessage);
+        if (!isPrefetch) {
+            String quoteString = clientMessage.getResponse();
+            System.out.println("Got quote from server: " + quoteString);
+            quote = QuoteObject.fromQuote(quoteString);
         }
 
         return quote;

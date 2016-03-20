@@ -20,6 +20,7 @@ public class ClientCommsReqHandler implements Callable<String> {
     private final int port;
 
     public ClientCommsReqHandler(String server, int port) {
+        System.out.println("Created client communication request handler"); // TODO: Debugging line
         this.server = server;
         this.port = port;
     }
@@ -36,6 +37,7 @@ public class ClientCommsReqHandler implements Callable<String> {
      */
     @Override
     public String call() throws Exception {
+        System.out.println("Running client communication request handler"); // TODO: Debugging line
         Socket socket = null;
         ClientCommsRespHandler respHandler = null;
         boolean connected = false;
@@ -59,10 +61,13 @@ public class ClientCommsReqHandler implements Callable<String> {
             }
         }
 
+        System.out.println("Client communication request handler is connected to remote server on port " + socket.getLocalPort()); // TODO: Debugging line
+
         String retVal = "";
         try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
             ClientMessage msg;
             while (true) {
+                System.out.println("Client communication request handler is waiting on the next available client request"); // TODO: Debugging line
                 msg = CommsManager.takeNextClientRequest();
 
                 // Exits the request handler if the response handler died.
@@ -80,6 +85,7 @@ public class ClientCommsReqHandler implements Callable<String> {
                     }
                 }
 
+                System.out.println("Client communication request handler sending message: " + msg.toString()); // TODO: Debugging line
                 out.println(msg.toString());
             }
         } catch (Exception e) {
@@ -87,6 +93,7 @@ public class ClientCommsReqHandler implements Callable<String> {
             respHandler.shutdown();
         } finally {
             try {
+                System.out.println("Client communication request handler closing socket"); // TODO: Debugging line
                 socket.close();
             } catch (IOException ignored) {}
         }

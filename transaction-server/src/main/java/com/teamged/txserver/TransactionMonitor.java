@@ -1,5 +1,7 @@
 package com.teamged.txserver;
 
+import com.teamged.comms.CommsInterface;
+import com.teamged.deployment.deployments.QuoteProxyServerDeployment;
 import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.txserver.transactions.*;
 
@@ -60,6 +62,9 @@ public class TransactionMonitor {
                 e.printStackTrace();
             }
         }
+
+        QuoteProxyServerDeployment proxyServer = TxMain.Deployment.getProxyServer();
+        CommsInterface.startClientCommunications(proxyServer.getServer(), proxyServer.getPort(), proxyServer.getInternals().getCommunicationThreads());
 
         do {
             synchronized (syncObject) {
