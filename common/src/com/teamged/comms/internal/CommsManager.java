@@ -11,14 +11,19 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static java.lang.Long.MAX_VALUE;
 
 /**
  * Created by DanielF on 2016-03-18.
  */
 public class CommsManager {
+    public static final long SERVER_ID = ThreadLocalRandom.current().nextLong(Integer.MAX_VALUE, Long.MAX_VALUE);
+
     private static final int SERVER_THREAD_POOL_MAX = 128;
     private static final BlockingQueue<ServerMessage> serverReceiveRequest = new LinkedBlockingQueue<>();
-    private static final BlockingQueue<Message> serverSendResponse = new LinkedBlockingQueue<>();
+    private static final ConcurrentHashMap<Long, BlockingQueue<Message>> serverSendResponse = new ConcurrentHashMap<>();
     private static final List<ServerCommsThread> serverThreads = new ArrayList<>();
 
     private static final BlockingQueue<ClientMessage> clientSendRequest = new LinkedBlockingQueue<>();
@@ -80,22 +85,19 @@ public class CommsManager {
     public static void putNextServerResponse(Message m) {
         if (m != null) {
             try {
-                serverSendResponse.put(m);
-            } catch (InterruptedException e) {
+                serverSendResponse.get(m.getServerIdentifier()).put(m);
+            } catch (InterruptedException | NullPointerException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public static Message takeNextServerResponse() {
-        Message msg = null;
-        try {
-            msg = serverSendResponse.take();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public static void putServerResponseMapping(long serverId) {
+        serverSendResponse.putIfAbsent(serverId, new LinkedBlockingQueue<>());
+    }
 
-        return msg;
+    public static BlockingQueue<Message> getServerResponseQueue(long serverId) {
+        return serverSendResponse.get(serverId);
     }
 
     /**********************************************************************************************

@@ -40,7 +40,6 @@ public class ServerCommsThread implements Runnable {
             try {
                 Socket s = serverSocket.accept();
                 pool.execute(new ServerCommsReqHandler(s));
-                pool.execute(new ServerCommsRespHandler(s));
             } catch (IOException e) {
                 e.printStackTrace();
             }
