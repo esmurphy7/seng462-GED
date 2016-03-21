@@ -1,6 +1,7 @@
 package com.teamged.comms;
 
 import com.teamged.comms.internal.CommsManager;
+import com.teamged.deployment.DeploymentServer;
 
 /**
  * Created by DanielF on 2016-03-18.
@@ -27,13 +28,28 @@ public class CommsInterface {
 
     /**
      *
+     */
+    public static void endServerCommunications() {
+        CommsManager.closeServerComms();
+    }
+
+    /**
+     *
+     * @param deploymentServer
      * @param server
      * @param port
      * @param connections
      * @return
      */
-    public static boolean startClientCommunications(String server, int port, int connections) {
-        return CommsManager.addClientComms(server, port, connections);
+    public static boolean startClientCommunications(DeploymentServer deploymentServer, String server, int port, int connections) {
+        return CommsManager.addClientComms(deploymentServer, server, port, connections);
+    }
+
+    /**
+     *
+     */
+    public static void endClientCommunications() {
+        CommsManager.closeClientComms();
     }
 
     /**

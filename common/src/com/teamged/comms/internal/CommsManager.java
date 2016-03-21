@@ -4,6 +4,7 @@ import com.teamged.comms.ClientMessage;
 import com.teamged.comms.ServerMessage;
 import com.teamged.comms.client.ClientCommsThread;
 import com.teamged.comms.server.ServerCommsThread;
+import com.teamged.deployment.DeploymentServer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class CommsManager {
     private static final ConcurrentHashMap<Long, BlockingQueue<Message>> serverSendResponse = new ConcurrentHashMap<>();
     private static final List<ServerCommsThread> serverThreads = new ArrayList<>();
 
-    private static final BlockingQueue<ClientMessage> clientSendRequest = new LinkedBlockingQueue<>();
+    private static final ConcurrentHashMap<DeploymentServer, BlockingQueue<ClientMessage>> clientSendRequest = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ClientMessage> clientMessageMap = new ConcurrentHashMap<>();
     private static final List<ClientCommsThread> clientThreads = new ArrayList<>();
 
@@ -59,6 +60,10 @@ public class CommsManager {
         }
 
         return started;
+    }
+
+    public static void closeServerComms() {
+        serverThreads.forEach(ServerCommsThread::shutdown);
     }
 
     public static void putNextServerRequest(ServerMessage sm) {
@@ -102,37 +107,27 @@ public class CommsManager {
 
     /**********************************************************************************************
      ** Client communications
-     **
-     ** TODO: Support multiple client connections.
      *********************************************************************************************/
 
-    public static boolean addClientComms(String server, int commsPort, int connections) {
-        ClientCommsThread cct = new ClientCommsThread(server, commsPort, connections);
+    public static boolean addClientComms(DeploymentServer deploymentServer, String server, int commsPort, int connections) {
+        ClientCommsThread cct = new ClientCommsThread(deploymentServer, server, commsPort, connections);
         clientThreads.add(cct);
         new Thread(cct).start();
         return true;
     }
 
+    public static void closeClientComms() {
+        clientThreads.forEach(ClientCommsThread::shutdown);
+    }
+
     public static void putNextClientRequest(ClientMessage cm) {
         if (cm != null) {
             try {
-                clientSendRequest.put(cm);
-            } catch (InterruptedException e) {
+                clientSendRequest.get(cm.getDeploymentServer()).put(cm);
+            } catch (InterruptedException | NullPointerException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static ClientMessage takeNextClientRequest() {
-        ClientMessage cMsg = null;
-        try {
-            cMsg = clientSendRequest.take();
-            CommsManager.CommsLogInfo(cMsg.toString());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return cMsg;
     }
 
     public static boolean storeClientMessage(ClientMessage cm) {
@@ -142,6 +137,14 @@ public class CommsManager {
         }
 
         return messageStored;
+    }
+
+    public static void putClientRequestMapping(DeploymentServer deploymentServer) {
+        clientSendRequest.putIfAbsent(deploymentServer, new LinkedBlockingQueue<>());
+    }
+
+    public static BlockingQueue<ClientMessage> getClientRequestQueue(DeploymentServer deploymentServer) {
+        return clientSendRequest.get(deploymentServer);
     }
 
     public static ClientMessage releaseClientMessage(long identifier) {

@@ -1,49 +1,64 @@
 package com.teamged.comms;
 
 import com.teamged.comms.internal.Message;
+import com.teamged.deployment.DeploymentServer;
 
 /**
  * Created by DanielF on 2016-03-18.
  */
 public class ClientMessage {
+    private final DeploymentServer deploymentServer;
     private final Message internalMessage;
     private final boolean expResp;
 
     /**
      * Private constructor for the ClientMessage. Assigns the underlying Message.
      *
+     * @param deploymentServer  The server this ClientMessage is bound for.
      * @param msg               The underlying Message, containing communication meta-information.
      * @param responseExpected  Whether this client message expects a response or not.
      */
-    private ClientMessage(Message msg, boolean responseExpected) {
-        internalMessage = msg;
-        expResp = responseExpected;
+    private ClientMessage(DeploymentServer deploymentServer, Message msg, boolean responseExpected) {
+        this.deploymentServer = deploymentServer;
+        this.internalMessage = msg;
+        this.expResp = responseExpected;
     }
 
     /**
      * Builds a ClientMessage from the provided information. The message will have a
      * randomly generated identifier and an empty flag.
      *
+     * @param deploymentServer  The server this ClientMessage is bound for.
      * @param data              The Message data.
      * @param responseExpected  Whether this client message expects a response or not.
      * @return                  A ClientMessage containing communication meta-information.
      */
-    public static ClientMessage buildMessage(String data, boolean responseExpected) {
-        return buildMessage(0, data, responseExpected);
+    public static ClientMessage buildMessage(DeploymentServer deploymentServer, String data, boolean responseExpected) {
+        return buildMessage(deploymentServer, 0, data, responseExpected);
     }
 
     /**
      * Builds a ClientMessage from the provided information. The message will have a
      * randomly generated identifier.
      *
+     * @param deploymentServer  The server this ClientMessage is bound for.
      * @param flags             The message's flags.
      * @param data              The message's data.
      * @param responseExpected  Whether this client message expects a response or not.
      * @return                  A ClientMessage containing communication meta-information.
      */
-    public static ClientMessage buildMessage(int flags, String data, boolean responseExpected) {
+    public static ClientMessage buildMessage(DeploymentServer deploymentServer, int flags, String data, boolean responseExpected) {
         Message msg = new Message(0, flags, data);
-        return new ClientMessage(msg, responseExpected);
+        return new ClientMessage(deploymentServer, msg, responseExpected);
+    }
+
+    /**
+     * Gets the server that this ClientMessage is bound for.
+     *
+     * @return The server this ClientMessage is bound for.
+     */
+    public DeploymentServer getDeploymentServer() {
+        return deploymentServer;
     }
 
     /**

@@ -28,6 +28,7 @@ public class ServerCommsReqHandler implements Runnable {
         int nullRetries = 10;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             if (establishConnection(in)) {
+                CommsManager.CommsLogInfo("Server communication request handler initialized connection with server");
                 while (!respHandler.isShutdown()) {
                     request = in.readLine();
                     CommsManager.CommsLogVerbose("Server communication request handler got message: " + request);
@@ -51,9 +52,7 @@ public class ServerCommsReqHandler implements Runnable {
 
             try {
                 socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } catch (IOException ignored) {}
         }
     }
 
