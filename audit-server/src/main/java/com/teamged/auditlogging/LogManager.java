@@ -186,6 +186,21 @@ public class LogManager {
     }
 
     /**
+     *  Deletes the output logfile
+     */
+    public static void DeleteLogs()
+    {
+        URL url = LogManager.class.getResource("");
+
+        File logfile = new File(url.getPath() + OUTPUT_LOGFILE);
+        boolean success = logfile.delete();
+        if(!success)
+        {
+            InternalLog.Log("Could not delete logfile at: "+url.getPath()+OUTPUT_LOGFILE);
+        }
+    }
+
+    /**
      * Builds the marshaller for saving logs to file.
      *
      * @return The XML log marshaller.

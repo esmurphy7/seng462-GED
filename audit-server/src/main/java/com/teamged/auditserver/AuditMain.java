@@ -120,6 +120,8 @@ public class AuditMain {
     }
 
     private static void runServer() {
+        InternalLog.Log("Deleting logfile...");
+        LogManager.DeleteLogs();
         InternalLog.Log("Launching audit server communications and processing handlers.");
         CommsInterface.startServerCommunications(Deployment.getAuditServer().getPort());
         AuditServerThread connThread = new LogConnectionThread(Deployment.getAuditServer().getInternals().getCommunicationThreads(), syncObject);
