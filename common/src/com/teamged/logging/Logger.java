@@ -90,7 +90,7 @@ public class Logger
      */
     public void DumpLog(int tid) {
         String dumpMsg = "DUMPLOG," + tid;
-        ClientMessage clientMessage = ClientMessage.buildMessage(AUDIT_DEPLOY.getServer(), dumpMsg, false);
+        ClientMessage clientMessage = ClientMessage.buildMessage(AUDIT_DEPLOY.getServer(), 1, dumpMsg, false);
         CommsInterface.addClientRequest(clientMessage);
     }
 }
