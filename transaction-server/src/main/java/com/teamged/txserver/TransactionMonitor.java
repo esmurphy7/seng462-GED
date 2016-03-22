@@ -42,26 +42,17 @@ public class TransactionMonitor {
      * bound operations.
      */
     public static void runServer() {
-        InternalLog.Log("Launching transaction server socket listeners.");
-        int portNum = TX_DEPLOY.getPort();
-        TransactionServerThread rpThread;
-        try {
-            rpThread = new RequestProcessingThread(portNum, TX_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
-            reqProcThreads.add(rpThread);
-            new Thread(rpThread).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        InternalLog.Log("Launching transaction server communications and message processors.");
+        CommsInterface.startServerCommunications(TX_DEPLOY.getPort());
+        TransactionServerThread rpThread = new RequestProcessingThread(TX_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
+        reqProcThreads.add(rpThread);
+        new Thread(rpThread).start();
 
         for (int i = 0; i < TX_DEPLOY.getInternals().getProcedureThreads(); i++) {
             TransactionServerThread txpThread;
-            try {
-                txpThread = new TransactionProcessingThread(TX_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
-                txProcThreads.add(txpThread);
-                new Thread(txpThread).start();
-            } catch (IllegalThreadStateException e) {
-                e.printStackTrace();
-            }
+            txpThread = new TransactionProcessingThread(TX_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
+            txProcThreads.add(txpThread);
+            new Thread(txpThread).start();
         }
 
         QuoteProxyServerDeployment proxyServer = TxMain.Deployment.getProxyServer();

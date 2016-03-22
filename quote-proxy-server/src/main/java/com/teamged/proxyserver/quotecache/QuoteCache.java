@@ -129,39 +129,6 @@ public class QuoteCache {
         QuoteObject quote;
         long nowMillis;
         int index = roundRobinCounter.incrementAndGet() % fetchServerCount;
-        /*
-        try (
-                Socket quoteSocket = new Socket(ProxyMain.Deployment.getFetchServers().getServers().get(index), ProxyMain.Deployment.getFetchServers().getPort());
-                PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-        ) {
-            String quoteString;
-            out.println(stock + "," + callingUser);
-            quoteString = in.readLine();
-            quote = QuoteObject.fromQuote(quoteString);
-            nowMillis = Calendar.getInstance().getTimeInMillis();
-
-            if (!quote.getErrorString().isEmpty()) {
-                InternalLog.Log("Quote fetch error. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-            } else {
-                InternalLog.Log("Quote fetch complete. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                QuoteServerType qst = new QuoteServerType();
-                qst.setTimestamp(nowMillis);
-                qst.setQuoteServerTime(BigInteger.valueOf(quote.getQuoteInternalTime()));
-                qst.setServer(ProxyMain.getServerName());
-                qst.setTransactionNum(BigInteger.valueOf(tid));
-                qst.setPrice(quote.getPrice());
-                qst.setStockSymbol(quote.getStockSymbol());
-                qst.setUsername(quote.getUserName());
-                qst.setCryptokey(quote.getCryptoKey());
-                Logger.getInstance().Log(qst);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            logErrorEvent(stock, callingUser, tid, e.getMessage());
-            quote = QuoteObject.fromQuote("QUOTE ERROR");
-        }
-        */
 
         String data = stock + "," + callingUser;
         ClientMessage clientMessage = ClientMessage.buildMessage(ProxyMain.Deployment.getFetchServers().getServers().get(index), data, true);

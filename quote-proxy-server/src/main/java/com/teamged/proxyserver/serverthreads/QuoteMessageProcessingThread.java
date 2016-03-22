@@ -86,7 +86,7 @@ public class QuoteMessageProcessingThread extends ProxyServerThread {
 
     @Override
     public void run() {
-        System.out.println("Quote message processing task running.");
+        System.out.println("Quote message processing task running");
         while (true) {
             ServerMessage serverMessage = CommsInterface.getNextServerRequest();
             if (serverMessage == null) {

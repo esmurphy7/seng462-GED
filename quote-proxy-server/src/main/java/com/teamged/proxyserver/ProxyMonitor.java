@@ -20,22 +20,6 @@ public class ProxyMonitor {
     // TODO: Pre-fetch threads
 
     public static void runServer() {
-        /*
-        InternalLog.Log("Launching quote proxy server socket listeners");
-        QuoteProxyProcessingThread qppThread;
-        QuotePrefetchProcessingThread qpfpThread;
-        try {
-            qppThread = new QuoteProxyProcessingThread(PROXY_DEPLOY.getPort(), PROXY_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
-            proxyThreads.add(qppThread);
-            new Thread(qppThread).start();
-
-            qpfpThread = new QuotePrefetchProcessingThread(PROXY_DEPLOY.getInternals().getPrefetchPort(), PROXY_DEPLOY.getInternals().getSmallPoolSize(), syncObject);
-            proxyThreads.add(qpfpThread);
-            new Thread(qpfpThread).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
         CommsInterface.startServerCommunications(PROXY_DEPLOY.getPort());
         QuoteMessageProcessingThread qmpt = new QuoteMessageProcessingThread(PROXY_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
         proxyThreads.add(qmpt);
