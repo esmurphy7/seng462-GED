@@ -6,8 +6,13 @@ package com.teamged.deployment.internals;
 public class QuoteFetchInternals {
 
     private Integer threadPool;
+    private Integer commThreads;
 
     public Integer getThreadPoolSize() {
         return threadPool;
+    }
+
+    public Integer getCommunicationThreads() {
+        return commThreads;
     }
 }

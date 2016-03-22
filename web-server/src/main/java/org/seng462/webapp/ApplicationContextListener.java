@@ -1,5 +1,7 @@
 package org.seng462.webapp;
 
+import com.teamged.comms.CommsInterface;
+import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.logging.Logger;
 
 import javax.servlet.ServletContextEvent;
@@ -18,10 +20,16 @@ public class ApplicationContextListener implements ServletContextListener
 
         // Initialize the Logger to send its logs to the audit server
         Logger.SetLogDestination(ConfigurationManager.DeploymentSettings.getAuditServer());
+
+        // Initializes communications with the transaction server
+        TransactionServerDeployment txServer = ConfigurationManager.DeploymentSettings.getTransactionServers();
+        for (String server : txServer.getServers()) {
+            CommsInterface.startClientCommunications(server, txServer.getPort(), txServer.getInternals().getCommunicationThreads());
+        }
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
-
+        CommsInterface.endClientCommunications();
     }
 }

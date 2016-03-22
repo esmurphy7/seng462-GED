@@ -25,7 +25,7 @@ public class LogProcessingThread implements Runnable {
             while (true) {
                 StringBuilder sb = new StringBuilder(100);
                 for (int i = 0; i < 100; i++) {
-                    LogType log = logs.poll(5, TimeUnit.SECONDS);
+                    LogType log = logs.poll(1, TimeUnit.SECONDS);
                     if (log == null) {
                         break;
                     }

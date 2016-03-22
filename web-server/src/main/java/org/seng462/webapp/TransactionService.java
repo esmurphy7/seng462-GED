@@ -1,5 +1,7 @@
 package org.seng462.webapp;
 
+import com.teamged.comms.ClientMessage;
+import com.teamged.comms.CommsInterface;
 import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.deployment.deployments.WebServerDeployment;
 import com.teamged.logging.Logger;
@@ -89,35 +91,33 @@ public class TransactionService
         } catch (UnknownHostException e) {
             String errorMsg = "Cannot find local hostname to include in message" + "\n" + e.getMessage();
             e.printStackTrace();
-            Response response = Response.serverError().entity(errorMsg).build();
-            return response;
+            return Response.serverError().entity(errorMsg).build();
         }
 
         // determine the target transaction server (equally distribute the workload to each server)
         TransactionServerDeployment txDeployment = ConfigurationManager.DeploymentSettings.getTransactionServers();
         List<String> servers = txDeployment.getServers();
-        int targetPort = txDeployment.getPort();
         int userNameSort = (userCommand.getArgs().get("userId") != null) ? userCommand.getArgs().get("userId").charAt(0) : 1;
         int serverIndex = userNameSort % servers.size();
         String targetServer = servers.get(serverIndex);
 
-        // open transaction socket
-        try (Socket socket = new Socket(targetServer, targetPort);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true))
-        {
-            // send packet over socket
-            out.println(message);
-
-            //TODO:// translate response from tx server into jersey response and return it
-            Response response = Response.ok().build();
-            return response;
-
-        }catch (Exception e) {
+        // TODO: Set third parameter (responseExpected) to true and wait on response, translating it into jersey response
+        ClientMessage clientMessage = ClientMessage.buildMessage(targetServer, message, false);
+        CommsInterface.addClientRequest(clientMessage);
+        Response response;
+        /*
+        String respMessage = clientMessage.waitForResponse();
+        if (respMessage != null) {
+            response = // parse to jersey response
+        } else {
             String errorMsg = "Could not connect to transaction server: "+  targetServer + ":" + targetPort + "\n" + e.getMessage();
             System.out.println(errorMsg);
-            Response response = Response.serverError().entity(errorMsg).build();
-            return response;
+            response = Response.serverError().entity(errorMsg).build();
         }
+         */
+
+        response = Response.ok().build();
+        return response;
     }
 
     // Build a user command log and send it to the transaction server
@@ -187,7 +187,12 @@ public class TransactionService
         userCommandLog.setStockSymbol(userCommand.getArgs().get("stockSymbol"));
 
         String amount = userCommand.getArgs().get("amount");
-        BigDecimal amountVal = (amount != null) ? new BigDecimal(amount) : null;
+        BigDecimal amountVal;
+        try {
+           amountVal = (amount != null) ? new BigDecimal(amount) : null;
+        } catch (NumberFormatException nfe) {
+            amountVal = null;
+        }
         userCommandLog.setFunds(amountVal);
 
         userCommandLog.setTimestamp(System.currentTimeMillis());

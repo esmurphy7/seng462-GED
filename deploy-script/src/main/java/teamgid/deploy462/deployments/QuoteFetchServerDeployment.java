@@ -39,6 +39,10 @@ public class QuoteFetchServerDeployment extends MultipleDeployment {
             final Session.Command javac_cmd = javac_session.exec("javac -cp .:" + remoteDir + "/gson-2.6.2.jar " +
                     remoteDeploy + "/com/teamged/fetchserver/*.java " +
                     remoteDeploy + "/com/teamged/fetchserver/serverthreads/*.java " +
+                    remoteDeploy + "/com/teamged/comms/*.java " +
+                    remoteDeploy + "/com/teamged/comms/client/*.java " +
+                    remoteDeploy + "/com/teamged/comms/internal/*.java " +
+                    remoteDeploy + "/com/teamged/comms/server/*.java " +
                     remoteDeploy + "/com/teamged/deployment/*.java " +
                     remoteDeploy + "/com/teamged/deployment/base/*.java " +
                     remoteDeploy + "/com/teamged/deployment/deployments/*.java " +

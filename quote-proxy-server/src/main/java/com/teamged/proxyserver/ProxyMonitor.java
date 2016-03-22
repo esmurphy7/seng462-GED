@@ -1,10 +1,9 @@
 package com.teamged.proxyserver;
 
+import com.teamged.comms.CommsInterface;
+import com.teamged.deployment.deployments.QuoteFetchServerDeployment;
 import com.teamged.deployment.deployments.QuoteProxyServerDeployment;
-import com.teamged.proxyserver.serverthreads.ProxyServerThread;
-import com.teamged.proxyserver.serverthreads.QuotePrefetchProcessingHandler;
-import com.teamged.proxyserver.serverthreads.QuotePrefetchProcessingThread;
-import com.teamged.proxyserver.serverthreads.QuoteProxyProcessingThread;
+import com.teamged.proxyserver.serverthreads.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,19 +20,14 @@ public class ProxyMonitor {
     // TODO: Pre-fetch threads
 
     public static void runServer() {
-        InternalLog.Log("Launching quote proxy server socket listeners");
-        QuoteProxyProcessingThread qppThread;
-        QuotePrefetchProcessingThread qpfpThread;
-        try {
-            qppThread = new QuoteProxyProcessingThread(PROXY_DEPLOY.getPort(), PROXY_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
-            proxyThreads.add(qppThread);
-            new Thread(qppThread).start();
+        CommsInterface.startServerCommunications(PROXY_DEPLOY.getPort());
+        QuoteMessageProcessingThread qmpt = new QuoteMessageProcessingThread(PROXY_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
+        proxyThreads.add(qmpt);
+        new Thread(qmpt).start();
 
-            qpfpThread = new QuotePrefetchProcessingThread(PROXY_DEPLOY.getInternals().getPrefetchPort(), PROXY_DEPLOY.getInternals().getSmallPoolSize(), syncObject);
-            proxyThreads.add(qpfpThread);
-            new Thread(qpfpThread).start();
-        } catch (IOException e) {
-            e.printStackTrace();
+        QuoteFetchServerDeployment fetchServer = ProxyMain.Deployment.getFetchServers();
+        for (String server : fetchServer.getServers()) {
+            CommsInterface.startClientCommunications(server, fetchServer.getPort(), fetchServer.getInternals().getCommunicationThreads());
         }
 
         do {

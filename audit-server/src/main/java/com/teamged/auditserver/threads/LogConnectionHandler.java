@@ -6,22 +6,17 @@ import com.teamged.auditserver.AuditMain;
 import com.teamged.auditserver.InternalLog;
 import com.teamged.logging.xmlelements.XmlElements;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.Socket;
-import java.util.Calendar;
 
 /**
  * Created by DanielF on 2016-02-23.
  */
 public class LogConnectionHandler implements Runnable {
-    private final Socket socket;
+    private final String packetData;
 
-    public LogConnectionHandler(Socket socket) {
-        this.socket = socket;
+    public LogConnectionHandler(String packetData) {
+        this.packetData = packetData;
     }
 
     /**
@@ -32,13 +27,6 @@ public class LogConnectionHandler implements Runnable {
     @Override
     public void run() {
         long startTime = System.nanoTime();
-        String packetData = null;
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-            packetData = in.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        long tick = System.nanoTime();
 
         if (packetData != null) {
             // This splits the received data into multiple messages to process
@@ -211,12 +199,7 @@ public class LogConnectionHandler implements Runnable {
         long endTime = System.nanoTime();
 
         StringBuilder sb = new StringBuilder();
-        sb.append(tick-startTime); // Socket read time
-        sb.append(",");
-        sb.append(endTime-tick); // Parse time
-        sb.append(",");
-        sb.append(endTime-startTime); // Full run time of log handling
-        sb.append(";");
+        sb.append(endTime - startTime); // Full run time of log handling
         sb.append("\n");
         LogManager.timestamps.add(sb.toString());
     }

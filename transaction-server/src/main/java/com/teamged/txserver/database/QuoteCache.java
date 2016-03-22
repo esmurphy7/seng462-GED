@@ -1,5 +1,8 @@
 package com.teamged.txserver.database;
 
+import com.teamged.comms.ClientMessage;
+import com.teamged.comms.CommsInterface;
+import com.teamged.deployment.DeploymentServer;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.ErrorEventType;
@@ -154,26 +157,28 @@ public class QuoteCache {
      * @param useShortTimeout True to use a short timeout period, false to use a regular timeout.
      */
     private static void prefetchQuoteObject(String stock, String callingUser, int tid, boolean useShortTimeout) {
-        boolean doPrefetch = true;
+        boolean doPrefetch = TxMain.prefetchEnabled();
 
-        try {
-            if (TxMain.prefetchEnabled() && (!useShortTimeout || (useShortTimeout && TxMain.rtEnabled()))) {
-                Future<QuoteObject> fq = quoteMap.get(stock);
-                long nowMillis = Calendar.getInstance().getTimeInMillis();
+        if (doPrefetch) {
+            try {
+                if (!useShortTimeout || (useShortTimeout && TxMain.rtEnabled())) {
+                    Future<QuoteObject> fq = quoteMap.get(stock);
+                    long nowMillis = Calendar.getInstance().getTimeInMillis();
 
-                if (fq == null || // Not in cache
-                        fq.isCancelled() || // Cached a version with no value
-                        (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) || // Cached, but older than a minute
-                        (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) // Cached, but older than half a second and we need brand new
-                {
-                    InternalLog.CacheDebug("[QUOTE PF] Cache Level II miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                } else {
-                    InternalLog.CacheDebug("[QUOTE C2] Cache Level II hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                    doPrefetch = false;
+                    if (fq == null || // Not in cache
+                            fq.isCancelled() || // Cached a version with no value
+                            (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) || // Cached, but older than a minute
+                            (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) // Cached, but older than half a second and we need brand new
+                    {
+                        InternalLog.CacheDebug("[QUOTE PF] Cache Level II miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                    } else {
+                        InternalLog.CacheDebug("[QUOTE C2] Cache Level II hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                        doPrefetch = false;
+                    }
                 }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
         }
 
         if (doPrefetch) {
@@ -192,33 +197,17 @@ public class QuoteCache {
      * @return The quote.
      */
     private static QuoteObject fetchQuoteFromServer(String stock, String callingUser, int tid, boolean userShortTimeout, boolean isPrefetch) {
-        QuoteObject quote;
-        long nowMillis;
-        int port = isPrefetch ? prefetchPort : quotePort;
-
-        try (
-                Socket quoteSocket = new Socket(TxMain.Deployment.getProxyServer().getServer(), port);
-                PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-        ) {
-            String quoteString;
-            int shortTimeout = userShortTimeout ? 1 : 0;
-            out.println(stock + "," + callingUser + "," + tid + "," + shortTimeout);
-            quoteString = in.readLine();
+        QuoteObject quote = null;
+        int flag = isPrefetch ? 1 : 0;
+        int shortTimeout = userShortTimeout ? 1 : 0;
+        String data = stock + "," + callingUser + "," + tid + "," + shortTimeout;
+        ClientMessage clientMessage = ClientMessage.buildMessage(TxMain.Deployment.getProxyServer().getServer(), flag, data, !isPrefetch);
+        InternalLog.Log("Fetching quote from server: " + data);
+        CommsInterface.addClientRequest(clientMessage);
+        if (!isPrefetch) {
+            String quoteString = clientMessage.waitForResponse();
+            InternalLog.Log("Got quote from server: " + quoteString);
             quote = QuoteObject.fromQuote(quoteString);
-            nowMillis = Calendar.getInstance().getTimeInMillis();
-
-            if (!quote.getErrorString().isEmpty()) {
-                // Log error?
-                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-            } else {
-                InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                // No longer logs the quote here - the canonical quote log happens in the proxy server now.
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            logErrorEvent(stock, callingUser, tid, e.getMessage());
-            quote = QuoteObject.fromQuote("QUOTE ERROR");
         }
 
         return quote;

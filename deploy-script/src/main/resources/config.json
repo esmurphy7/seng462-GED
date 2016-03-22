@@ -1,5 +1,6 @@
 {
     "remoteDirectory": "/seng/scratch/group4",
+    "commsTimeout": 10000,
     "deployments": {
         "quoteServer": {
             "server": "quoteserve.seng.uvic.ca",
@@ -51,7 +52,7 @@
             "internal": {
                 "threadPool": 4,
                 "procThreads": 4,
-                "commThreads": 8,
+                "commThreads": 4,
                 "queueSize": 1000000
             }
         },
@@ -93,7 +94,8 @@
             ],
             "port": 44449,
             "internal": {
-                "threadPool": 64
+                "threadPool": 64,
+                "commThreads": 8
             }
         },
         "proxyServer": {
@@ -106,7 +108,8 @@
             "internal": {
                 "prefetchPort": 44445,
                 "smallPool": 8,
-                "threadPool": 64
+                "threadPool": 64,
+                "commThreads": 8
             }
         }
     }

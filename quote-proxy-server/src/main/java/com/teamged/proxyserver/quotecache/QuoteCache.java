@@ -1,5 +1,7 @@
 package com.teamged.proxyserver.quotecache;
 
+import com.teamged.comms.ClientMessage;
+import com.teamged.comms.CommsInterface;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.ErrorEventType;
@@ -7,12 +9,7 @@ import com.teamged.logging.xmlelements.QuoteServerType;
 import com.teamged.proxyserver.InternalLog;
 import com.teamged.proxyserver.ProxyMain;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigInteger;
-import java.net.Socket;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.concurrent.*;
@@ -132,19 +129,19 @@ public class QuoteCache {
         QuoteObject quote;
         long nowMillis;
         int index = roundRobinCounter.incrementAndGet() % fetchServerCount;
-        try (
-                Socket quoteSocket = new Socket(ProxyMain.Deployment.getFetchServers().getServers().get(index), ProxyMain.Deployment.getFetchServers().getPort());
-                PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-        ) {
-            String quoteString;
-            out.println(stock + "," + callingUser);
-            quoteString = in.readLine();
+
+        String data = stock + "," + callingUser;
+        ClientMessage clientMessage = ClientMessage.buildMessage(ProxyMain.Deployment.getFetchServers().getServers().get(index), data, true);
+        InternalLog.Log("Sending request to fetch server " + index + ": " + data);
+        CommsInterface.addClientRequest(clientMessage);
+        String quoteString = clientMessage.waitForResponse();
+        if (quoteString != null) {
             quote = QuoteObject.fromQuote(quoteString);
             nowMillis = Calendar.getInstance().getTimeInMillis();
 
             if (!quote.getErrorString().isEmpty()) {
                 InternalLog.Log("Quote fetch error. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                logErrorEvent(stock, callingUser, tid, quote.getErrorString());
             } else {
                 InternalLog.Log("Quote fetch complete. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
                 QuoteServerType qst = new QuoteServerType();
@@ -158,10 +155,9 @@ public class QuoteCache {
                 qst.setCryptokey(quote.getCryptoKey());
                 Logger.getInstance().Log(qst);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            logErrorEvent(stock, callingUser, tid, e.getMessage());
-            quote = QuoteObject.fromQuote("QUOTE ERROR");
+        } else {
+            logErrorEvent(stock, callingUser, tid, "Got null quote");
+            quote = QuoteObject.fromQuote("QUOTE COMMUNICATION ERROR");
         }
 
         return quote;
