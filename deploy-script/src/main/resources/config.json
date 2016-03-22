@@ -1,5 +1,6 @@
 {
     "remoteDirectory": "/seng/scratch/group4",
+    "commsTimeout": 10000,
     "deployments": {
         "quoteServer": {
             "server": "quoteserve.seng.uvic.ca",

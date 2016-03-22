@@ -198,37 +198,6 @@ public class QuoteCache {
      */
     private static QuoteObject fetchQuoteFromServer(String stock, String callingUser, int tid, boolean userShortTimeout, boolean isPrefetch) {
         QuoteObject quote = null;
-        long nowMillis;
-
-        /*
-        int port = isPrefetch ? prefetchPort : quotePort;
-
-        try (
-                Socket quoteSocket = new Socket(TxMain.Deployment.getProxyServer().getServer(), port);
-                PrintWriter out = new PrintWriter(quoteSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-        ) {
-            String quoteString;
-            int shortTimeout = userShortTimeout ? 1 : 0;
-            out.println(stock + "," + callingUser + "," + tid + "," + shortTimeout);
-            quoteString = in.readLine();
-            quote = QuoteObject.fromQuote(quoteString);
-            nowMillis = Calendar.getInstance().getTimeInMillis();
-
-            if (!quote.getErrorString().isEmpty()) {
-                // Log error?
-                InternalLog.CacheDebug("[QUOTE C3] Server query failed for quote. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-            } else {
-                InternalLog.CacheDebug("[QUOTE C3] Server query got quote. Stock: " + stock + "; User: " + callingUser + "; Value: $" + quote.getPrice() + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                // No longer logs the quote here - the canonical quote log happens in the proxy server now.
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            logErrorEvent(stock, callingUser, tid, e.getMessage());
-            quote = QuoteObject.fromQuote("QUOTE ERROR");
-        }
-        */
-
         int flag = isPrefetch ? 1 : 0;
         int shortTimeout = userShortTimeout ? 1 : 0;
         String data = stock + "," + callingUser + "," + tid + "," + shortTimeout;

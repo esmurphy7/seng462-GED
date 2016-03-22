@@ -104,13 +104,14 @@ public class QuoteObject {
 
     private void parseArgs(String args) {
         boolean parsed = true;
-        quoteString = args.substring(0, args.lastIndexOf(','));
 
         if (args == null) {
             errorString = "Null argument";
         } else if (args.isEmpty()) {
             errorString = "Empty argument";
+            quoteString = "";
         } else {
+            quoteString = args.substring(0, args.lastIndexOf(','));
             String[] argsArray = args.split(",");
             if (argsArray.length != QUOTE_STATEMENT_ARGS) {
                 errorString = "Incorrect number of arguments in " + args;

@@ -2,6 +2,7 @@ package com.teamged.deployment;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.teamged.comms.internal.Message;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -41,6 +42,7 @@ public class DeployParser {
             Gson gson = new GsonBuilder().create();
             DeploymentConfig config = gson.fromJson(reader, DeploymentConfig.class);
             if (config != null) {
+                Message.setTimeoutMillis(config.getCommsTimeout());
                 settings = config.getDeployments();
             }
         } catch (FileNotFoundException e) {
