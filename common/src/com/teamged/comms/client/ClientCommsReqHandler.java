@@ -19,15 +19,13 @@ public class ClientCommsReqHandler implements Callable<String> {
     private static final int MIDDLE_RETRY = 10000;
     private static final int SLOW_RETRY = 60000;
     private static final int RETRY_COUNT = 20;
-    private final DeploymentServer deploymentServer;
     private final String server;
     private final int port;
     private ClientCommsRespHandler respHandler;
     private BlockingQueue<ClientMessage> msgQueue;
 
-    public ClientCommsReqHandler(DeploymentServer deploymentServer, String server, int port) {
+    public ClientCommsReqHandler(String server, int port) {
         CommsManager.CommsLogVerbose("Created client communication request handler");
-        this.deploymentServer = deploymentServer;
         this.server = server;
         this.port = port;
     }
@@ -120,13 +118,13 @@ public class ClientCommsReqHandler implements Callable<String> {
         boolean establishedConn = false;
         out.println(CommsManager.SERVER_ID);
         if (!out.checkError()) {
-            CommsManager.putClientRequestMapping(deploymentServer);
-            msgQueue = CommsManager.getClientRequestQueue(deploymentServer);
+            CommsManager.putClientRequestMapping(server);
+            msgQueue = CommsManager.getClientRequestQueue(server);
             if (msgQueue != null) {
                 respHandler = new ClientCommsRespHandler(socket);
                 establishedConn = true;
             } else {
-                CommsManager.CommsLogVerbose("Client communication request handler failed to find client request queue with key: " + deploymentServer);
+                CommsManager.CommsLogVerbose("Client communication request handler failed to find client request queue with server: " + server);
             }
         } else {
             CommsManager.CommsLogVerbose("Client communication request handler experienced IO error with server");

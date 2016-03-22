@@ -14,8 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static java.lang.Long.MAX_VALUE;
-
 /**
  * Created by DanielF on 2016-03-18.
  */
@@ -27,7 +25,7 @@ public class CommsManager {
     private static final ConcurrentHashMap<Long, BlockingQueue<Message>> serverSendResponse = new ConcurrentHashMap<>();
     private static final List<ServerCommsThread> serverThreads = new ArrayList<>();
 
-    private static final ConcurrentHashMap<DeploymentServer, BlockingQueue<ClientMessage>> clientSendRequest = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, BlockingQueue<ClientMessage>> clientSendRequest = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ClientMessage> clientMessageMap = new ConcurrentHashMap<>();
     private static final List<ClientCommsThread> clientThreads = new ArrayList<>();
 
@@ -109,8 +107,8 @@ public class CommsManager {
      ** Client communications
      *********************************************************************************************/
 
-    public static boolean addClientComms(DeploymentServer deploymentServer, String server, int commsPort, int connections) {
-        ClientCommsThread cct = new ClientCommsThread(deploymentServer, server, commsPort, connections);
+    public static boolean addClientComms(String server, int commsPort, int connections) {
+        ClientCommsThread cct = new ClientCommsThread(server, commsPort, connections);
         clientThreads.add(cct);
         new Thread(cct).start();
         return true;
@@ -123,7 +121,7 @@ public class CommsManager {
     public static void putNextClientRequest(ClientMessage cm) {
         if (cm != null) {
             try {
-                clientSendRequest.get(cm.getDeploymentServer()).put(cm);
+                clientSendRequest.get(cm.getServerAddress()).put(cm);
             } catch (InterruptedException | NullPointerException e) {
                 e.printStackTrace();
             }
@@ -139,12 +137,12 @@ public class CommsManager {
         return messageStored;
     }
 
-    public static void putClientRequestMapping(DeploymentServer deploymentServer) {
-        clientSendRequest.putIfAbsent(deploymentServer, new LinkedBlockingQueue<>());
+    public static void putClientRequestMapping(String serverAddress) {
+        clientSendRequest.putIfAbsent(serverAddress, new LinkedBlockingQueue<>());
     }
 
-    public static BlockingQueue<ClientMessage> getClientRequestQueue(DeploymentServer deploymentServer) {
-        return clientSendRequest.get(deploymentServer);
+    public static BlockingQueue<ClientMessage> getClientRequestQueue(String serverAddress) {
+        return clientSendRequest.get(serverAddress);
     }
 
     public static ClientMessage releaseClientMessage(long identifier) {

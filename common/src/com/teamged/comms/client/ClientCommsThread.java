@@ -11,17 +11,15 @@ import java.util.concurrent.*;
 public class ClientCommsThread implements Runnable {
     private final ExecutorService threadPool;
     private final CompletionService<String> pool;
-    private final DeploymentServer deploymentServer;
     private final String serverString;
     private final int serverPort;
     private final int poolSize;
     private int currentPoolSize;
     private boolean shutdown = false;
 
-    public ClientCommsThread(DeploymentServer deploymentServer, String server, int port, int poolSize) {
+    public ClientCommsThread(String server, int port, int poolSize) {
         this.threadPool = Executors.newFixedThreadPool(poolSize);
         this.pool = new ExecutorCompletionService<>(this.threadPool);
-        this.deploymentServer = deploymentServer;
         this.serverString = server;
         this.serverPort = port;
         this.poolSize = poolSize;
@@ -40,7 +38,7 @@ public class ClientCommsThread implements Runnable {
         while (!shutdown && !threadPool.isShutdown()) {
             while (currentPoolSize < poolSize) {
                 CommsManager.CommsLogVerbose("Creating client communication request handler");
-                pool.submit(new ClientCommsReqHandler(deploymentServer, serverString, serverPort));
+                pool.submit(new ClientCommsReqHandler(serverString, serverPort));
                 currentPoolSize++;
             }
 

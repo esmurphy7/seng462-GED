@@ -1,5 +1,6 @@
 package com.teamged.comms.internal;
 
+import java.util.Calendar;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +17,7 @@ import static java.lang.Long.MAX_VALUE;
 public class Message {
     private static final long LRI = (long)Integer.MAX_VALUE + 1;
     private static final Pattern msgPattern = Pattern.compile("^<(\\d+),(\\d+),(\\d+)>,(.+)$");
+    private static final long TIMEOUT_MILLIS = 30000;
 
     private final long serverIdentifier;
     private final long identifier;
@@ -157,9 +159,14 @@ public class Message {
      * @return The response to this Message.
      */
     public synchronized String getClientResponse() {
+        long startTime = Calendar.getInstance().getTimeInMillis();
         while (!this.hasResponse) {
             try {
-                wait();
+                wait(TIMEOUT_MILLIS);
+                if (Calendar.getInstance().getTimeInMillis() - startTime > TIMEOUT_MILLIS) {
+                    this.hasResponse = true;
+                    this.response = null;
+                }
             } catch (InterruptedException ignored) {}
         }
 

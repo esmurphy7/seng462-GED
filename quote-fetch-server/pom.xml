@@ -22,5 +22,10 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>groupId</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

@@ -35,14 +35,13 @@ public class CommsInterface {
 
     /**
      *
-     * @param deploymentServer
      * @param server
      * @param port
      * @param connections
      * @return
      */
-    public static boolean startClientCommunications(DeploymentServer deploymentServer, String server, int port, int connections) {
-        return CommsManager.addClientComms(deploymentServer, server, port, connections);
+    public static boolean startClientCommunications(String server, int port, int connections) {
+        return CommsManager.addClientComms(server, port, connections);
     }
 
     /**

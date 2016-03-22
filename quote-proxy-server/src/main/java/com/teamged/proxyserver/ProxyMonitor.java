@@ -1,6 +1,7 @@
 package com.teamged.proxyserver;
 
 import com.teamged.comms.CommsInterface;
+import com.teamged.deployment.deployments.QuoteFetchServerDeployment;
 import com.teamged.deployment.deployments.QuoteProxyServerDeployment;
 import com.teamged.proxyserver.serverthreads.*;
 
@@ -36,10 +37,14 @@ public class ProxyMonitor {
         }
         */
         CommsInterface.startServerCommunications(PROXY_DEPLOY.getPort());
-
         QuoteMessageProcessingThread qmpt = new QuoteMessageProcessingThread(PROXY_DEPLOY.getInternals().getCommunicationThreads(), syncObject);
         proxyThreads.add(qmpt);
         new Thread(qmpt).start();
+
+        QuoteFetchServerDeployment fetchServer = ProxyMain.Deployment.getFetchServers();
+        for (String server : fetchServer.getServers()) {
+            CommsInterface.startClientCommunications(server, fetchServer.getPort(), fetchServer.getInternals().getCommunicationThreads());
+        }
 
         do {
             synchronized (syncObject) {

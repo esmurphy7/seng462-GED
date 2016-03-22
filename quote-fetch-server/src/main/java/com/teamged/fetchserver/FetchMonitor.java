@@ -1,10 +1,10 @@
 package com.teamged.fetchserver;
 
+import com.teamged.comms.CommsInterface;
 import com.teamged.deployment.deployments.QuoteFetchServerDeployment;
 import com.teamged.fetchserver.serverthreads.ConnectionProcessingThread;
 import com.teamged.fetchserver.serverthreads.FetchServerThread;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -17,15 +17,10 @@ public class FetchMonitor {
     private static final ArrayList<FetchServerThread> connThreads = new ArrayList<>();
 
     public static void runServer() {
-        InternalLog.Log("Launching connection server socket listeners.");
-        ConnectionProcessingThread cpThread;
-        try {
-            cpThread = new ConnectionProcessingThread(FETCH_DEPLOY.getPort(), FETCH_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
-            connThreads.add(cpThread);
-            new Thread(cpThread).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        CommsInterface.startServerCommunications(FETCH_DEPLOY.getPort());
+        ConnectionProcessingThread cpThread = new ConnectionProcessingThread(FETCH_DEPLOY.getInternals().getThreadPoolSize(), syncObject);
+        connThreads.add(cpThread);
+        new Thread(cpThread).start();
 
         do {
             synchronized (syncObject) {
