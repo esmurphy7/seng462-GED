@@ -1,9 +1,9 @@
 package com.teamged.auditserver.threads;
 
 import com.teamged.auditserver.InternalLog;
+import com.teamged.comms.CommsInterface;
+import com.teamged.comms.ServerMessage;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -11,17 +11,14 @@ import java.util.concurrent.Executors;
  * Created by DanielF on 2016-02-23.
  */
 public class LogConnectionThread extends AuditServerThread {
-    private final ServerSocket serverSocket;
     private final ExecutorService pool;
     private final Object syncObject;
     private boolean running;
 
-    public LogConnectionThread(int port, int poolSize, Object syncObject) throws IOException {
-        this.serverSocket = new ServerSocket(port);
+    public LogConnectionThread(int poolSize, Object syncObject) {
         this.pool = Executors.newFixedThreadPool(poolSize);
         this.syncObject = syncObject;
         running = true;
-        InternalLog.Log("Opened audit log socket on port " + port);
     }
 
     @Override
@@ -31,18 +28,23 @@ public class LogConnectionThread extends AuditServerThread {
 
     @Override
     public void run() {
-        InternalLog.Log("Audit log listener running on port " + serverSocket.getLocalPort());
-        try {
-            while (true) {
-                pool.execute(new LogConnectionHandler(serverSocket.accept()));
+        InternalLog.Log("Audit log message processing task is running");
+        while (true) {
+            ServerMessage serverMessage = CommsInterface.getNextServerRequest();
+            if (serverMessage == null) {
+                continue;
             }
-        } catch (IOException e) {
-            running = false;
-            e.printStackTrace();
-            InternalLog.Log(e.getMessage());
-            pool.shutdown();
-            synchronized (syncObject) {
-                syncObject.notify();
+
+            int flagVal = serverMessage.getFlags();
+            if (flagVal == 0) {
+                // Regular log
+                pool.execute(new LogConnectionHandler(serverMessage.getData()));
+            } else if (flagVal == 1) {
+                // Dumplog command
+                pool.execute(new LogDumpHandler(serverMessage.getData()));
+            } else {
+                // Unknown
+                serverMessage.setResponse("FLAG ERROR");
             }
         }
     }

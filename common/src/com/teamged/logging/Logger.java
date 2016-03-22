@@ -1,5 +1,7 @@
 package com.teamged.logging;
 
+import com.teamged.comms.ClientMessage;
+import com.teamged.comms.CommsInterface;
 import com.teamged.deployment.deployments.AuditServerDeployment;
 import com.teamged.logging.xmlelements.LogType;
 
@@ -50,7 +52,12 @@ public class Logger
      * @param deployment The audit server deployment configuration.
      */
     public static void SetLogDestination(AuditServerDeployment deployment) {
+        if (AUDIT_DEPLOY != null) {
+            CommsInterface.endClientCommunications();
+        }
+
         AUDIT_DEPLOY = deployment;
+        CommsInterface.startClientCommunications(AUDIT_DEPLOY.getServer(), AUDIT_DEPLOY.getPort(), AUDIT_DEPLOY.getInternals().getCommunicationThreads());
     }
 
     /**
@@ -81,12 +88,9 @@ public class Logger
      * @param tid The sequence number of the dump log command. Used by the audit server to determine when the logs
      *            are ready to be saved.
      */
-    public void SaveLog(int tid) {
-        try (Socket s = new Socket(AUDIT_DEPLOY.getServer(), AUDIT_DEPLOY.getInternals().getDumpPort())) {
-            PrintWriter out = new PrintWriter(s.getOutputStream(), true);
-            out.println("DUMPLOG," + tid);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void DumpLog(int tid) {
+        String dumpMsg = "DUMPLOG," + tid;
+        ClientMessage clientMessage = ClientMessage.buildMessage(AUDIT_DEPLOY.getServer(), dumpMsg, false);
+        CommsInterface.addClientRequest(clientMessage);
     }
 }

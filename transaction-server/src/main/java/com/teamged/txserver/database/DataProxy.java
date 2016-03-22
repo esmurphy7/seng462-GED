@@ -25,7 +25,7 @@ public class DataProxy {
                 InternalLog.Log(tx.getUserName() + " - " + tx.getUserSeqNum() + " - " + tx.getWorkloadSeqNum() + " - " + tx.getUserCommand().toString());
                 if (tx.getUserCommand().equals(UserCommand.DUMPLOG_ROOT)) {
                     opResult = "DUMPLOG_ROOT";
-                    Logger.getInstance().SaveLog(tx.getWorkloadSeqNum());
+                    Logger.getInstance().DumpLog(tx.getWorkloadSeqNum());
                     System.out.println("RECEIVED DUMPLOG_ROOT COMMAND!");
                 } else {
 
