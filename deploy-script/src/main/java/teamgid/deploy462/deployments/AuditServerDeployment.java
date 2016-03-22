@@ -42,6 +42,10 @@ public class AuditServerDeployment extends SingleDeployment {
                     remoteDeploy + "/com/teamged/auditserver/threads/*.java " +
                     remoteDeploy + "/com/teamged/auditlogging/*.java " +
                     remoteDeploy + "/com/teamged/auditlogging/generated/*.java " +
+                    remoteDeploy + "/com/teamged/comms/*.java " +
+                    remoteDeploy + "/com/teamged/comms/client/*.java " +
+                    remoteDeploy + "/com/teamged/comms/internal/*.java " +
+                    remoteDeploy + "/com/teamged/comms/server/*.java " +
                     remoteDeploy + "/com/teamged/deployment/*.java " +
                     remoteDeploy + "/com/teamged/deployment/base/*.java " +
                     remoteDeploy + "/com/teamged/deployment/deployments/*.java " +
