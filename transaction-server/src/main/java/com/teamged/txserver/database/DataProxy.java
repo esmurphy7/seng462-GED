@@ -31,18 +31,6 @@ public class DataProxy {
 
                     UserDatabaseObject dbProxy = getDBProxy(tx.getUserName());
                     if (dbProxy != null) {
-
-                        // Log the database connection as a system event
-                        SystemEventType systemEvent = new SystemEventType();
-                        systemEvent.setTimestamp(System.currentTimeMillis());
-                        systemEvent.setServer(TxMain.getServerName());
-                        systemEvent.setTransactionNum(BigInteger.valueOf(tx.getWorkloadSeqNum()));
-                        systemEvent.setUsername(tx.getUserName());
-                        systemEvent.setCommand(CommandType.fromValue(tx.getUserCommand().name()));
-                        systemEvent.setStockSymbol(tx.getStockSymbol());
-                        systemEvent.setFilename(tx.getFileName());
-                        Logger.getInstance().Log(systemEvent);
-
                         switch (tx.getUserCommand()) {
                             case NO_COMMAND:
                                 opResult = "NO_COMMAND";
