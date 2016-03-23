@@ -4,7 +4,6 @@ import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.AccountTransactionType;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.ErrorEventType;
-import com.teamged.logging.xmlelements.SystemEventType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 
@@ -1005,25 +1004,6 @@ public class UserDatabaseObject {
 
         long actualValue = stockDollars * 100 + stockCents;
 
-        SystemEventType set = new SystemEventType();
-        set.setCommand(CommandType.BUY);
-        set.setFunds(BigDecimal.valueOf(actualValue, 2));
-        set.setServer(TxMain.getServerName());
-        set.setStockSymbol(stock);
-        set.setTimestamp(Calendar.getInstance().getTimeInMillis());
-        set.setTransactionNum(BigInteger.valueOf(tid));
-        set.setUsername(userName);
-
-        SystemEventType setc = new SystemEventType();
-        setc.setCommand(CommandType.COMMIT_BUY);
-        setc.setServer(TxMain.getServerName());
-        setc.setTransactionNum(BigInteger.valueOf(tid));
-        setc.setUsername(userName);
-        setc.setTimestamp(Calendar.getInstance().getTimeInMillis());
-
-        Logger.getInstance().Log(set);
-        Logger.getInstance().Log(setc);
-
         history.add("BUY," + userName + "," + stock + "," + buy.getDollars() + "." + buy.getCents());
         history.add("COMMIT_BUY," + userName);
     }
@@ -1036,25 +1016,6 @@ public class UserDatabaseObject {
             this.cents -= CENT_CAP;
             this.dollars++;
         }
-
-        SystemEventType set = new SystemEventType();
-        set.setCommand(CommandType.SELL);
-        set.setFunds(BigDecimal.valueOf(actualValue, 2));
-        set.setServer(TxMain.getServerName());
-        set.setStockSymbol(stock);
-        set.setTimestamp(Calendar.getInstance().getTimeInMillis());
-        set.setTransactionNum(BigInteger.valueOf(tid));
-        set.setUsername(userName);
-
-        SystemEventType setc = new SystemEventType();
-        setc.setCommand(CommandType.COMMIT_SELL);
-        setc.setServer(TxMain.getServerName());
-        setc.setTransactionNum(BigInteger.valueOf(tid));
-        setc.setUsername(userName);
-        setc.setTimestamp(Calendar.getInstance().getTimeInMillis());
-
-        Logger.getInstance().Log(set);
-        Logger.getInstance().Log(setc);
 
         history.add("SELL," + userName + "," + stock + "," + sell.getDollars() + "." + sell.getCents());
         history.add("COMMIT_SELL," + userName);

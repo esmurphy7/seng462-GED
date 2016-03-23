@@ -113,6 +113,7 @@ public class TransactionObject {
                 break;
         }
 
+        /*
         SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
         systemEvent.setServer(TxMain.getServerName());
@@ -126,6 +127,7 @@ public class TransactionObject {
         systemEvent.setFunds(new BigDecimal(amountDollars + "." + amountCents));
 
         Logger.getInstance().Log(systemEvent);
+        */
     }
 
     /**

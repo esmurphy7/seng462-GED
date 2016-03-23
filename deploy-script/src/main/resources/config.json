@@ -46,7 +46,9 @@
                 "b134.seng.uvic.ca",
                 "b135.seng.uvic.ca",
                 "b136.seng.uvic.ca",
-                "b137.seng.uvic.ca"
+                "b137.seng.uvic.ca",
+                "b142.seng.uvic.ca",
+                "b143.seng.uvic.ca"
             ],
             "port": 44440,
             "internal": {
@@ -90,7 +92,9 @@
                 "b139.seng.uvic.ca",
                 "b153.seng.uvic.ca",
                 "b148.seng.uvic.ca",
-                "b149.seng.uvic.ca"
+                "b149.seng.uvic.ca",
+                "b146.seng.uvic.ca",
+                "b144.seng.uvic.ca"
             ],
             "port": 44449,
             "internal": {
