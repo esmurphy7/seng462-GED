@@ -1,0 +1,43 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+x509_extensions = v3_ca
+prompt = no
+[req_distinguished_name]
+CN = localhost
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+[v3_ca]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = b130.seng.uvic.ca
+DNS.2 = b131.seng.uvic.ca
+DNS.3 = b132.seng.uvic.ca
+DNS.4 = b133.seng.uvic.ca
+DNS.5 = b134.seng.uvic.ca
+DNS.6 = b135.seng.uvic.ca
+DNS.7 = b136.seng.uvic.ca
+DNS.8 = b137.seng.uvic.ca
+DNS.9 = b138.seng.uvic.ca
+DNS.10 = b139.seng.uvic.ca
+DNS.11 = b140.seng.uvic.ca
+DNS.12 = b141.seng.uvic.ca
+DNS.13 = b142.seng.uvic.ca
+DNS.14 = b143.seng.uvic.ca
+DNS.15 = b144.seng.uvic.ca
+DNS.16 = b145.seng.uvic.ca
+DNS.17 = b146.seng.uvic.ca
+DNS.18 = b147.seng.uvic.ca
+DNS.19 = b148.seng.uvic.ca
+DNS.20 = b149.seng.uvic.ca
+DNS.21 = b150.seng.uvic.ca
+DNS.22 = b151.seng.uvic.ca
+DNS.23 = b152.seng.uvic.ca
+DNS.24 = b153.seng.uvic.ca
+DNS.25 = b154.seng.uvic.ca
+DNS.26 = b155.seng.uvic.ca
+DNS.27 = b156.seng.uvic.ca

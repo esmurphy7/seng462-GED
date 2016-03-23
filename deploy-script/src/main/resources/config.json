@@ -7,10 +7,20 @@
             "port": 4444
         },
         "workloadGenerator": {
+            "resources": [
+                "cert.pem"
+            ],
+            "deployScripts": [
+                "generate-wg-keystore.sh"
+            ],
             "runScript": "run-wg.sh",
             "server": "b145.seng.uvic.ca"
         },
         "webLoadBalancer": {
+            "resources": [
+                "cert.pem",
+                "key.pem"
+            ],
             "deployScripts": [
                 "install-nginx.sh",
                 "config-nginx-loadbalancer.sh"
