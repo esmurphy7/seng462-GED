@@ -1,5 +1,6 @@
 package com.teamged.txserver.transactions;
 
+import com.teamged.comms.ServerMessage;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.SystemEventType;
@@ -29,7 +30,7 @@ public class TransactionObject {
 
     private static final int StockMaxLength = 3;
 
-    private final String originalArgs;
+    private final ServerMessage serverMessage;
     private UserCommand userCommand = UserCommand.NO_COMMAND;
     private String userName = "";
     private String stockSymbol = "";
@@ -49,12 +50,16 @@ public class TransactionObject {
      * after instantiating this to see if the arguments could be parsed. Any value other than the empty string indicates
      * an error.
      *
-     * @param args The request to parse and process.
+     * @param serverMessage The server request to parse and process.
      */
-    public TransactionObject(String args) {
-        originalArgs = args;
-        parseArgs(args);
-        logRequest();
+    public TransactionObject(ServerMessage serverMessage) {
+        this.serverMessage = serverMessage;
+        if (serverMessage != null) {
+            parseArgs(serverMessage.getData());
+        } else {
+            errorString = "Null server message";
+        }
+        //logRequest();
     }
 
     private void logRequest() {
@@ -113,7 +118,6 @@ public class TransactionObject {
                 break;
         }
 
-        /*
         SystemEventType systemEvent = new SystemEventType();
         systemEvent.setTimestamp(System.currentTimeMillis());
         systemEvent.setServer(TxMain.getServerName());
@@ -127,7 +131,6 @@ public class TransactionObject {
         systemEvent.setFunds(new BigDecimal(amountDollars + "." + amountCents));
 
         Logger.getInstance().Log(systemEvent);
-        */
     }
 
     /**
@@ -451,13 +454,23 @@ public class TransactionObject {
     }
 
     /**
+     * Adds a response to the server message that this transaction was built from. This will queue and eventually
+     * send the response to the original requester.
+     *
+     * @param response The response to send to the requester.
+     */
+    public void sendResponse(String response) {
+        serverMessage.setResponse(response);
+    }
+
+    /**
      * Returns the original request string that this transaction object was built from.
      *
      * @return The string representation of this object.
      */
     @Override
     public String toString() {
-        return originalArgs;
+        return serverMessage != null ? serverMessage.getData() : "";
     }
 
     /**

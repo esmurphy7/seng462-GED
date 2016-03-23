@@ -45,7 +45,8 @@ public class TransactionProcessingHandler implements Runnable {
                         } else {
                             String resp = DataProxy.dbOperation(txObject);
                             System.out.println(txObject.getUserSeqNum() + "[" + txObject.getWorkloadSeqNum() + "]");
-                            InternalLog.Log(resp);   // TODO: Handle the response.
+                            InternalLog.Log(resp);
+                            txObject.sendResponse(resp); // Queues the response to send back to the client
                         }
 
                         count--;
