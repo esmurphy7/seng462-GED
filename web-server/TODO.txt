@@ -37,6 +37,18 @@ Logging
 
 
 ====================================================================================================
+Web Client
+- create simple html page that user can press button to send QUOTE request using Jquery/AJAX
+    - write skeleton html (no AJAX)
+    - import JQuery/AJAX into jersey project
+    - write JQuery script inside html page
+- update web server to handle and parse response from tx server
+- update web server to make asynchronous calls to tx server and route responses back to client
+- update html page to allow user to make multiple commands
+- update html page to dynamically render web server responses
+- abstract out Jquery scripts to handle user commands and inject them into html page
+
+====================================================================================================
 Template System
 - develop hierarchy of templates
     - write base template
