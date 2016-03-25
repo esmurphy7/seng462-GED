@@ -6,6 +6,7 @@ import com.github.mustachejava.MustacheFactory;
 import net.schmizz.sshj.SSHClient;
 import teamgid.deploy462.DeploymentConfig;
 import teamgid.deploy462.base.SingleDeployment;
+import teamgid.deploy462.internals.WebLoadBalancerInternals;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,6 +15,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WebLoadBalancerDeployment extends SingleDeployment {
+
+    private WebLoadBalancerInternals internal;
+
+    public WebLoadBalancerInternals getInternal() {
+        return internal;
+    }
 
     @Override
     protected void deployHandler(SSHClient client, DeploymentConfig deploymentConfig) {
@@ -27,6 +34,7 @@ public class WebLoadBalancerDeployment extends SingleDeployment {
 
         Map<String, Object> scopes = new HashMap<String, Object>();
         scopes.put("loadBalancerPort", deploymentConfig.getDeployments().getWebLoadBalancer().getPort());
+        scopes.put("loadBalancerSSLPort", deploymentConfig.getDeployments().getWebLoadBalancer().getInternal().getSslPort());
         scopes.put("webServerAddresses", webServerDeployment.getServers());
         scopes.put("webServerPort", webServerDeployment.getPort());
 

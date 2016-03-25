@@ -96,14 +96,14 @@ public class Main {
 
             // Concurrently send sets of transactions to the web server
             List<Future> results = transactionQueues.stream()
-                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(webServer, transactionSet)))
+                    .map(transactionSet -> taskExecutor.submit(() -> Requester.SendTransactions(webServer, transactionSet, false)))
                     .collect(Collectors.toList());
 
             // Wait for all threads to finish
             results.forEach(Unchecked.consumer(future -> future.get()));
 
             // Manually run dumplog transaction at the end
-            Requester.SendTransactions(webServer, dumplogTransactions);
+            Requester.SendTransactions(webServer, dumplogTransactions, false);
 
             taskExecutor.shutdown();
 

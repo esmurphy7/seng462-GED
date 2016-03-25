@@ -27,7 +27,10 @@
             ],
             "runScript": "run-nginx.sh",
             "server": "b147.seng.uvic.ca",
-            "port": 44440
+            "port": 44440,
+            "internal": {
+                "sslPort": 44441
+            }
         },
         "webServers": {
             "resources": [
