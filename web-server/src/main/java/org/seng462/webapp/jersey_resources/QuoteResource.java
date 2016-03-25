@@ -1,9 +1,8 @@
 package org.seng462.webapp.jersey_resources;
 
-import org.seng462.webapp.CommandCodes;
-import org.seng462.webapp.TransactionService;
-import org.seng462.webapp.UserCommand;
-import org.seng462.webapp.UserCommandBuilder;
+import org.glassfish.jersey.server.mvc.Template;
+import org.glassfish.jersey.server.mvc.Viewable;
+import org.seng462.webapp.*;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -22,11 +21,13 @@ import java.util.Map;
 public class QuoteResource {
 
     @GET
-    public Response getQuote(@Context UriInfo uriInfo)
+    @Produces("text/html")
+    public Viewable getQuote(@Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.QUOTE, uriInfo);
         Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        Viewable viewable = TemplateService.getViewable(userCommand, "quoteCommand", response, "/quote_command.ftl");
+        return viewable;
     }
 }

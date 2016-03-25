@@ -1,21 +1,32 @@
 {
     "remoteDirectory": "/seng/scratch/group4",
+    "commsTimeout": 10000,
     "deployments": {
         "quoteServer": {
             "server": "quoteserve.seng.uvic.ca",
             "port": 4444
         },
         "workloadGenerator": {
+            "resources": [
+                "cert.pem"
+            ],
+            "deployScripts": [
+                "generate-wg-keystore.sh"
+            ],
             "runScript": "run-wg.sh",
             "server": "b145.seng.uvic.ca"
         },
         "webLoadBalancer": {
+            "resources": [
+                "cert.pem",
+                "key.pem"
+            ],
             "deployScripts": [
                 "install-nginx.sh",
                 "config-nginx-loadbalancer.sh"
             ],
             "runScript": "run-nginx.sh",
-            "server": "b133.seng.uvic.ca",
+            "server": "b147.seng.uvic.ca",
             "port": 44440
         },
         "webServers": {
@@ -51,7 +62,7 @@
             "internal": {
                 "threadPool": 4,
                 "procThreads": 4,
-                "commThreads": 8,
+                "commThreads": 4,
                 "queueSize": 1000000
             }
         },
@@ -93,7 +104,8 @@
             ],
             "port": 44449,
             "internal": {
-                "threadPool": 64
+                "threadPool": 64,
+                "commThreads": 8
             }
         },
         "proxyServer": {
@@ -106,7 +118,8 @@
             "internal": {
                 "prefetchPort": 44445,
                 "smallPool": 8,
-                "threadPool": 64
+                "threadPool": 64,
+                "commThreads": 8
             }
         }
     }

@@ -40,6 +40,12 @@ Logging
 Web Client
 - create simple html page that user can press button to send QUOTE request using Jquery/AJAX
     - write skeleton html (no AJAX)
+        - integrate bootstrap
+        - base with navbar
+        - command dropdown
+        - command form
+        - submit button
+        - response section
     - import JQuery/AJAX into jersey project
     - write JQuery script inside html page
 - update web server to handle and parse response from tx server
