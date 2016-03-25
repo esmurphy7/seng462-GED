@@ -82,16 +82,13 @@
                 "dumpPort": 44440
             }
         },
-        "cacheServer": {
-            "resources": [
-                "redis.conf"
-            ],
+        "databaseServer": {
             "deployScripts": [
-                "install-redis.sh",
-                "config-redis.sh"
+                "install-mongodb.sh"
             ],
-            "runScript": "run-redis.sh",
-            "server": "b144.seng.uvic.ca"
+            "runScript": "run-mongodb.sh",
+            "server": "b144.seng.uvic.ca",
+            "port": 44440
         },
         "fetchServers": {
             "resources": [
