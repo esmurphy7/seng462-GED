@@ -22,6 +22,9 @@ x create resource classes for remaining commands
     - when developing the web client, ignore user sequence numbers and send 0's (transaction server doesn't care what order the requests came in if they're from a real person)
 
 - update jersey resources to be asynchronous
+    - accept AsyncResponse as param
+    - return void
+    - send user command message through transaction thread
 
 ====================================================================================================
 TransactionService
