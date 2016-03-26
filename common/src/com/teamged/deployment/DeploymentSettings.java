@@ -9,7 +9,7 @@ public class DeploymentSettings {
     private WebServerDeployment webServers;
     private TransactionServerDeployment transactionServers;
     private AuditServerDeployment auditServer;
-    private CacheServerDeployment cacheServer;
+    private DatabaseServerDeployment databaseServer;
     private QuoteFetchServerDeployment fetchServers;
     private QuoteProxyServerDeployment proxyServer;
 
@@ -37,8 +37,8 @@ public class DeploymentSettings {
         return auditServer;
     }
 
-    public CacheServerDeployment getCacheServer() {
-        return cacheServer;
+    public DatabaseServerDeployment getDatabaseServer() {
+        return databaseServer;
     }
 
     public QuoteFetchServerDeployment getFetchServers() {

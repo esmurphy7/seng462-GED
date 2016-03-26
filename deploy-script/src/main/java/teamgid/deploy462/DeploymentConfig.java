@@ -2,8 +2,6 @@ package teamgid.deploy462;
 
 import teamgid.deploy462.deployments.*;
 
-import java.util.List;
-
 public class DeploymentConfig {
 
     private String remoteDirectory;
@@ -32,7 +30,7 @@ public class DeploymentConfig {
         private WebServerDeployment webServers;
         private TransactionServerDeployment transactionServers;
         private AuditServerDeployment auditServer;
-        private CacheServerDeployment cacheServer;
+        private DatabaseServerDeployment databaseServer;
         private QuoteFetchServerDeployment fetchServers;
         private QuoteProxyServerDeployment proxyServer;
 
@@ -76,12 +74,12 @@ public class DeploymentConfig {
             this.auditServer = auditServer;
         }
 
-        public CacheServerDeployment getCacheServer() {
-            return cacheServer;
+        public DatabaseServerDeployment getDatabaseServer() {
+            return databaseServer;
         }
 
-        public void setCacheServer(CacheServerDeployment cacheServer) {
-            this.cacheServer = cacheServer;
+        public void setDatabaseServer(DatabaseServerDeployment databaseServer) {
+            this.databaseServer = databaseServer;
         }
 
         public QuoteFetchServerDeployment getFetchServer() {

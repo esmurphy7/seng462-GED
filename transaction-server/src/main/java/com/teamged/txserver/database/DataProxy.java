@@ -118,6 +118,9 @@ public class DataProxy {
                         long commTime = System.nanoTime() - startTime;
                         String timeResult = tx.getUserCommand().name() + ":" + commTime;
                         timingQueue.add(timeResult);
+
+                        // Save the user database object to our database
+                        dbProxy.getDatabasePersister().submit(() -> PersistentDatabase.saveUserDatabaseObject(dbProxy, tx.getWorkloadSeqNum()));
                     } else {
                         opResult = "ERROR," + tx.toString();
                     }

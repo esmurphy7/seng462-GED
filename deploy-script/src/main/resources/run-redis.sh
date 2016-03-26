@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 installDirectory=/seng/scratch/group4
 programName=redis
 

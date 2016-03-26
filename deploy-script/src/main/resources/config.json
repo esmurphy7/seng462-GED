@@ -27,7 +27,10 @@
             ],
             "runScript": "run-nginx.sh",
             "server": "b147.seng.uvic.ca",
-            "port": 44440
+            "port": 44440,
+            "internal": {
+                "sslPort": 44441
+            }
         },
         "webServers": {
             "resources": [
@@ -49,10 +52,13 @@
         },
         "transactionServers": {
             "resources": [
-                "gson-2.6.2.jar"
+                "gson-2.6.2.jar",
+                "mongo-java-driver-2.13.3.jar",
+                "morphia-1.1.0.jar"
             ],
             "runScript": "run-tx-server.sh",
             "servers": [
+                "b133.seng.uvic.ca",
                 "b134.seng.uvic.ca",
                 "b135.seng.uvic.ca",
                 "b136.seng.uvic.ca",
@@ -79,16 +85,13 @@
                 "dumpPort": 44440
             }
         },
-        "cacheServer": {
-            "resources": [
-                "redis.conf"
-            ],
+        "databaseServer": {
             "deployScripts": [
-                "install-redis.sh",
-                "config-redis.sh"
+                "install-mongodb.sh"
             ],
-            "runScript": "run-redis.sh",
-            "server": "b144.seng.uvic.ca"
+            "runScript": "run-mongodb.sh",
+            "server": "b144.seng.uvic.ca",
+            "port": 44440
         },
         "fetchServers": {
             "resources": [
@@ -98,6 +101,7 @@
             "servers": [
                 "b138.seng.uvic.ca",
                 "b139.seng.uvic.ca",
+                "b140.seng.uvic.ca",
                 "b153.seng.uvic.ca",
                 "b148.seng.uvic.ca",
                 "b149.seng.uvic.ca"

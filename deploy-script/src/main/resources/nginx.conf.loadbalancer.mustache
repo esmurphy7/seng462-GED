@@ -44,7 +44,8 @@ http {
     }
 
     server {
-        listen       {{loadBalancerPort}} ssl;
+        listen       {{loadBalancerPort}};
+        listen       {{loadBalancerSSLPort}} ssl;
         server_name  localhost;
 
         ssl_certificate      ../ssl/cert.pem;

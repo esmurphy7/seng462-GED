@@ -15,40 +15,47 @@ import java.util.concurrent.TimeUnit;
 
 public class Requester {
 
-    public static void SendTransactions(String webServer, List<Transaction> transactions) {
+    public static void SendTransactions(String webServer, List<Transaction> transactions, boolean useSSL) {
 
         try {
 
-            // Load SSL self signed certificate keystore
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            // Create custom OkHttpClient instance using its builder
+            OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
+                    .readTimeout(200, TimeUnit.SECONDS)
+                    .connectTimeout(200, TimeUnit.SECONDS);
 
-            try (FileInputStream inputStream = new FileInputStream("ssl/keystore")) {
-                keyStore.load(inputStream, "teamged".toCharArray());
-            } catch (CertificateException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (useSSL) {
+
+                // Load SSL self signed certificate keystore
+                KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+
+                try (FileInputStream inputStream = new FileInputStream("ssl/keystore")) {
+                    keyStore.load(inputStream, "teamged".toCharArray());
+                } catch (CertificateException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init(keyStore);
+
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                keyManagerFactory.init(keyStore, "teamged".toCharArray());
+
+                SSLContext sslContext = SSLContext.getInstance("SSL");
+                sslContext.init(keyManagerFactory.getKeyManagers(),trustManagerFactory.getTrustManagers(), new SecureRandom());
+
+                // Add factory to okHttpClientBuilder
+                okHttpClientBuilder.sslSocketFactory(sslContext.getSocketFactory());
             }
 
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(keyStore);
-
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, "teamged".toCharArray());
-
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(keyManagerFactory.getKeyManagers(),trustManagerFactory.getTrustManagers(), new SecureRandom());
-
-            // Create custom OkHttpClient instance
-            final OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .readTimeout(200, TimeUnit.SECONDS)
-                    .connectTimeout(200, TimeUnit.SECONDS)
-                    .sslSocketFactory(sslContext.getSocketFactory())
-                    .build();
+            // Build OkHttpClient instance
+            final OkHttpClient okHttpClient = okHttpClientBuilder.build();
 
             // Create Retrofit instance
             Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(String.format("https://%s/api/", webServer))
+                    .baseUrl(String.format("%s://%s/api/", useSSL ? "https" : "http", webServer))
                     .client(okHttpClient)
                     .build();
 

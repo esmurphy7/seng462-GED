@@ -36,7 +36,11 @@ public class TransactionServerDeployment extends MultipleDeployment {
 
             System.out.println("Compiling transaction server");
             final Session javac_session = client.startSession();
-            final Session.Command javac_cmd = javac_session.exec("javac -cp .:" + remoteDir + "/gson-2.6.2.jar " +
+            final Session.Command javac_cmd = javac_session.exec("javac " +
+                    "-cp .:" +
+                    remoteDir + "/gson-2.6.2.jar:" +
+                    remoteDir + "/mongo-java-driver-2.13.3.jar:" +
+                    remoteDir + "/morphia-1.1.0.jar " +
                     remoteDeploy + "/com/teamged/txserver/*.java " +
                     remoteDeploy + "/com/teamged/txserver/transactions/*.java " +
                     remoteDeploy + "/com/teamged/txserver/database/*.java " +

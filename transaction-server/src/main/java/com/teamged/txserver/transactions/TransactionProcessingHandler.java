@@ -4,6 +4,8 @@ import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TransactionMonitor;
 import com.teamged.txserver.database.DataProxy;
 
+import java.util.Calendar;
+
 /**
  * Created by danie on 2016-02-01.
  */
@@ -44,7 +46,7 @@ public class TransactionProcessingHandler implements Runnable {
                             break;
                         } else {
                             String resp = DataProxy.dbOperation(txObject);
-                            System.out.println(txObject.getUserSeqNum() + "[" + txObject.getWorkloadSeqNum() + "]");
+                            System.out.println(txObject.getUserSeqNum() + "[" + txObject.getWorkloadSeqNum() + "]:" + Calendar.getInstance().getTimeInMillis());
                             InternalLog.Log(resp);   // TODO: Handle the response.
                         }
 

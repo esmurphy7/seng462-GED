@@ -22,7 +22,7 @@ public class DeployLaunch {
     private static final String WEB_TYPE = "web";
     private static final String TX_TYPE = "tx";
     private static final String AUDIT_TYPE = "audit";
-    private static final String CACHE_TYPE = "cache";
+    private static final String DATABASE_TYPE = "db";
     private static final String QUOTE_FETCH_TYPE = "fetch";
     private static final String QUOTE_PROXY_TYPE = "proxy";
     private static final String ALL_TYPE = "all";
@@ -79,7 +79,7 @@ public class DeployLaunch {
                     "\n    '" + WEB_TYPE + "' for Web Server deployment" +
                     "\n    '" + TX_TYPE + "' for Transaction Server deployment" +
                     "\n    '" + AUDIT_TYPE + "' for Audit Server deployment" +
-                    "\n    '" + CACHE_TYPE + "' for Cache Server deployment" +
+                    "\n    '" + DATABASE_TYPE + "' for Database Server deployment" +
                     "\n    '" + QUOTE_FETCH_TYPE + "' for Quote Fetch Server deployment" +
                     "\n    '" + QUOTE_PROXY_TYPE + "' for Quote Proxy Server deployment" +
                     "\n    '" + ALL_TYPE + "' for all deployments"
@@ -89,7 +89,7 @@ public class DeployLaunch {
             System.out.println("The configuration for each deployment is in config.json");
             System.out.println();
             System.out.println("Enter deployment type: ");
-            System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, cache, fetch, proxy, all):");
+            System.out.println("Which server do you wish to deploy? (wg, weblb, web, tx, audit, db, fetch, proxy, all):");
             String input = userInput.nextLine();
 
             // the user can specify a common-separated subset of deployments
@@ -102,7 +102,7 @@ public class DeployLaunch {
                 deployments.add(deploymentConfig.getDeployments().getWebServers());
                 deployments.add(deploymentConfig.getDeployments().getTransactionServers());
                 deployments.add(deploymentConfig.getDeployments().getAuditServer());
-                deployments.add(deploymentConfig.getDeployments().getCacheServer());
+                deployments.add(deploymentConfig.getDeployments().getDatabaseServer());
                 deployments.add(deploymentConfig.getDeployments().getFetchServer());
                 deployments.add(deploymentConfig.getDeployments().getProxyServer());
                 hasDeploymentType = true;
@@ -138,9 +138,9 @@ public class DeployLaunch {
                 hasDeploymentType = true;
 
             }
-            if (inputs.contains(CACHE_TYPE)) {
+            if (inputs.contains(DATABASE_TYPE)) {
 
-                deployments.add(deploymentConfig.getDeployments().getCacheServer());
+                deployments.add(deploymentConfig.getDeployments().getDatabaseServer());
                 hasDeploymentType = true;
 
             }
