@@ -1,22 +1,48 @@
 package com.teamged.txserver.database;
 
 import com.teamged.logging.Logger;
-import com.teamged.logging.xmlelements.CommandType;
-import com.teamged.logging.xmlelements.SystemEventType;
 import com.teamged.logging.xmlelements.TransactionCompleteType;
 import com.teamged.txserver.InternalLog;
-import com.teamged.txserver.TxMain;
 import com.teamged.txserver.transactions.TransactionObject;
 import com.teamged.txserver.transactions.UserCommand;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.util.concurrent.ConcurrentHashMap;
+import java.net.URL;
+import java.util.concurrent.*;
 
 /**
  * Created by DanielF on 2016-02-02.
  */
 public class DataProxy {
+    private static final ScheduledExecutorService timingLogger = Executors.newSingleThreadScheduledExecutor();
+    private static final String OUTPUT_FILE = "command_timings";
+    private static final ConcurrentLinkedQueue<String> timingQueue = new ConcurrentLinkedQueue<>();
     private static final ConcurrentHashMap<String, UserDatabaseObject> dbInterfaces = new ConcurrentHashMap<>();
+
+    static {
+        timingLogger.scheduleWithFixedDelay(
+                (Runnable) () -> {
+                    System.out.println("Writing command timings to file...");
+                    URL url = DataProxy.class.getResource("");
+                    File outfile = new File(url.getPath() + OUTPUT_FILE);
+                    try (FileWriter fw = new FileWriter(outfile, true)) {
+                        String nextTiming;
+                        while ((nextTiming = timingQueue.poll()) != null) {
+                            fw.write(nextTiming);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("Done writing command timings to file.");
+                },
+                30,
+                10,
+                TimeUnit.SECONDS
+        );
+    }
 
     public static String dbOperation(TransactionObject tx) {
         String opResult = "";
@@ -31,6 +57,7 @@ public class DataProxy {
 
                     UserDatabaseObject dbProxy = getDBProxy(tx.getUserName());
                     if (dbProxy != null) {
+                        long startTime = System.nanoTime();
                         switch (tx.getUserCommand()) {
                             case NO_COMMAND:
                                 opResult = "NO_COMMAND";
@@ -88,7 +115,9 @@ public class DataProxy {
                                 opResult = "Unknown command \"" + tx.getUserCommand().toString() + "\" was given";
                                 break;
                         }
-
+                        long commTime = System.nanoTime() - startTime;
+                        String timeResult = tx.getUserCommand().name() + ":" + commTime;
+                        timingQueue.add(timeResult);
                     } else {
                         opResult = "ERROR," + tx.toString();
                     }

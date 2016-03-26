@@ -25,7 +25,7 @@ public class RequestProcessingHandler implements Runnable {
     public void run() {
         TransactionObject to = new TransactionObject(serverMessage.getData());
         if (!to.getErrorString().isEmpty()) {
-            InternalLog.Critical("Error processing request: " + to.toString() + "; Error msg: " + to.getErrorString());
+            InternalLog.Critical("Request Error for [" + to.getWorkloadSeqNum() + "]: " + to.getErrorString());
             // Even though the transaction is in error, we still need to let the system see it.
             if (to.getUserName() != null) {
                 TransactionMonitor.AddTransactionObject(to);
