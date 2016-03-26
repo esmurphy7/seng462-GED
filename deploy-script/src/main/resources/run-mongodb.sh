@@ -12,4 +12,4 @@ if ! [ $? -eq 0 ]; then
     exit 1
 fi
 
-$installDirectory/$programName/bin/mongod --dbpath $installDirectory/$programName/data --port $port
+$installDirectory/$programName/bin/mongod --dbpath $installDirectory/$programName/data --port $port --bind_ip=0.0.0.0

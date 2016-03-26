@@ -1,9 +1,10 @@
 package com.teamged.txserver.database;
 
-/**
- * Created by DanielF on 2016-02-05.
- */
+import org.mongodb.morphia.annotations.Embedded;
+
+@Embedded
 public class StockRequest {
+
     private final String stock;
     private final int shares;
     private final int dollars;

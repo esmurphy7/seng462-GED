@@ -1,7 +1,6 @@
 package com.teamged.comms;
 
 import com.teamged.comms.internal.Message;
-import com.teamged.deployment.DeploymentServer;
 
 /**
  * Created by DanielF on 2016-03-18.

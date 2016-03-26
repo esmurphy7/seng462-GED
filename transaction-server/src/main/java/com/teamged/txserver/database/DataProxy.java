@@ -89,6 +89,9 @@ public class DataProxy {
                                 break;
                         }
 
+                        // Save the user database object to our database
+                        dbProxy.getDatabasePersister().submit(() -> PersistentDatabase.saveUserDatabaseObject(dbProxy, tx.getWorkloadSeqNum()));
+
                     } else {
                         opResult = "ERROR," + tx.toString();
                     }

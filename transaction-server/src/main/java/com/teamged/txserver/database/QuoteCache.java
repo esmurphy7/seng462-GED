@@ -2,19 +2,13 @@ package com.teamged.txserver.database;
 
 import com.teamged.comms.ClientMessage;
 import com.teamged.comms.CommsInterface;
-import com.teamged.deployment.DeploymentServer;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.ErrorEventType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigInteger;
-import java.net.Socket;
 import java.util.Calendar;
 import java.util.concurrent.*;
 

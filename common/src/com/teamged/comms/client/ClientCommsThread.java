@@ -1,7 +1,6 @@
 package com.teamged.comms.client;
 
 import com.teamged.comms.internal.CommsManager;
-import com.teamged.deployment.DeploymentServer;
 
 import java.util.concurrent.*;
 

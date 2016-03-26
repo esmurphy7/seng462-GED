@@ -4,7 +4,6 @@ import com.teamged.comms.ClientMessage;
 import com.teamged.comms.ServerMessage;
 import com.teamged.comms.client.ClientCommsThread;
 import com.teamged.comms.server.ServerCommsThread;
-import com.teamged.deployment.DeploymentServer;
 
 import java.io.IOException;
 import java.util.ArrayList;
