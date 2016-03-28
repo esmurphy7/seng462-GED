@@ -22,9 +22,9 @@ x create resource classes for remaining commands
     - when developing the web client, ignore user sequence numbers and send 0's (transaction server doesn't care what order the requests came in if they're from a real person)
 
 - update jersey resources to be asynchronous
-    - accept AsyncResponse as param
-    - return void
-    - send user command message through transaction thread
+    x accept AsyncResponse as param
+    x return void
+    x send user command message through transaction thread
 
 ====================================================================================================
 TransactionService
@@ -34,6 +34,7 @@ x update service to take generic UserCommand class as arguement when sending com
     x use config.json to configure target host of transaction server
     x use currently active web server host/port when sending commands
     - receive and interpret response from tx server
+        - ResponseBuilder needs to handle allow commands
 
 ====================================================================================================
 Logging

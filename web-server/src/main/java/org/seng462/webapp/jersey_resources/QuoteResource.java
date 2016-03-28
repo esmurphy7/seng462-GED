@@ -6,6 +6,8 @@ import org.seng462.webapp.*;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -22,12 +24,12 @@ public class QuoteResource {
 
     @GET
     @Produces("text/html")
-    public Viewable getQuote(@Context UriInfo uriInfo)
+    public void getQuote(@Suspended final AsyncResponse asyncResponse,
+                         @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.QUOTE, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        Viewable viewable = TemplateService.getViewable(userCommand, "quoteCommand", response, "/quote_command.ftl");
-        return viewable;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand, "/quote_command.ftl")).start();
+
     }
 }

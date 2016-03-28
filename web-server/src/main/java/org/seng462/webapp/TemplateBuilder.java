@@ -9,19 +9,18 @@ import java.util.Map;
 /**
  * Created by Evan on 1/21/2016.
  */
-public class TemplateService
+public class TemplateBuilder
 {
-    public static Viewable getViewable(UserCommand userCommand, String commandKey, Response transactionRes, String templatePath)
+    public static Viewable buildViewable(Response transactionRes, String templatePath)
     {
-        // build the data model to pass to the template
-        Map dataModel = new HashMap<String, Object>();
-        dataModel.put(commandKey, userCommand);
-
         // choose correct template based on the response from transaction server
         if(transactionRes.getStatusInfo() == Response.serverError())
         {
             // templatePath = ERROR_TEMPLATE_PATH;
         }
+
+        // the data model to be passed to the template exists in the response entity
+        HashMap dataModel = (HashMap) transactionRes.getEntity();
 
         Viewable viewable = new Viewable(templatePath, dataModel);
 

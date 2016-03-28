@@ -81,7 +81,6 @@ public class TransactionService
     public static Response sendCommand(UserCommand userCommand)
     {
         // log a user command to the audit server
-
         TransactionService.LogUserCommand(userCommand);
 
         // format the message
@@ -101,22 +100,23 @@ public class TransactionService
         int serverIndex = userNameSort % servers.size();
         String targetServer = servers.get(serverIndex);
 
-        // TODO: Set third parameter (responseExpected) to true and wait on response, translating it into jersey response
-        ClientMessage clientMessage = ClientMessage.buildMessage(targetServer, message, false);
+        // build and send message
+        ClientMessage clientMessage = ClientMessage.buildMessage(targetServer, message, true);
         CommsInterface.addClientRequest(clientMessage);
-        Response response;
-        /*
         String respMessage = clientMessage.waitForResponse();
-        if (respMessage != null) {
-            response = // parse to jersey response
-        } else {
-            String errorMsg = "Could not connect to transaction server: "+  targetServer + ":" + targetPort + "\n" + e.getMessage();
+
+        // handle and return response
+        Response response;
+        if (respMessage != null)
+        {
+            response = ResponseBuilder.buildResponse(respMessage);
+        }
+        else
+        {
+            String errorMsg = "Error receiving response from transaction server: "+  targetServer;
             System.out.println(errorMsg);
             response = Response.serverError().entity(errorMsg).build();
         }
-         */
-
-        response = Response.ok().build();
         return response;
     }
 
