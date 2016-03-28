@@ -6,12 +6,12 @@ import javax.ws.rs.core.Response;
 /**
  * Created by Evan on 3/25/2016.
  */
-public class TransactionThread implements Runnable
+public class TransactionResponseHandler implements Runnable
 {
     private AsyncResponse asyncResponse;
     private UserCommand userCommand;
 
-    public TransactionThread(AsyncResponse asyncResponse, UserCommand userCommand)
+    public TransactionResponseHandler(AsyncResponse asyncResponse, UserCommand userCommand)
     {
         this.asyncResponse = asyncResponse;
         this.userCommand = userCommand;
@@ -24,3 +24,4 @@ public class TransactionThread implements Runnable
         asyncResponse.resume(response);
     }
 }
+
