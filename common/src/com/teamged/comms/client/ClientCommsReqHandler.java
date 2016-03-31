@@ -2,8 +2,6 @@ package com.teamged.comms.client;
 
 import com.teamged.comms.ClientMessage;
 import com.teamged.comms.internal.CommsManager;
-import com.teamged.deployment.DeploymentConfig;
-import com.teamged.deployment.DeploymentServer;
 
 import java.io.IOException;
 import java.io.PrintWriter;

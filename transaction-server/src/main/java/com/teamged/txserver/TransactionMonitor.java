@@ -1,12 +1,10 @@
 package com.teamged.txserver;
 
 import com.teamged.comms.CommsInterface;
-import com.teamged.deployment.DeploymentServer;
 import com.teamged.deployment.deployments.QuoteProxyServerDeployment;
 import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.txserver.transactions.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;

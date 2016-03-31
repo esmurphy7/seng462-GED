@@ -24,6 +24,7 @@ public class ApplicationContextListener implements ServletContextListener
         // Initializes communications with the transaction server
         TransactionServerDeployment txServer = ConfigurationManager.DeploymentSettings.getTransactionServers();
         for (String server : txServer.getServers()) {
+            System.out.println("Tx server target: " + server);
             CommsInterface.startClientCommunications(server, txServer.getPort(), txServer.getInternals().getCommunicationThreads());
         }
     }

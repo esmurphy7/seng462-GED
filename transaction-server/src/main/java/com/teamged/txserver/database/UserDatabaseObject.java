@@ -7,32 +7,33 @@ import com.teamged.logging.xmlelements.ErrorEventType;
 import com.teamged.logging.xmlelements.SystemEventType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
+import org.mongodb.morphia.annotations.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-/**
- * Created by DanielF on 2016-02-02.
- */
+@Entity(value="users", noClassnameStored=true)
 public class UserDatabaseObject {
-    private static final int CENT_CAP = 100;
 
-    private final ScheduledExecutorService triggerScheduler;
-    private final Object lock = new Object();
-    private final List<String> history = new ArrayList<>();
-    private final Deque<StockRequest> sellList = new ArrayDeque<>();
-    private final Deque<StockRequest> buyList = new ArrayDeque<>();
-    private final Deque<StockTrigger> buyTriggers = new ArrayDeque<>();
-    private final Deque<StockTrigger> sellTriggers = new ArrayDeque<>();
-    private final Map<String, Integer> stocksOwned = new HashMap<>();
-    private final Map<String, QuoteObject> stockCache = new HashMap<>();
-    private final String userName;
-    private StockRequest sellAmount = null;
-    private StockRequest buyAmount = null;
+    @Transient private static final int CENT_CAP = 100;
+
+    @Transient private final ScheduledExecutorService triggerScheduler;
+    @Transient private final ExecutorService databasePersister;
+    @Transient private final Object lock = new Object();
+    @Transient private final List<String> history = new ArrayList<>();
+    @Embedded private final Deque<StockRequest> sellList = new ConcurrentLinkedDeque<>();
+    @Embedded private final Deque<StockRequest> buyList = new ConcurrentLinkedDeque<>();
+    @Embedded private final Deque<StockTrigger> buyTriggers = new ConcurrentLinkedDeque<>();
+    @Embedded private final Deque<StockTrigger> sellTriggers = new ConcurrentLinkedDeque<>();
+    @Property private final Map<String, Integer> stocksOwned = new ConcurrentHashMap<>();
+    @Transient private final Map<String, QuoteObject> stockCache = new HashMap<>();
+
+    @Id private final String userName;
+
+    @Transient private StockRequest sellAmount = null;
+    @Transient private StockRequest buyAmount = null;
     private int dollars = 0;
     private int cents = 0;
 
@@ -47,6 +48,11 @@ public class UserDatabaseObject {
     public UserDatabaseObject(String user) {
         userName = user;
         triggerScheduler = Executors.newSingleThreadScheduledExecutor();
+        databasePersister = Executors.newSingleThreadExecutor();
+    }
+
+    public ExecutorService getDatabasePersister() {
+        return databasePersister;
     }
 
     /**

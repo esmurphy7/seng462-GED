@@ -117,6 +117,7 @@ public abstract class BaseDeployment {
             client.addHostKeyVerifier(new PromiscuousVerifier());
             client.connect(server);
             client.authPassword(username, password);
+            client.setConnectTimeout(30000);
 
         } catch (UserAuthException e) {
 
