@@ -1,20 +1,16 @@
 package org.seng462.webapp.jersey_resources;
 
-import org.glassfish.jersey.server.mvc.Template;
-import org.glassfish.jersey.server.mvc.Viewable;
-import org.seng462.webapp.*;
+import org.seng462.webapp.CommandCodes;
+import org.seng462.webapp.TransactionResponseHandler;
+import org.seng462.webapp.UserCommand;
+import org.seng462.webapp.UserCommandBuilder;
 
-import javax.servlet.ServletContext;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Created by Evan on 1/19/2016.

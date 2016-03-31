@@ -13,6 +13,14 @@ import javax.ws.rs.Produces;
 public class CommandFormResource
 {
     @GET
+    @Path("/add")
+    @Produces("text/html")
+    public Viewable getAddForm()
+    {
+        return new Viewable("/add_form.ftl");
+    }
+
+    @GET
     @Path("/quote")
     @Produces("text/html")
     public Viewable getQuoteForm()

@@ -57,6 +57,7 @@ Web Client
 - update html page to allow user to make multiple commands
 - update html page to dynamically render web server responses
 - abstract out Jquery scripts to handle user commands and inject them into html page
+- centralized url strings etc. to constants strings file
 
 ====================================================================================================
 Template System

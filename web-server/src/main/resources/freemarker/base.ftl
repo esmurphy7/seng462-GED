@@ -39,12 +39,12 @@
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" id="commandDropdownMenu">
-                    <li><a href="#">ADD</a></li>
-                    <li><a href="#">QUOTE</a></li>
+                    <li><a href="/api/trade/command/forms/add">ADD</a></li>
+                    <li><a href="/api/trade/command/forms/quote">QUOTE</a></li>
                 </ul>
             </div>
 
-            <script type="text/javascript">
+            <!--<script type="text/javascript">
                 $(document).ready(function(){
                     // Dropdown selection handler: Get html form that corresponds to the command selected
                     $("#commandDropdownMenu").find("li").click(function () {
@@ -96,7 +96,7 @@
                     });
                 });
             </script>
-
+            -->
             <div id="commandForm">
 
             </div>
