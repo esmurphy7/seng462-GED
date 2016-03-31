@@ -18,16 +18,18 @@ public class ResponseBuilder
         List<String> responseItems = Arrays.asList(txResponse.split(","));
 
         //debug prints
-        System.out.println("Transaction response: "+txResponse);
+        System.out.println("Transaction response: "+txResponse+"\n");
 
         // handle error response from tx server
         if (responseItems.get(0).contains("ERROR"))
         {
             data.put("errorMessage", new ArrayList<>(responseItems.subList(1, responseItems.size())));
-            Response response = Response.serverError().entity(data).build();
+            //TODO: undo debug entity data
+            Response response = Response.serverError().entity("test-error-entity").build();
             return response;
         }
 
+        /*
         //TODO: handle ADD, QUOTE, DUMPLOG, and DISPLAY_SUMMARY properly
         // build relevant data entity to include in response
         switch(CommandCodes.valueOf(responseItems.get(0)))
@@ -107,8 +109,12 @@ public class ResponseBuilder
             default:
                 break;
         }
+        */
 
-        Response response = Response.ok().entity(data).build();
+        //TODO: undo debug entity data
+        data.put("test-key", "test-value");
+
+        Response response = Response.ok().entity("test-success-entity").build();
         return response;
     }
 }

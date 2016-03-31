@@ -20,7 +20,9 @@ public class TemplateBuilder
         }
 
         // the data model to be passed to the template exists in the response entity
-        HashMap dataModel = (HashMap) transactionRes.getEntity();
+        //HashMap dataModel = (HashMap) transactionRes.getEntity();
+        System.out.println("Building template with response entity: "+transactionRes.getEntity());
+        HashMap dataModel = new HashMap();
 
         Viewable viewable = new Viewable(templatePath, dataModel);
 
