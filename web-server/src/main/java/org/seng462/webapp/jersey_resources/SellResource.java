@@ -1,13 +1,12 @@
 package org.seng462.webapp.jersey_resources;
 
-import org.seng462.webapp.CommandCodes;
-import org.seng462.webapp.TransactionService;
-import org.seng462.webapp.UserCommand;
-import org.seng462.webapp.UserCommandBuilder;
+import org.seng462.webapp.*;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -19,56 +18,56 @@ import javax.ws.rs.core.UriInfo;
 public class SellResource
 {
     @POST
-    public Response postSell(@Context UriInfo uriInfo)
+    public void postSell(@Suspended final AsyncResponse asyncResponse,
+                             @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.SELL, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 
     @POST @Path("/commit")
-    public Response postCommitSell(@Context UriInfo uriInfo)
+    public void postCommitSell(@Suspended final AsyncResponse asyncResponse,
+                           @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.COMMIT_SELL, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 
     @POST @Path("/cancel")
-    public Response postCancelSell(@Context UriInfo uriInfo)
+    public void postCancelSell(@Suspended final AsyncResponse asyncResponse,
+                                   @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.CANCEL_SELL, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 
     @POST @Path("/trigger/amount")
-    public Response postSetSellAmmount(@Context UriInfo uriInfo)
+    public void postSetSellAmmount(@Suspended final AsyncResponse asyncResponse,
+                                       @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.SET_SELL_AMOUNT, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 
     @POST @Path("/trigger/stockprice")
-    public Response postSetSellTrigger(@Context UriInfo uriInfo)
+    public void postSetSellTrigger(@Suspended final AsyncResponse asyncResponse,
+                                       @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.SET_SELL_TRIGGER, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 
     @POST @Path("/trigger/cancel")
-    public Response postCancelSetSell(@Context UriInfo uriInfo)
+    public void postCancelSetSell(@Suspended final AsyncResponse asyncResponse,
+                                      @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.CANCEL_SET_SELL, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 }

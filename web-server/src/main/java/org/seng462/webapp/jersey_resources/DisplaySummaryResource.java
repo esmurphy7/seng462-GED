@@ -1,13 +1,12 @@
 package org.seng462.webapp.jersey_resources;
 
-import org.seng462.webapp.CommandCodes;
-import org.seng462.webapp.TransactionService;
-import org.seng462.webapp.UserCommand;
-import org.seng462.webapp.UserCommandBuilder;
+import org.seng462.webapp.*;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -19,11 +18,11 @@ import javax.ws.rs.core.UriInfo;
 public class DisplaySummaryResource
 {
     @GET
-    public Response getDisplaySummary(@Context UriInfo uriInfo)
+    public void getDisplaySummary(@Suspended final AsyncResponse asyncResponse,
+                                      @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.DISPLAY_SUMMARY, uriInfo);
-        Response response = TransactionService.sendCommand(userCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 }

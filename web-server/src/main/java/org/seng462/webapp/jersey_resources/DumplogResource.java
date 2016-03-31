@@ -1,13 +1,12 @@
 package org.seng462.webapp.jersey_resources;
 
-import org.seng462.webapp.CommandCodes;
-import org.seng462.webapp.TransactionService;
-import org.seng462.webapp.UserCommand;
-import org.seng462.webapp.UserCommandBuilder;
+import org.seng462.webapp.*;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -20,7 +19,8 @@ import java.util.List;
 public class DumplogResource
 {
     @GET
-    public Response getDumplog(@Context UriInfo uriInfo)
+    public void getDumplog(@Suspended final AsyncResponse asyncResponse,
+                               @Context UriInfo uriInfo)
     {
         CommandCodes cmdCode;
         List<String> userIdParam = uriInfo.getQueryParameters().get("userId");
@@ -38,7 +38,6 @@ public class DumplogResource
 
         // build the command and relay it to transaction server
         UserCommand dumplogCommand = UserCommandBuilder.Build(cmdCode, uriInfo);
-        Response response = TransactionService.sendCommand(dumplogCommand);
-        return response;
+        new Thread(new TransactionResponseHandler(asyncResponse, dumplogCommand)).start();
     }
 }

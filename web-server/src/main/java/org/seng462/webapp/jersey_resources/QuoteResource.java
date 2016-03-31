@@ -23,13 +23,11 @@ import java.util.Map;
 public class QuoteResource {
 
     @GET
-    @Produces("text/html")
     public void getQuote(@Suspended final AsyncResponse asyncResponse,
                          @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.QUOTE, uriInfo);
-        new Thread(new TransactionResponseHandler(asyncResponse, userCommand, "/quote_command.ftl")).start();
-
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 }
