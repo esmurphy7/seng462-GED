@@ -17,6 +17,9 @@ public class ResponseBuilder
         // Response from tx server is list of comma separated elements
         List<String> responseItems = Arrays.asList(txResponse.split(","));
 
+        //debug prints
+        System.out.println("Transaction response: "+txResponse);
+
         // handle error response from tx server
         if (responseItems.get(0).contains("ERROR"))
         {
@@ -36,63 +39,63 @@ public class ResponseBuilder
             case QUOTE:
                 break;
             case BUY:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("stockCost", responseItems.get(3));
                 break;
             case COMMIT_BUY:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("stockCost", responseItems.get(3));
                 break;
             case CANCEL_BUY:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("account", responseItems.get(3));
                 break;
             case SELL:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("stockCost", responseItems.get(3));
                 break;
             case COMMIT_SELL:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("stockCost", responseItems.get(3));
                 break;
             case CANCEL_SELL:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("account", responseItems.get(3));
                 break;
             case SET_BUY_AMOUNT:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("sideAccount", responseItems.get(3));
                 break;
             case CANCEL_SET_BUY:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("account", responseItems.get(3));
                 break;
             case SET_BUY_TRIGGER:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("stockCost", responseItems.get(3));
                 break;
             case SET_SELL_AMOUNT:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("desiredSell", responseItems.get(3));
                 break;
             case SET_SELL_TRIGGER:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("desiredSell", responseItems.get(3));
                 break;
             case CANCEL_SET_SELL:
-                data.put("userId", responseItems.get(0));
-                data.put("stockSymbol", responseItems.get(1));
+                data.put("userId", responseItems.get(1));
+                data.put("stockSymbol", responseItems.get(2));
                 data.put("account", responseItems.get(3));
                 break;
             case DUMPLOG:
