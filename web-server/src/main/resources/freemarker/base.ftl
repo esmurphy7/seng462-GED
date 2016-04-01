@@ -12,8 +12,6 @@
         <div class="container">
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li>One</li>
-                    <li>Two</li>
                 </ul>
             </div>
         </div>
@@ -44,64 +42,55 @@
                 </ul>
             </div>
 
-            <!--<script type="text/javascript">
-                $(document).ready(function(){
-                    // Dropdown selection handler: Get html form that corresponds to the command selected
-                    $("#commandDropdownMenu").find("li").click(function () {
-                        var selectedText = $(this).text();
-
-                        // update the dropdown's text to display the selected command
-                        $('#commandDropdown').find('.dropdown-toggle').html(selectedText + '<span class="caret"></span>')
-
-                        // build ajax request to get html form
-                        var formUrl = null;
-                        switch (selectedText)
-                        {
-                            case "ADD":
-                                break;
-                            case "QUOTE":
-                                formUrl = "/api/trade/command/forms/quote";
-                                break;
-                            default:
-                                formUrl = null;
-                                break;
-                        }
-
-                        // send ajax request and display retrieved form
-                        if(formUrl != null)
-                        {
-                            $.get(
-                                    formUrl,
-                                    function(form){
-                                        $('#commandForm').html(form);
-                                    }
-                            );
-                        }
-                        else
-                        {
-                            $('#commandForm').html('');
-                        }
-                    });
-                });
-            </script>
-
             <script type="text/javascript">
                 $(document).ready(function(){
-                    $('#commandForm').on('submit', '.tab-pane', function(event){
-                        var formId = event.target.id;
-                        alert(formId);
-                        // serialize the form into query parameters
-                        var str = $('#commandForm').find('#'+formId).serialize();
-                        alert(str);
+                    $('#commandForm').find('#commandSubmit').on('click', function(event)
+                    {
+                        var form = event.target.closest("form");
+                        var formAction = form.action;
+                        var formMethod = form.method;
+
+                        // serialize form fields into query parameters
+                        var queryParams = $('#commandForm').find('#'+form.id).serialize();
+
+                        // build the target endpoint
+                        var endpoint = formAction + "?" + queryParams;
+
+                        // execute the ajax request
+                        $.ajax({
+                            url: endpoint,
+                            type: formMethod,
+                            data: {},
+                            dataType: "html",
+                            success: function (response) {
+                                console.log(response);
+                                var responseHTML = response;
+                                /*
+                                $.each(response, function(key, val)
+                                {
+                                    console.log(key + val);
+                                    responseHTML += "<h3>"+key+" = "+val+"</h3>";
+                                });
+                                */
+                            $('#commandResponse').html(responseHTML);
+                            },
+                            error: function (response) {
+                                alert('ajax failed');
+                                // ajax error callback
+                            }
+                        });
                     });
                 });
             </script>
-            -->
-            <div id="commandForm">
 
+            <div id="commandForm">
+                <@page_body/>
             </div>
 
-            <@page_body/>
+            <div id="commandResponse">
+                <h3>Command Response</h3>
+            </div>
+
         </body>
     </html>
 </#macro>
