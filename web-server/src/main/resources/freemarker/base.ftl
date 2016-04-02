@@ -61,17 +61,17 @@
                             url: endpoint,
                             type: formMethod,
                             data: {},
-                            dataType: "html",
+                            dataType: "json",
                             success: function (response) {
                                 console.log(response);
-                                var responseHTML = response;
-                                /*
+                                var responseHTML = '';
+
                                 $.each(response, function(key, val)
                                 {
                                     console.log(key + val);
                                     responseHTML += "<h3>"+key+" = "+val+"</h3>";
                                 });
-                                */
+
                             $('#commandResponse').html(responseHTML);
                             },
                             error: function (response) {

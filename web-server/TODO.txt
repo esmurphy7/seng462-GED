@@ -25,6 +25,7 @@ x create resource classes for remaining commands
     x accept AsyncResponse as param
     x return void
     x send user command message through transaction thread
+    - transaction handler thread should have a timeout
 
 ====================================================================================================
 TransactionService
@@ -34,7 +35,7 @@ x update service to take generic UserCommand class as arguement when sending com
     x use config.json to configure target host of transaction server
     x use currently active web server host/port when sending commands
     - receive and interpret response from tx server
-        - ResponseBuilder needs to handle allow commands
+        - ResponseBuilder needs to handle all commands
 
 ====================================================================================================
 Logging
@@ -44,14 +45,14 @@ Logging
 Web Client
 - create simple html page that user can press button to send QUOTE request using Jquery/AJAX
     - write skeleton html (no AJAX)
-        - integrate bootstrap
-        - base with navbar
-        - command dropdown
-        - command form
-        - submit button
+        x integrate bootstrap
+        x base with navbar
+        x command dropdown
+        x command form
+        x submit button
         - response section
-    - import JQuery/AJAX into jersey project
-    - write JQuery script inside html page
+    x import JQuery/AJAX into jersey project
+    x write JQuery script inside html page
 - update web server to handle and parse response from tx server
 - update web server to make asynchronous calls to tx server and route responses back to client
 - update html page to allow user to make multiple commands
@@ -62,7 +63,7 @@ Web Client
 ====================================================================================================
 Template System
 - develop hierarchy of templates
-    - write base template
+    x write base template
     - write template for each command that corresponds to a form
 
 - integrate twitter bootstrap
