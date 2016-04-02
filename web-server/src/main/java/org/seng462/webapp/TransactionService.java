@@ -9,6 +9,8 @@ import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.UserCommandType;
 import jersey.repackaged.com.google.common.base.Joiner;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
@@ -109,11 +111,12 @@ public class TransactionService
         Response response;
         if (respMessage != null)
         {
-            response = ResponseBuilder.buildResponse(respMessage);
+            //response = ResponseBuilder.buildResponse(respMessage);
+            response = Response.ok(respMessage, MediaType.TEXT_PLAIN).build();
         }
         else
         {
-            String errorMsg = "Error receiving response from transaction server: "+  targetServer;
+            String errorMsg = String.format("Transaction %s: Error receiving response from transaction server: %s",userCommand.getWorkloadSeqNo(), targetServer);
             System.out.println(errorMsg);
             response = Response.serverError().entity(errorMsg).build();
         }

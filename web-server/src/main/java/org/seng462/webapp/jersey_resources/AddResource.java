@@ -49,11 +49,6 @@ public class AddResource
     {
         // build the command and relay it to transaction server
         UserCommand userCommand = UserCommandBuilder.Build(CommandCodes.ADD, uriInfo);
-        //new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
-        ResponseObject res = new ResponseObject();
-        res.setMessage("test-message");
-        res.setStatusCode(69);
-        Viewable viewable = new Viewable("/response.ftl", new HashMap<String, String>().put("testkey", "test-val"));
-        asyncResponse.resume(Response.ok(res, MediaType.APPLICATION_JSON));
+        new Thread(new TransactionResponseHandler(asyncResponse, userCommand)).start();
     }
 }
