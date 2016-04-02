@@ -41,11 +41,9 @@ public class RequestProcessingHandler implements Runnable {
                 case QUOTE:
                 case SET_BUY_TRIGGER:
                 case SET_SELL_TRIGGER:
-                    QuoteCache.prefetchQuote(to.getStockSymbol(), to.getUserName(), to.getWorkloadSeqNum());
-                    break;
                 case BUY:
                 case SELL:
-                    QuoteCache.prefetchShortQuote(to.getStockSymbol(), to.getUserName(), to.getWorkloadSeqNum());
+                    QuoteCache.prefetchQuote(to.getStockSymbol(), to.getUserName(), to.getWorkloadSeqNum());
                     break;
                 default:
                     // do nothing - this transaction will not produce a quote

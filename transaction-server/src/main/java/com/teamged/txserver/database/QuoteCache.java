@@ -82,20 +82,8 @@ public class QuoteCache {
      * @param tid         The transaction identifier for this operation.
      */
     public static void prefetchQuote(String stock, String callingUser, int tid) {
-        prefetchQuoteObject(stock, callingUser, tid, false);
-    }
-
-    /**
-     * If a quote is not present in the local cache, or if it is present but has timed out using the
-     * shorter life span, this notifies the quote proxy to prefetch and cache a quote. This value will
-     * not be received until requested from the quote server with a fetchQuote or fetchShortQuote.
-     *
-     * @param stock       The name of the stock to prefetch a quote for.
-     * @param callingUser The name of the user eventually asking for the quote value.
-     * @param tid         The transaction identifier for this operation.
-     */
-    public static void prefetchShortQuote(String stock, String callingUser, int tid) {
-        prefetchQuoteObject(stock, callingUser, tid, true);
+        // PERFORM A PREFETCH MAPPING TEST HERE
+        prefetchQuoteObject(stock, callingUser, tid);
     }
 
     /**
@@ -148,27 +136,23 @@ public class QuoteCache {
      * @param stock           The name of the stock to prefetch a quote for.
      * @param callingUser     The name of the user eventually asking for the quote value.
      * @param tid             The transaction identifier for this operation.
-     * @param useShortTimeout True to use a short timeout period, false to use a regular timeout.
      */
-    private static void prefetchQuoteObject(String stock, String callingUser, int tid, boolean useShortTimeout) {
+    private static void prefetchQuoteObject(String stock, String callingUser, int tid) {
         boolean doPrefetch = TxMain.prefetchEnabled();
 
         if (doPrefetch) {
             try {
-                if (!useShortTimeout || (useShortTimeout && TxMain.rtEnabled())) {
-                    Future<QuoteObject> fq = quoteMap.get(stock);
-                    long nowMillis = Calendar.getInstance().getTimeInMillis();
+                Future<QuoteObject> fq = quoteMap.get(stock);
+                long nowMillis = Calendar.getInstance().getTimeInMillis();
 
-                    if (fq == null || // Not in cache
-                            fq.isCancelled() || // Cached a version with no value
-                            (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) || // Cached, but older than a minute
-                            (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) // Cached, but older than half a second and we need brand new
-                    {
-                        InternalLog.CacheDebug("[QUOTE PF] Cache Level II miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                    } else {
-                        InternalLog.CacheDebug("[QUOTE C2] Cache Level II hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
-                        doPrefetch = false;
-                    }
+                if (fq == null || // Not in cache
+                        fq.isCancelled() || // Cached a version with no value
+                        (fq.isDone() && fq.get().getQuotePrefetchTimeout() < nowMillis))
+                {
+                    InternalLog.CacheDebug("[QUOTE PF] Cache Level II miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                } else {
+                    InternalLog.CacheDebug("[QUOTE C2] Cache Level II hit for prefetch quote. No prefetch necessary. Stock: " + stock + "; User: " + callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
+                    doPrefetch = false;
                 }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
@@ -176,7 +160,7 @@ public class QuoteCache {
         }
 
         if (doPrefetch) {
-            quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid, useShortTimeout, true));
+            quotePool.submit(() -> fetchQuoteFromServer(stock, callingUser, tid, true, true));
         }
     }
 

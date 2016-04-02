@@ -59,7 +59,7 @@ public class TransactionObject {
         } else {
             errorString = "Null server message";
         }
-        logRequest();
+        //logRequest();
     }
 
     private void logRequest() {

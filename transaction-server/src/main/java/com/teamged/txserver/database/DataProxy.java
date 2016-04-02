@@ -135,7 +135,7 @@ public class DataProxy {
         Logger.getInstance().Log(tcType);
 
         // TODO: Some additional processing and parsing of the result will be needed.
-        return "[DATA PROXY RESULT]" + opResult;
+        return opResult;
     }
 
     private static UserDatabaseObject getDBProxy(String name) {
