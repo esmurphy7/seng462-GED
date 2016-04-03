@@ -125,6 +125,8 @@ public class DataProxy {
                         opResult = "ERROR," + tx.toString();
                     }
                 }
+            } else {
+                opResult = tx.getErrorString();
             }
         } catch (Exception e) {
             System.out.println("[ERROR CAUGHT IN DATA PROXY] " + e.getMessage());

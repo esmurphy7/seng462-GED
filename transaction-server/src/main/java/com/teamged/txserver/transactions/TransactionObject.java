@@ -4,6 +4,7 @@ import com.teamged.comms.ServerMessage;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
 import com.teamged.logging.xmlelements.SystemEventType;
+import com.teamged.logging.xmlelements.UserCommandType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
 
@@ -59,7 +60,7 @@ public class TransactionObject {
         } else {
             errorString = "Null server message";
         }
-        //logRequest();
+        logRequest();
     }
 
     private void logRequest() {
@@ -118,7 +119,7 @@ public class TransactionObject {
                 break;
         }
 
-        SystemEventType systemEvent = new SystemEventType();
+        UserCommandType systemEvent = new UserCommandType();
         systemEvent.setTimestamp(System.currentTimeMillis());
         systemEvent.setServer(TxMain.getServerName());
         systemEvent.setTransactionNum(BigInteger.valueOf(workloadSeqNum));
