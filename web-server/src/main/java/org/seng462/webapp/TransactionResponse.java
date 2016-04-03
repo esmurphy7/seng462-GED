@@ -19,6 +19,7 @@ public class TransactionResponse {
     private String stock;
     private List<String> history;
     private List<String> dumplog;
+    private String errorMsg;
 
     private TransactionResponse(String data) {
         // TODO: parse values
@@ -32,6 +33,7 @@ public class TransactionResponse {
         sellValueDollars = 0;
         sellValueCents = 0;
         stock = "MEH";
+        errorMsg = "";
         history = new ArrayList<>();
         dumplog = new ArrayList<>();
     }
@@ -86,6 +88,14 @@ public class TransactionResponse {
 
     public List<String> getDumplog() {
         return dumplog;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public boolean hasError() {
+        return errorMsg != null && !errorMsg.isEmpty();
     }
 }
 
