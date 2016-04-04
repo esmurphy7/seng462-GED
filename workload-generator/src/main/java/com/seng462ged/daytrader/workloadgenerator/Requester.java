@@ -1,6 +1,8 @@
 package com.seng462ged.daytrader.workloadgenerator;
 
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -66,88 +68,89 @@ public class Requester {
                 System.out.println(String.format("[%d] User: %s [%d], Command: %s", transaction.getId(), transaction.getUserId(), transaction.getUserSequenceNumber(), transaction.getCommand()));
 
                 try {
+                    
+                    Response<ResponseBody> response = null;
 
                     if (transaction.getCommand().equals("ADD")) {
 
-                        transactionService.Add(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getAmount()).execute();
+                        response = transactionService.Add(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("QUOTE")) {
 
-                        transactionService.Quote(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol()).execute();
+                        response = transactionService.Quote(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol()).execute();
 
                     } else if (transaction.getCommand().equals("BUY")) {
 
-                        transactionService.Buy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
+                        response = transactionService.Buy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("COMMIT_BUY")) {
 
-                        transactionService.CommitBuy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
+                        response = transactionService.CommitBuy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
 
                     } else if (transaction.getCommand().equals("CANCEL_BUY")) {
 
-                        transactionService.CancelBuy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
+                        response = transactionService.CancelBuy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
 
                     } else if (transaction.getCommand().equals("SET_BUY_AMOUNT")) {
 
-                        transactionService.SetBuyAmount(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
+                        response = transactionService.SetBuyAmount(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("SET_BUY_TRIGGER")) {
 
-                        transactionService.SetBuyTrigger(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
+                        response = transactionService.SetBuyTrigger(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("CANCEL_SET_BUY")) {
 
-                        transactionService.CancelSetBuy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol()).execute();
+                        response = transactionService.CancelSetBuy(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol()).execute();
 
                     } else if (transaction.getCommand().equals("SELL")) {
 
-                        transactionService.Sell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
+                        response = transactionService.Sell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("COMMIT_SELL")) {
 
-                        transactionService.CommitSell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
+                        response = transactionService.CommitSell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
 
                     } else if (transaction.getCommand().equals("CANCEL_SELL")) {
 
-                        transactionService.CancelSell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
+                        response = transactionService.CancelSell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
 
                     } else if (transaction.getCommand().equals("SET_SELL_AMOUNT")) {
 
-                        transactionService.SetSellAmount(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
+                        response = transactionService.SetSellAmount(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("SET_SELL_TRIGGER")) {
 
-                        transactionService.SetSellTrigger(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
+                        response = transactionService.SetSellTrigger(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol(), transaction.getAmount()).execute();
 
                     } else if (transaction.getCommand().equals("CANCEL_SET_SELL")) {
 
-                        transactionService.CancelSetSell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol()).execute();
+                        response = transactionService.CancelSetSell(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getStockSymbol()).execute();
 
                     } else if (transaction.getCommand().equals("DUMPLOG") && transaction.getUserId() != null) {
 
-                        transactionService.Dumplog(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getFilename()).execute();
+                        response = transactionService.Dumplog(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId(), transaction.getFilename()).execute();
 
                     } else if (transaction.getCommand().equals("DUMPLOG")) {
 
-                        transactionService.Dumplog(transaction.getId(), transaction.getFilename()).execute();
+                        response = transactionService.Dumplog(transaction.getId(), transaction.getFilename()).execute();
 
                     } else if (transaction.getCommand().equals("DISPLAY_SUMMARY")) {
 
-                        transactionService.DisplaySummary(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
+                        response = transactionService.DisplaySummary(transaction.getId(), transaction.getUserSequenceNumber(), transaction.getUserId()).execute();
+                    }
+
+                    if (!response.isSuccess()) {
+
+                        System.out.println("################### HTTP ERROR ###################");
+                        System.out.println(response.errorBody().string());
+                        System.out.println();
                     }
 
                 } catch (IOException e) {
 
                     e.printStackTrace();
                 }
-
-                /*
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                */
             }
 
         } catch (NoSuchAlgorithmException e) {
