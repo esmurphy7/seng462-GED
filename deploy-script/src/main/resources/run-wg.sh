@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar WorkloadGeneratorDeploy/workload-generator.jar "$@"
+java -Xmx4g -jar WorkloadGeneratorDeploy/workload-generator.jar "$@"
