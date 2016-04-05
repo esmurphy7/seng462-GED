@@ -15,7 +15,7 @@ public class UserCommandBuilder
     public static UserCommand Build(CommandCodes cmdCode, UriInfo uriInfo)
     {
         String globalSequence = "0";
-        String userSequence = "1";
+        String userSequence = "0";
         HashMap<String,String> args = new HashMap<>();
 
         // Iterate and process each query parameter

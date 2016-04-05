@@ -42,11 +42,11 @@ public class TransactionResponse {
                 stock = vals[idx++];
                 stockCount = Integer.parseInt(vals[idx++]);
                 totalStockCount = Integer.parseInt(vals[idx++]);
-                String[] histargs = vals[idx++].split(",", -1);
+                String[] histargs = vals[idx++].split("\\|", -1);
                 for (String h : histargs) {
                     history.add(h);
                 }
-                String[] dumpargs = vals[idx++].split(",", -1);
+                String[] dumpargs = vals[idx++].split("\\|", -1);
                 for (String d : dumpargs) {
                     dumplog.add(d);
                 }

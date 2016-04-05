@@ -6,6 +6,7 @@ import com.teamged.deployment.deployments.TransactionServerDeployment;
 import com.teamged.deployment.deployments.WebServerDeployment;
 import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.CommandType;
+import com.teamged.logging.xmlelements.SystemEventType;
 import com.teamged.logging.xmlelements.UserCommandType;
 import jersey.repackaged.com.google.common.base.Joiner;
 
@@ -107,14 +108,12 @@ public class TransactionService
         CommsInterface.addClientRequest(clientMessage);
         String respMessage = clientMessage.waitForResponse();
 
-        // deserialize message into transaction response object
-        TransactionResponse txResponse = TransactionResponse.fromDataMessage(respMessage);
-
         // handle and return response
         Response response;
         if (respMessage != null)
         {
-            //response = ResponseBuilder.buildResponse(respMessage);
+            // deserialize message into transaction response object
+            TransactionResponse txResponse = TransactionResponse.fromDataMessage(respMessage);
             response = Response.ok(txResponse, MediaType.APPLICATION_JSON).build();
         }
         else

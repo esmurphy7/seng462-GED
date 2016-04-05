@@ -112,17 +112,22 @@
 
                                 $.each(response, function(key, val)
                                 {
-                                    console.log(key + val);
-                                    // if error is found, render it and stop
-                                    if(key == "errorMsg" && val != "")
-                                    {
-                                        $('#commandResponse').html("<h4>"+key+" = "+val+"</>");
-                                        return;
-                                    }
                                     // only render non-zero values
                                     if(val != 0 && val != "")
                                     {
-                                        responseHTML += "<h4>"+key+" = "+val+"</>";
+                                        // build html differently for array values
+                                        if(val.constructor === Array)
+                                        {
+                                            responseHTML += "<h4>" + key + " : " + "</>";
+                                            val.forEach(function(item)
+                                            {
+                                                responseHTML +=  "<h4>"+item+"</>";
+                                            });
+                                        }
+                                        else
+                                        {
+                                            responseHTML += "<h4>"+key+" : "+val+"</>";
+                                        }
                                     }
                                 });
                                 $('#commandResponse').html(responseHTML);
@@ -130,9 +135,9 @@
                             error: function (response) {
                                 console.log("Ajax failed");
                                 console.log(response);
-                                console.log(response.badfieldname);
 
-                                var responseHTML = "<h4>"+"Status text: "+response.statusText+"</>";
+                                var responseHTML = "<h4>"+"Error:"+"</>";
+                                responseHTML += "<h4>"+"Status text: "+response.statusText+"</>";
                                 responseHTML += "<h4>"+"Status code :"+response.status+"</>";
                                 responseHTML += "<h4>"+"Response text: "+response.responseText+"</>";
 
