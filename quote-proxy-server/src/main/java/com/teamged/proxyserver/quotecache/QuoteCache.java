@@ -56,11 +56,7 @@ public class QuoteCache {
     }
 
     public static void prefetchQuote(String stock, String callingUser, int tid) {
-        prefetchQuoteObject(stock, callingUser, tid, false);
-    }
-
-    public static void prefetchShortQuote(String stock, String callingUser, int tid) {
-        prefetchQuoteObject(stock, callingUser, tid, true);
+        prefetchQuoteObject(stock, callingUser, tid);
     }
 
     private static QuoteObject fetchQuoteObject(String stock, String callingUser, int tid, boolean useShortTimeout)
@@ -83,7 +79,7 @@ public class QuoteCache {
         return fq.get();
     }
 
-    private static void prefetchQuoteObject(String stock, String callingUser, int tid, boolean useShortTimeout) {
+    private static void prefetchQuoteObject(String stock, String callingUser, int tid) {
         long nowMillis = Calendar.getInstance().getTimeInMillis();
         Future<QuoteObject> fq;
         boolean doPrefetch;
@@ -97,10 +93,7 @@ public class QuoteCache {
             try {
                 try {
                     fq = quoteMap.get(stock);
-                    if (fq == null ||
-                            fq.isCancelled() ||
-                            (!useShortTimeout && (fq.isDone() && fq.get().getQuoteTimeout() < nowMillis)) ||
-                            (useShortTimeout && (fq.isDone() && fq.get().getQuoteShortTimeout() < nowMillis))) {
+                    if (fq == null || fq.isCancelled() || (fq.isDone() && fq.get().getQuotePrefetchTimeout() < nowMillis)) {
                         InternalLog.Log("Cache miss for prefetch quote - prefetch will occur. Stock: " + stock + "; User: " +
                                 callingUser + "; ID: " + tid + "; Timestamp: " + nowMillis);
                     } else {

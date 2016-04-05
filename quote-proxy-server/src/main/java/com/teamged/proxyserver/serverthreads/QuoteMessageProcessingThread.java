@@ -65,16 +65,10 @@ public class QuoteMessageProcessingThread extends ProxyServerThread {
         Matcher m = quoteReqPattern.matcher(quoteRequest);
         try {
             if (m.matches()) {
-                boolean shortTimeout = Integer.parseInt(m.group(4)) != 0;
                 String stock = m.group(1);
                 String user = m.group(2);
                 int tid = Integer.parseInt(m.group(3));
-
-                if (shortTimeout) {
-                    QuoteCache.prefetchShortQuote(stock, user, tid);
-                } else {
-                    QuoteCache.prefetchQuote(stock, user, tid);
-                }
+                QuoteCache.prefetchQuote(stock, user, tid);
             }
         } catch (NumberFormatException ignored) {}
     }

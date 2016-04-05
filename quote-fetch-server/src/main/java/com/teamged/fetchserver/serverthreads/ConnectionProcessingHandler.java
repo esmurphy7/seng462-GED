@@ -9,16 +9,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.Calendar;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by DanielF on 2016-03-08.
  */
 public class ConnectionProcessingHandler implements Runnable {
     private final ServerMessage serverMessage;
+    private final ConcurrentLinkedQueue<String> timingQueue;
 
-    public ConnectionProcessingHandler(ServerMessage serverMessage) {
+    public ConnectionProcessingHandler(ServerMessage serverMessage, ConcurrentLinkedQueue<String> timingQueue) {
         this.serverMessage = serverMessage;
+        this.timingQueue = timingQueue;
         InternalLog.Log("Connection processor received data: " + serverMessage.getData());
     }
 
@@ -28,32 +32,45 @@ public class ConnectionProcessingHandler implements Runnable {
         long quoteStartTime = System.nanoTime();
         long quoteEndTime = 0;
         boolean gotQuote = false;
+        boolean retryQuote = false;
         String quoteString = null;
 
-        try (
-                Socket quoteSocket = new Socket(FetchMain.Deployment.getQuoteServer().getServer(), FetchMain.Deployment.getQuoteServer().getPort());
-                PrintWriter quoteOut = new PrintWriter(quoteSocket.getOutputStream(), true);
-                BufferedReader quoteIn = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
-        ) {
-            InternalLog.Log("Fetching request: " + request + " from [" + FetchMain.Deployment.getQuoteServer().getServer() + ":" + FetchMain.Deployment.getQuoteServer().getPort() + "]");
-            quoteOut.println(request);
-            quoteString = quoteIn.readLine();
+        do {
+            try (
+                    Socket quoteSocket = new Socket(FetchMain.Deployment.getQuoteServer().getServer(), FetchMain.Deployment.getQuoteServer().getPort());
+                    PrintWriter quoteOut = new PrintWriter(quoteSocket.getOutputStream(), true);
+                    BufferedReader quoteIn = new BufferedReader(new InputStreamReader(quoteSocket.getInputStream()))
+            ) {
+                quoteSocket.setSoTimeout(350);
+                if (retryQuote) {
+                    InternalLog.Log("Refetching request: " + request + " from [" + FetchMain.Deployment.getQuoteServer().getServer() + ":" + FetchMain.Deployment.getQuoteServer().getPort() + "]");
+                } else {
+                    InternalLog.Log("Fetching request: " + request + " from [" + FetchMain.Deployment.getQuoteServer().getServer() + ":" + FetchMain.Deployment.getQuoteServer().getPort() + "]");
+                }
+                retryQuote = false;
 
-            quoteEndTime = System.nanoTime();
-            gotQuote = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                quoteOut.println(request);
+                quoteString = quoteIn.readLine();
 
-        if (gotQuote) {
-            long quoteFetchTime = quoteEndTime - quoteStartTime;
-            InternalLog.Log("Returning response: " + quoteString + "; fetched in " + quoteFetchTime + "ns");
-            serverMessage.setResponse(quoteString);
+                quoteEndTime = System.nanoTime();
+                gotQuote = true;
+            } catch (SocketTimeoutException ste) {
+                InternalLog.Log("Quote timed out for: " + request + " - will retry!");
+                retryQuote = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-            // TODO: Record fetch time
-            // TODO: Log quote fetch event
-        } else {
-            serverMessage.setResponse("ERROR");
-        }
+            if (gotQuote || retryQuote) {
+                long quoteFetchTime = quoteEndTime - quoteStartTime;
+                timingQueue.add(quoteFetchTime + "\n");
+                if (!retryQuote) {
+                    InternalLog.Log("Returning response: " + quoteString + "; fetched in " + quoteFetchTime + "ns");
+                    serverMessage.setResponse(quoteString);
+                }
+            } else if (!retryQuote) {
+                serverMessage.setResponse("ERROR");
+            }
+        } while (retryQuote);
     }
 }

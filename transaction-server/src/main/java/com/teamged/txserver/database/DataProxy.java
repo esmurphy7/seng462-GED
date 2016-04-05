@@ -125,6 +125,8 @@ public class DataProxy {
                         opResult = "ERROR," + tx.toString();
                     }
                 }
+            } else {
+                opResult = tx.getErrorString();
             }
         } catch (Exception e) {
             System.out.println("[ERROR CAUGHT IN DATA PROXY] " + e.getMessage());
@@ -135,7 +137,7 @@ public class DataProxy {
         Logger.getInstance().Log(tcType);
 
         // TODO: Some additional processing and parsing of the result will be needed.
-        return "[DATA PROXY RESULT]" + opResult;
+        return opResult;
     }
 
     private static UserDatabaseObject getDBProxy(String name) {

@@ -10,10 +10,13 @@ import java.util.Calendar;
  */
 public class QuoteObject {
     // If a user just wants a regular quote, then we just want it to be valid when sent back
-    private static final long QUOTE_LIFE_MILLIS = 59500;
+    private static final long QUOTE_LIFE_MILLIS = 55000;
 
     // If a user wants to make a buy or sell, we want the system to have time to realize an update needs to be sent soon
-    private static final long QUOTE_SHORT_LIFE_MILLIS = 55000;
+    private static final long QUOTE_SHORT_LIFE_MILLIS = 45000;
+
+    // To ensure quotes remain up to date, prefetch life span is set lower than regular or short
+    private static final long QUOTE_PREFETCH_LIFE_MILLIS = 30000;
 
     private static final long MILLIS_PADDING = 15;
 
@@ -29,6 +32,7 @@ public class QuoteObject {
     private long quoteInternalTime;
     private long quoteShortTimeout;
     private long quoteTimeout;
+    private long quotePrefetchTimeout;
     private String cryptoKey;
     private String errorString;
     private String quoteString;
@@ -42,6 +46,7 @@ public class QuoteObject {
         quoteTime = 0;
         quoteShortTimeout = 0;
         quoteTimeout = 0;
+        quotePrefetchTimeout = 0;
         cryptoKey = "";
         errorString = "";
         quoteString = "";
@@ -87,6 +92,10 @@ public class QuoteObject {
 
     public long getQuoteTimeout() {
         return quoteTimeout;
+    }
+
+    public long getQuotePrefetchTimeout() {
+        return quotePrefetchTimeout;
     }
 
     public String getCryptoKey() {
@@ -137,6 +146,7 @@ public class QuoteObject {
                     quoteTime = Calendar.getInstance().getTimeInMillis() - quoteAgeTime - MILLIS_PADDING;
                     quoteTimeout = quoteTime + QUOTE_LIFE_MILLIS;
                     quoteShortTimeout = quoteTime + QUOTE_SHORT_LIFE_MILLIS;
+                    quotePrefetchTimeout = quoteTime + QUOTE_PREFETCH_LIFE_MILLIS;
                 } catch (NumberFormatException e) {
                     errorString = "Unable to parse server time: " + argsArray[3];
                     parsed = false;
