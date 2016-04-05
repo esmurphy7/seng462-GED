@@ -45,7 +45,7 @@ public class SellResource
     }
 
     @POST @Path("/trigger/amount")
-    public void postSetSellAmmount(@Suspended final AsyncResponse asyncResponse,
+    public void postSetSellAmount(@Suspended final AsyncResponse asyncResponse,
                                        @Context UriInfo uriInfo)
     {
         // build the command and relay it to transaction server

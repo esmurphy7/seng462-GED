@@ -107,12 +107,15 @@ public class TransactionService
         CommsInterface.addClientRequest(clientMessage);
         String respMessage = clientMessage.waitForResponse();
 
+        // deserialize message into transaction response object
+        TransactionResponse txResponse = TransactionResponse.fromDataMessage(respMessage);
+
         // handle and return response
         Response response;
         if (respMessage != null)
         {
             //response = ResponseBuilder.buildResponse(respMessage);
-            response = Response.ok(respMessage, MediaType.TEXT_PLAIN).build();
+            response = Response.ok(txResponse, MediaType.APPLICATION_JSON).build();
         }
         else
         {

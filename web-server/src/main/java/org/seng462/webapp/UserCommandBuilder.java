@@ -14,7 +14,7 @@ public class UserCommandBuilder
     // Build and return a user command based on a set of query parameters
     public static UserCommand Build(CommandCodes cmdCode, UriInfo uriInfo)
     {
-        String globalSequence = "";
+        String globalSequence = "0";
         String userSequence = "1";
         HashMap<String,String> args = new HashMap<>();
 

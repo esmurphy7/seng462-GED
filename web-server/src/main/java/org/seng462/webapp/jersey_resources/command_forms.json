@@ -1,0 +1,24 @@
+{
+  "ADD" : {
+    "endpoint" : "/api/trade/command/add",
+    "method" : "post",
+    "params" : ["username", "amount"]
+  },
+  "QUOTE" : {
+    "endpoint" : "/api/trade/command/quote",
+    "method" : "get",
+    "params" : ["username", "stockSymbol"]
+  },
+  "BUY" : {
+    "endpoint" : "/api/trade/command/buy",
+    "method" : "post",
+    "params" : ["username", "amount", "stockSymbol"]
+  },
+  "COMMIT_BUY" : {
+    "endpoint" : "/api/trade/command/buy/commit",
+    "method" : "post",
+    "params" : ["username"]
+  },
+  "COMMIT_BUY": "/api/trade/command/buy/commit",
+  "CANCEL_BUY": "/api/trade/command/buy/cancel",
+}

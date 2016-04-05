@@ -38,7 +38,7 @@ public class TransactionResponse {
         dumplog = new ArrayList<>();
     }
 
-    static TransactionResponse fromDataMessage(String data) {
+    public static TransactionResponse fromDataMessage(String data) {
         return new TransactionResponse(data);
     }
 

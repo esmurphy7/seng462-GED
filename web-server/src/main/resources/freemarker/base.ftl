@@ -22,6 +22,36 @@
     <p>Page Body</p>
 </#macro>
 
+<#macro username_form_input>
+<div class="form-group">
+    <label for="user">Username:</label>
+    <input name="userId" type="text" class="form-control col-md-4" id="userId">
+</div>
+</#macro>
+
+<#macro stocksymbol_form_input>
+<div class="form-group">
+    <label for="user">Username:</label>
+    <input name="userId" type="text" class="form-control col-md-4" id="userId">
+</div>
+</#macro>
+
+<#macro amount_form_input>
+<div class="form-group">
+    <label for="user">Username:</label>
+    <input name="userId" type="text" class="form-control col-md-4" id="userId">
+</div>
+</#macro>
+
+<#macro filename_form_input>
+<div class="form-group">
+    <label for="user">Username:</label>
+    <input name="userId" type="text" class="form-control col-md-4" id="userId">
+</div>
+</#macro>
+
+
+
 <#macro display_page>
     <!doctype html>
     <html>
@@ -39,6 +69,20 @@
                 <ul class="dropdown-menu" id="commandDropdownMenu">
                     <li><a href="/api/trade/command/forms/add">ADD</a></li>
                     <li><a href="/api/trade/command/forms/quote">QUOTE</a></li>
+                    <li><a href="/api/trade/command/forms/buy">BUY</a></li>
+                    <li><a href="/api/trade/command/forms/buy/commit">COMMIT_BUY</a></li>
+                    <li><a href="/api/trade/command/forms/buy/cancel">CANCEL_BUY</a></li>
+                    <li><a href="/api/trade/command/forms/buy/trigger/amount">SET_BUY_AMOUNT</a></li>
+                    <li><a href="/api/trade/command/forms/buy/trigger/stockprice">SET_BUY_TRIGGER</a></li>
+                    <li><a href="/api/trade/command/forms/buy/trigger/cancel">CANCEL_SET_BUY</a></li>
+                    <li><a href="/api/trade/command/forms/sell">SELL</a></li>
+                    <li><a href="/api/trade/command/forms/sell/commit">COMMIT_SELL</a></li>
+                    <li><a href="/api/trade/command/forms/sell/cancel">CANCEL_SELL</a></li>
+                    <li><a href="/api/trade/command/forms/sell/trigger/amount">SET_SELL_AMOUNT</a></li>
+                    <li><a href="/api/trade/command/forms/sell/trigger/stockprice">SET_SELL_TRIGGER</a></li>
+                    <li><a href="/api/trade/command/forms/sell/trigger/cancel">CANCEL_SET_SELL</a></li>
+                    <li><a href="/api/trade/command/forms/summary">DISPLAY_SUMMARY</a></li>
+                    <li><a href="/api/trade/command/forms/dumplog">DUMPLOG</a></li>
                 </ul>
             </div>
 
@@ -69,28 +113,45 @@
                                 $.each(response, function(key, val)
                                 {
                                     console.log(key + val);
-                                    responseHTML += "<h3>"+key+" = "+val+"</h3>";
+                                    // if error is found, render it and stop
+                                    if(key == "errorMsg" && val != "")
+                                    {
+                                        $('#commandResponse').html("<h4>"+key+" = "+val+"</>");
+                                        return;
+                                    }
+                                    // only render non-zero values
+                                    if(val != 0 && val != "")
+                                    {
+                                        responseHTML += "<h4>"+key+" = "+val+"</>";
+                                    }
                                 });
-
-                            $('#commandResponse').html(responseHTML);
+                                $('#commandResponse').html(responseHTML);
                             },
                             error: function (response) {
-                                alert('ajax failed');
-                                // ajax error callback
+                                console.log("Ajax failed");
+                                console.log(response);
+                                console.log(response.badfieldname);
+
+                                var responseHTML = "<h4>"+"Status text: "+response.statusText+"</>";
+                                responseHTML += "<h4>"+"Status code :"+response.status+"</>";
+                                responseHTML += "<h4>"+"Response text: "+response.responseText+"</>";
+
+                                $('#commandResponse').html(responseHTML);
                             }
                         });
                     });
                 });
             </script>
 
-            <div id="commandForm">
-                <@page_body/>
-            </div>
+            <div class="row col-md-4">
+                <div id="commandForm">
+                    <@page_body/>
+                </div>
 
-            <div id="commandResponse">
-                <h3>Command Response</h3>
-            </div>
+                <div id="commandResponse">
 
+                </div>
+            </div>
         </body>
     </html>
 </#macro>
