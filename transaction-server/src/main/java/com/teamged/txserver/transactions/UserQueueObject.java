@@ -36,20 +36,17 @@ public class UserQueueObject {
         Integer nextInteger = nextRequestIndex;
         InternalLog.Log("Fetching txObject with sequence " + nextRequestIndex);
 
-        /*System.out.print("Keys: ");
-        for (Integer i : requestSequence.keySet()) {
-            System.out.print(i.intValue() + " ");
-        }
-        System.out.println();*/
-
-        TransactionObject txObject = requestSequence.remove(nextInteger);
-        if (txObject != null) {
-            nextRequestIndex++;
-            if (nextProcessCount > 1) {
-                nextProcessCount--;
+        TransactionObject txObject;
+        if ((txObject = requestSequence.remove(0)) == null) {
+            txObject = requestSequence.remove(nextInteger);
+            if (txObject != null) {
+                nextRequestIndex++;
+                if (nextProcessCount > 1) {
+                    nextProcessCount--;
+                }
+            } else {
+                nextProcessCount++;
             }
-        } else {
-            nextProcessCount++;
         }
 
         return txObject;

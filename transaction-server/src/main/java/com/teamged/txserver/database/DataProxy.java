@@ -4,6 +4,7 @@ import com.teamged.logging.Logger;
 import com.teamged.logging.xmlelements.TransactionCompleteType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.transactions.TransactionObject;
+import com.teamged.txserver.transactions.TransactionResponse;
 import com.teamged.txserver.transactions.UserCommand;
 
 import java.io.File;
@@ -45,28 +46,31 @@ public class DataProxy {
     }
 
     public static String dbOperation(TransactionObject tx) {
-        String opResult = "";
+        TransactionResponse opResult = new TransactionResponse();
+        opResult.setUsername(tx.getUserName());
         try {
             if (tx.getErrorString().isEmpty()) {
                 InternalLog.Log(tx.getUserName() + " - " + tx.getUserSeqNum() + " - " + tx.getWorkloadSeqNum() + " - " + tx.getUserCommand().toString());
                 if (tx.getUserCommand().equals(UserCommand.DUMPLOG_ROOT)) {
-                    opResult = "DUMPLOG_ROOT";
+                    // TODO: Add the dumplog op result?
                     Logger.getInstance().DumpLog(tx.getWorkloadSeqNum());
                     System.out.println("RECEIVED DUMPLOG_ROOT COMMAND!");
                 } else {
-
                     UserDatabaseObject dbProxy = getDBProxy(tx.getUserName());
                     if (dbProxy != null) {
                         long startTime = System.nanoTime();
                         switch (tx.getUserCommand()) {
                             case NO_COMMAND:
-                                opResult = "NO_COMMAND";
+                                opResult.setErrorMsg("NO_COMMAND");
                                 break;
                             case ADD:
                                 opResult = dbProxy.add(tx.getAmountDollars(), tx.getAmountCents(), tx.getWorkloadSeqNum());
                                 break;
                             case QUOTE:
-                                opResult = dbProxy.quote(tx.getStockSymbol(), tx.getWorkloadSeqNum()).toString();
+                                QuoteObject qo = dbProxy.quote(tx.getStockSymbol(), tx.getWorkloadSeqNum());
+                                opResult.setStock(qo.getStockSymbol());
+                                opResult.setStockDollars(qo.getDollars());
+                                opResult.setStockCents(qo.getCents());
                                 break;
                             case BUY:
                                 opResult = dbProxy.buy(tx.getStockSymbol(), tx.getAmountDollars(), tx.getAmountCents(), tx.getWorkloadSeqNum());
@@ -112,7 +116,7 @@ public class DataProxy {
                                 break;
                             case DUMPLOG_ROOT:
                             default:
-                                opResult = "Unknown command \"" + tx.getUserCommand().toString() + "\" was given";
+                                opResult.setErrorMsg("Unknown command \"" + tx.getUserCommand().toString() + "\" was given");
                                 break;
                         }
                         long commTime = System.nanoTime() - startTime;
@@ -122,11 +126,11 @@ public class DataProxy {
                         // Save the user database object to our database
                         dbProxy.getDatabasePersister().submit(() -> PersistentDatabase.saveUserDatabaseObject(dbProxy, tx.getWorkloadSeqNum()));
                     } else {
-                        opResult = "ERROR," + tx.toString();
+                        opResult.setErrorMsg("ERROR," + tx.toString());
                     }
                 }
             } else {
-                opResult = tx.getErrorString();
+                opResult.setErrorMsg(tx.getErrorString());
             }
         } catch (Exception e) {
             System.out.println("[ERROR CAUGHT IN DATA PROXY] " + e.getMessage());
@@ -137,7 +141,7 @@ public class DataProxy {
         Logger.getInstance().Log(tcType);
 
         // TODO: Some additional processing and parsing of the result will be needed.
-        return opResult;
+        return opResult.toString();
     }
 
     private static UserDatabaseObject getDBProxy(String name) {

@@ -7,35 +7,54 @@ import java.util.List;
  * Created by DanielF on 2016-04-03.
  */
 public class TransactionResponse {
-    private String username;
-    private long userDollars;
-    private int userCents;
-    private long stockDollars;
-    private int stockCents;
-    private long setAsideDollars;
-    private int setAsideCents;
-    private long sellValueDollars;
-    private int sellValueCents;
-    private String stock;
-    private List<String> history;
-    private List<String> dumplog;
-    private String errorMsg;
+    private String username = "";
+    private long userDollars = 0;
+    private int userCents = 0;
+    private long stockDollars = 0;
+    private int stockCents = 0;
+    private long setAsideDollars = 0;
+    private int setAsideCents = 0;
+    private long sellValueDollars = 0;
+    private int sellValueCents = 0;
+    private String stock = "";
+    private int stockCount = 0;
+    private int totalStockCount = 0;
+    private List<String> history = new ArrayList<>();
+    private List<String> dumplog = new ArrayList<>();
+    private String errorMsg = "";
 
     private TransactionResponse(String data) {
-        // TODO: parse values
-        username = "test";
-        userDollars = 0;
-        userCents = 0;
-        stockDollars = 9001;
-        stockCents = 0;
-        setAsideDollars = 0;
-        setAsideCents = 0;
-        sellValueDollars = 0;
-        sellValueCents = 0;
-        stock = "MEH";
-        errorMsg = "";
-        history = new ArrayList<>();
-        dumplog = new ArrayList<>();
+        String[] vals = data.split(";", -1);
+        if (vals.length != 15) {
+            errorMsg = "ERROR: Response could not be parsed";
+        } else {
+            try {
+                int idx = 0;
+                username = vals[idx++];
+                userDollars = Long.parseLong(vals[idx++]);
+                userCents = Integer.parseInt(vals[idx++]);
+                stockDollars = Long.parseLong(vals[idx++]);
+                stockCents = Integer.parseInt(vals[idx++]);
+                setAsideDollars = Long.parseLong(vals[idx++]);
+                setAsideCents = Integer.parseInt(vals[idx++]);
+                sellValueDollars = Long.parseLong(vals[idx++]);
+                sellValueCents = Integer.parseInt(vals[idx++]);
+                stock = vals[idx++];
+                stockCount = Integer.parseInt(vals[idx++]);
+                totalStockCount = Integer.parseInt(vals[idx++]);
+                String[] histargs = vals[idx++].split(",", -1);
+                for (String h : histargs) {
+                    history.add(h);
+                }
+                String[] dumpargs = vals[idx++].split(",", -1);
+                for (String d : dumpargs) {
+                    dumplog.add(d);
+                }
+                errorMsg = vals[idx++];
+            } catch (NumberFormatException nfe) {
+                errorMsg = "ERROR: Number is response could not be parsed";
+            }
+        }
     }
 
     public static TransactionResponse fromDataMessage(String data) {
@@ -80,6 +99,14 @@ public class TransactionResponse {
 
     public String getStock() {
         return stock;
+    }
+
+    public int getStockCount() {
+        return stockCount;
+    }
+
+    public int getTotalStockCount() {
+        return totalStockCount;
     }
 
     public List<String> getHistory() {

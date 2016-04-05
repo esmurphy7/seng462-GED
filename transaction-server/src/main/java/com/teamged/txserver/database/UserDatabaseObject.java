@@ -7,6 +7,7 @@ import com.teamged.logging.xmlelements.ErrorEventType;
 import com.teamged.logging.xmlelements.SystemEventType;
 import com.teamged.txserver.InternalLog;
 import com.teamged.txserver.TxMain;
+import com.teamged.txserver.transactions.TransactionResponse;
 import org.mongodb.morphia.annotations.*;
 
 import java.math.BigDecimal;
@@ -72,9 +73,12 @@ public class UserDatabaseObject {
      * @param tid       The sequence number associated with this request.
      * @return          The transaction result.
      */
-    public String add(int dollars, int cents, int tid) {
+    public TransactionResponse add(int dollars, int cents, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (dollars < 0) {
+                tr.setErrorMsg("Cannot add negative dollars to account.");
                 ErrorEventType eeType = new ErrorEventType();
                 eeType.setTimestamp(Calendar.getInstance().getTimeInMillis());
                 eeType.setFunds(BigDecimal.valueOf((long)dollars * CENT_CAP + cents, 2));
@@ -93,11 +97,12 @@ public class UserDatabaseObject {
                 }
                 logAddFunds(dollars, cents, tid);
                 history.add("ADD," + userName + "," + dollars + "." + cents);
-                // TODO: Update database
+                tr.setUserDollars(this.dollars);
+                tr.setUserCents(this.cents);
             }
         }
 
-        return userName + ", " + this.dollars + "." + this.cents;
+        return tr;
     }
 
     /**
@@ -171,8 +176,9 @@ public class UserDatabaseObject {
      * @param tid       The sequence number associated with this request.
      * @return          The transaction result.
      */
-    public String buy(String stock, int dollars, int cents, int tid) {
-        String buyRes;
+    public TransactionResponse buy(String stock, int dollars, int cents, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents)) {
                 QuoteObject quote = shortQuote(stock, tid);
@@ -205,22 +211,27 @@ public class UserDatabaseObject {
                         // TODO: Start a timer to expire the buy request in 60 seconds
                         // TODO: Start a timer on the remaining life of the buy request to notify user
                         history.add("BUY," + userName + "," + stock + "," + dollars + "." + cents);
-                        buyRes = quote.toString();
+
+                        tr.setStockDollars(quote.getDollars());
+                        tr.setStockCents(quote.getCents());
+                        tr.setStock(quote.getStockSymbol());
+                        tr.setSetAsideDollars(sr.getDollars());
+                        tr.setSetAsideCents(sr.getCents());
                     } else {
-                        buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote.toString();
+                        tr.setErrorMsg("Error getting quote");
                     }
                 } catch (Exception e) {
-                    buyRes = "BUY ERROR";
+                    tr.setErrorMsg("Unexpected error buying stock");
                     System.out.println(quote.toString());
                     System.out.println(quote.getErrorString());
                     System.out.println();
                 }
             } else {
-                buyRes = "BUY ERROR," + userName + "," + this.dollars + "." + this.cents;
+                tr.setErrorMsg("Insufficient funds to buy stock");
             }
         }
 
-        return buyRes;
+        return tr;
     }
 
     /**
@@ -240,8 +251,9 @@ public class UserDatabaseObject {
      * @param tid   The sequence number associated with this request.
      * @return      The transaction result.
      */
-    public String commitBuy(int tid) {
-        String commitRes;
+    public TransactionResponse commitBuy(int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (!buyList.isEmpty()) {
                 StockRequest buyReq = buyList.remove();
@@ -255,14 +267,15 @@ public class UserDatabaseObject {
 
                 stocksOwned.put(stock, stockAmt);
                 history.add("COMMIT_BUY," + userName);
-
-                commitRes = "COMMIT_BUY," + userName + "," + stock + "," + buyReq.getDollars() + "." + buyReq.getCents();
+                tr.setStock(stock);
+                tr.setStockDollars(buyReq.getDollars());
+                tr.setStockCents(buyReq.getCents());
             } else {
-                commitRes = "COMMIT_BUY ERROR";
+                tr.setErrorMsg("No valid 'BUY' transactions to commit");
             }
         }
 
-        return commitRes;
+        return tr;
     }
 
     /**
@@ -281,8 +294,9 @@ public class UserDatabaseObject {
      * @param tid   The sequence number associated with this request.
      * @return      The transaction result.
      */
-    public String cancelBuy(int tid) {
-        String cancelRes;
+    public TransactionResponse cancelBuy(int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (!buyList.isEmpty()) {
                 StockRequest buyReq = buyList.remove();
@@ -296,13 +310,15 @@ public class UserDatabaseObject {
                 }
 
                 history.add("CANCEL_BUY," + userName);
-                cancelRes = "CANCEL_BUY," + userName + "," + buyReq.getStock() + "," + this.dollars + "." + this.cents;
+                tr.setStock(buyReq.getStock());
+                tr.setUserDollars(this.dollars);
+                tr.setUserCents(this.cents);
             } else {
-                cancelRes = "CANCEL_BUY ERROR";
+                tr.setErrorMsg("No valid 'BUY' transactions to cancel");
             }
         }
 
-        return cancelRes;
+        return tr;
     }
 
     /**
@@ -324,8 +340,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String sell(String stock, int dollars, int cents, int tid) {
-        String sellRes;
+    public TransactionResponse sell(String stock, int dollars, int cents, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             QuoteObject quote = shortQuote(stock, tid);
 
@@ -362,16 +379,19 @@ public class UserDatabaseObject {
                     // TODO: Start a timer to expire the stored sell request in 60 seconds
                     // TODO: Start a timer on the remaining life of the sell request to notify user
                     history.add("SELL," + userName + "," + stock + "," + dollars + "." + cents);
-                    sellRes = quote.toString();
+                    tr.setStock(stock);
+                    tr.setSellValueDollars(sr.getDollars());
+                    tr.setSellValueCents(sr.getCents());
+                    tr.setStockCount(actualSellCount);
                 } else {
-                    sellRes = "SELL ERROR," + userName + "," + stock + "," + ownedCount + "," + quote.toString();
+                    tr.setErrorMsg("Error: not enough stock in account to sell");
                 }
             } else {
-                sellRes = "SELL ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                tr.setErrorMsg("Error getting quote for sell");
             }
         }
 
-        return sellRes;
+        return tr;
     }
 
     /**
@@ -389,8 +409,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String commitSell(int tid) {
-        String commitRes;
+    public TransactionResponse commitSell(int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (!sellList.isEmpty()) {
                 StockRequest sellReq = sellList.remove();
@@ -406,14 +427,17 @@ public class UserDatabaseObject {
                 }
 
                 history.add("COMMIT_SELL," + userName);
-
-                commitRes = "COMMIT_SELL," + userName + "," + sellReq.getStock() + "," + sellReq.getDollars() + "." + sellReq.getCents();
+                tr.setUserDollars(this.dollars);
+                tr.setUserCents(this.cents);
+                tr.setSellValueDollars(sellReq.getDollars());
+                tr.setSellValueCents(sellReq.getCents());
+                tr.setStock(sellReq.getStock());
             } else {
-                commitRes = "COMMIT_SELL ERROR";
+                tr.setErrorMsg("No valid 'SELL' request exists to commit");
             }
         }
 
-        return commitRes;
+        return tr;
     }
 
     /**
@@ -431,8 +455,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String cancelSell(int tid) {
-        String cancelRes;
+    public TransactionResponse cancelSell(int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (!sellList.isEmpty()) {
                 StockRequest sellReq = sellList.remove();
@@ -447,13 +472,15 @@ public class UserDatabaseObject {
                 stocksOwned.put(stock, stockCount);
 
                 history.add("CANCEL_SELL," + userName);
-                cancelRes = "CANCEL_SELL," + userName + "," + stock + "," + this.dollars + "." + this.cents;
+                tr.setStock(stock);
+                tr.setUserDollars(this.dollars);
+                tr.setUserCents(this.cents);
             } else {
-                cancelRes = "CANCEL_SELL ERROR";
+                tr.setErrorMsg("No valid 'SELL' command exists to cancel");
             }
         }
 
-        return cancelRes;
+        return tr;
     }
 
     /**
@@ -474,8 +501,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String setBuyAmount(String stock, int dollars, int cents, int tid) {
-        String setRes;
+    public TransactionResponse setBuyAmount(String stock, int dollars, int cents, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             // TODO: Confirm the business logic that should be followed if a previous set buy is present
             if (buyAmount == null && (this.dollars > dollars || (this.dollars == dollars && this.cents >= cents))) {
@@ -489,13 +517,15 @@ public class UserDatabaseObject {
                 buyAmount = new StockRequest(stock, 0, dollars, cents, 0);
 
                 history.add("SET_BUY_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents);
-                setRes = "SET_BUY_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents;
+                tr.setStock(stock);
+                tr.setSetAsideDollars(dollars);
+                tr.setSetAsideCents(cents);
             } else {
-                setRes = "SET_BUY_AMOUNT ERROR," + userName + "," + this.dollars + "." + this.cents;
+                tr.setErrorMsg("Insufficient money to set buy amount");
             }
         }
 
-        return setRes;
+        return tr;
     }
 
     /**
@@ -514,8 +544,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String cancelSetBuy(String stock, int tid) {
-        String cancelSet;
+    public TransactionResponse cancelSetBuy(String stock, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             StockRequest buyReq = null;
             history.add("CANCEL_SET_BUY," + userName + "," + stock);
@@ -545,13 +576,15 @@ public class UserDatabaseObject {
                     this.dollars++;
                 }
 
-                cancelSet = "CANCEL_SET_BUY," + userName + "," + stock + "," + this.dollars + "." + this.cents;
+                tr.setStock(stock);
+                tr.setUserDollars(this.dollars);
+                tr.setUserCents(this.cents);
             } else {
-                cancelSet = "CANCEL_SET_BUY ERROR";
+                tr.setErrorMsg("No buy request exists that can be cancelled");
             }
         }
 
-        return cancelSet;
+        return tr;
     }
 
     /**
@@ -572,9 +605,10 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String setBuyTrigger(String stock, int dollars, int cents, int tid) {
+    public TransactionResponse setBuyTrigger(String stock, int dollars, int cents, int tid) {
         StockTrigger trigger = null;
-        String triggerSet;
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (buyAmount != null && buyAmount.getStock().equals(stock)) {
                 StockRequest buy = buyAmount;
@@ -589,20 +623,26 @@ public class UserDatabaseObject {
                     if (stockDollars < dollars || (stockDollars == dollars && stockCents <= cents)) {
                         triggerPurchaseStock(stock, tid, buy, stockDollars, stockCents);
 
-                        triggerSet = "SET_BUY_TRIGGER,BUY,COMMIT_BUY," + quote;
+                        tr.setStock(stock);
+                        tr.setStockDollars(stockDollars);
+                        tr.setStockCents(stockCents);
+                        tr.setUserDollars(this.dollars);
+                        tr.setUserCents(this.cents);
                     } else {
                         // TODO: Update expiry of buy request amount
                         trigger = new StockTrigger(buy, dollars, cents);
                         buyTriggers.add(trigger);
 
-                        triggerSet = "SET_BUY_TRIGGER," + quote;
+                        tr.setStock(stock);
+                        tr.setStockDollars(dollars);
+                        tr.setStockCents(cents);
                     }
 
                 } else {
-                    triggerSet = "SET_BUY_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                    tr.setErrorMsg("Error getting quote for set buy");
                 }
             } else {
-                triggerSet = "SET_BUY_TRIGGER ERROR";
+                tr.setErrorMsg("Invalid get trigger set");
             }
         }
 
@@ -635,7 +675,7 @@ public class UserDatabaseObject {
             );
         }
 
-        return triggerSet;
+        return tr;
     }
 
     /**
@@ -656,8 +696,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String setSellAmount(String stock, int dollars, int cents, int tid) {
-        String setRes;
+    public TransactionResponse setSellAmount(String stock, int dollars, int cents, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             // TODO: Confirm the business logic that should be followed if a previous set sell is present
             int ownedCount = 0;
@@ -669,13 +710,15 @@ public class UserDatabaseObject {
                 sellAmount = new StockRequest(stock, 0, dollars, cents, 0);
 
                 history.add("SET_SELL_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents);
-                setRes = "SET_SELL_AMOUNT," + userName + "," + stock + "," + dollars + "." + cents;
+                tr.setSellValueDollars(dollars);
+                tr.setSellValueCents(cents);
+                tr.setStock(stock);
             } else {
-                setRes = "SET_SELL_AMOUNT ERROR," + userName + "," + this.dollars + "." + this.cents;
+                tr.setErrorMsg("No stock of that type is owned");
             }
         }
 
-        return setRes;
+        return tr;
     }
 
     /**
@@ -694,8 +737,9 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String cancelSetSell(String stock, int tid) {
-        String cancelSet;
+    public TransactionResponse cancelSetSell(String stock, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             StockRequest sellReq = null;
             history.add("CANCEL_SET_SELL," + userName + "," + stock);
@@ -726,13 +770,15 @@ public class UserDatabaseObject {
             }
 
             if (sellReq != null) {
-                cancelSet = "CANCEL_SET_SELL," + userName + "," + stock + "," + this.dollars + "." + this.cents;
+                tr.setStock(stock);
+                tr.setUserDollars(this.dollars);
+                tr.setUserCents(this.cents);
             } else {
-                cancelSet = "CANCEL_SET_SELL ERROR";
+                tr.setErrorMsg("No set sell amount or trigger to cancel");
             }
         }
 
-        return cancelSet;
+        return tr;
     }
 
     /**
@@ -753,9 +799,10 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String setSellTrigger(String stock, int dollars, int cents, int tid) {
+    public TransactionResponse setSellTrigger(String stock, int dollars, int cents, int tid) {
         StockTrigger trigger = null;
-        String triggerSet;
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
             if (sellAmount != null && sellAmount.getStock().equals(stock)) {
                 StockRequest sell = sellAmount;
@@ -785,7 +832,9 @@ public class UserDatabaseObject {
                         if (stockDollars > dollars || (stockDollars == dollars && stockCents >= cents)) {
                             triggerSellStock(stock, tid, sell, actualValue);
 
-                            triggerSet = "SET_SELL_TRIGGER,SELL,COMMIT_SELL," + quote;
+                            tr.setStock(stock);
+                            tr.setSellValueDollars(sell.getDollars());
+                            tr.setSellValueCents(sell.getCents());
                         } else {
                             sell = new StockRequest(
                                     stock,
@@ -797,16 +846,18 @@ public class UserDatabaseObject {
                             trigger = new StockTrigger(sell, dollars, cents);
                             sellTriggers.add(trigger);
 
-                            triggerSet = "SET_SELL_TRIGGER," + quote;
+                            tr.setStock(stock);
+                            tr.setSellValueDollars(sell.getDollars());
+                            tr.setSellValueCents(sell.getCents());
                         }
                     } else {
-                        triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                        tr.setErrorMsg("Not enough stock owned");
                     }
                 } else {
-                    triggerSet = "SET_SELL_TRIGGER ERROR," + userName + "," + this.dollars + "." + this.cents + "," + quote;
+                    tr.setErrorMsg("Error getting quote value");
                 }
             } else {
-                triggerSet = "SET_SELL_TRIGGER ERROR";
+                tr.setErrorMsg("Stock has no amount to set trigger for");
             }
         }
 
@@ -856,7 +907,7 @@ public class UserDatabaseObject {
             );
         }
 
-        return triggerSet;
+        return tr;
     }
 
     /**
@@ -875,13 +926,18 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String dumplog(String filename, int tid) {
+    public TransactionResponse dumplog(String filename, int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
+
         // TODO: Will have to eventually handle this (or just handle elsewhere)
         synchronized (lock) {
-            history.add("DUMPLOG," + userName + "," + filename);
+            List<String> dl = new ArrayList<>();
+            dl.add("DUMPLOG," + filename);
+            tr.setDumplog(dl);
         }
 
-        return "";
+        return tr;
     }
 
     /**
@@ -899,18 +955,19 @@ public class UserDatabaseObject {
      * @param tid The sequence number associated with this request.
      * @return The transaction result.
      */
-    public String displaySummary(int tid) {
-        StringBuilder summary = new StringBuilder();
+    public TransactionResponse displaySummary(int tid) {
+        TransactionResponse tr = new TransactionResponse();
+        tr.setUsername(userName);
         synchronized (lock) {
+            List<String> hist = new ArrayList<>();
             for (String event : history) {
-                summary.append(event);
-                summary.append(";");
+                hist.add(event);
             }
 
             history.add("DISPLAY_SUMMARY," + userName);
         }
 
-        return summary.toString();
+        return tr;
     }
 
     private void logAddFunds(int dollars, int cents, int tid) {
